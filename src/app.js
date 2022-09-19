@@ -105,6 +105,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const options = {
 	definition: {
 		openapi: "3.0.0",
+		components: {},
 		info: {
 			title: "Shoe Store API",
 			version: "1.0.0",
@@ -112,10 +113,9 @@ const options = {
 		},
 		servers: [
 			{
-				url: "http://localhost:3010/",
+				url: "/api/v1",
 			},
 		],
-		basePath: "/",
 	},
 	apis: [
 		path.join(__dirname, "app/controllers/*.js"),

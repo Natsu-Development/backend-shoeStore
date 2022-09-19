@@ -6,6 +6,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
+const accountHelp = require("../../utils/accountHelp");
 require("dotenv").config();
 
 class accountController {
@@ -189,44 +190,14 @@ class accountController {
 	 *         description: Error
 	 */
 	async handleLoginGoogle(req, res) {
-		try {
-			//find user
-			const existUser = await Account.findOne({ userId: req.body.userId });
-			if (existUser) {
-				// return done(null, existUser);
-				res.json(existUser);
-			} else {
-				const newUser = new Account({
-					fullname: req.body.fullname,
-					userId: req.body.userId,
-					email: req.body.email,
-					address: "",
-					numberPhone: "",
-					permission: "2",
-					authType: "google",
-					picture: req.body.picture,
-				});
-				await newUser.save();
-				const token = jwtHelp.createAccessToken(
-					newUser.userId,
-					newUser.permission,
-					newUser.fullname
-				);
-				//return info of user when authenticate successful, store in variable req.user
-				// return done(null, newUser);
-				res.json({ token, newUser });
-			}
-		} catch (err) {
-			// return done(null, {});
-			res.status(400).send();
-		}
+		accountHelp.handleLoginOauth(req, res, "google");
 	}
 
 	/**
 	 * @swagger
 	 * /auth/facebook:
 	 *   post:
-	 *     summary: Login by Facebook.
+	 *     summary: Login by facebook.
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -234,9 +205,18 @@ class accountController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                token:
+	 *                userId:
 	 *                  type: string
-	 *                  description: The access token.
+	 *                  description: The user's id.
+	 *                fullname:
+	 *                  type: string
+	 *                  description: Full name of user.
+	 *                email:
+	 *                  type: string
+	 *                  description: Email's account.
+	 *                picture:
+	 *                  type: string
+	 *                  description: Account's avatar.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -246,34 +226,24 @@ class accountController {
 	 *               properties:
 	 *                  token:
 	 *                    type: string
-	 *                    description: Verify access token success.
+	 *                  user:
+	 *                    type: object
+	 *                    properties:
+	 *                       userId:
+	 *                         type: string
+	 *                       email:
+	 *                         type: string
+	 *                       fullname:
+	 *                         type: string
+	 *                       picture:
+	 *                         type: string
+	 *                       permission:
+	 *                         type: integer
 	 *       400:
-	 *         description: Verify access token failed
+	 *         description: Error
 	 */
 	async handleLoginFacebook(req, res) {
-		try {
-			//find user
-			const existUser = await Account.findOne({ userId: profile.id });
-			if (existUser) {
-				return done(null, existUser);
-			} else {
-				const newUser = new Account({
-					fullname: profile.displayName,
-					userId: profile.id,
-					email: profile.emails[0].value,
-					address: "",
-					numberPhone: "",
-					permission: "2",
-					authType: profile.provider,
-					picture: profile.photos[0].value,
-				});
-				await newUser.save();
-				//return info of user when authenticate successful, store in variable req.user
-				return done(null, newUser);
-			}
-		} catch (err) {
-			return done(null, {});
-		}
+		accountHelp.handleLoginOauth(req, res, "facebook");
 	}
 
 	/**

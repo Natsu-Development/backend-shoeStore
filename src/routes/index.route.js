@@ -44,10 +44,10 @@ function route(app) {
 	app.use("/admin", passportConfig.auth, adminRouter);
 
 	// shoe
-	app.use("/shoes", shoeRouter);
+	app.use("/api/v1/shoes", shoeRouter);
 
 	// account
-	app.use("/auth", accountRouter);
+	app.use("/api/v1/auth", accountRouter);
 
 	// cart and checkout
 	app.use("/customerService", passportConfig.auth, cusRouter);
