@@ -132,43 +132,39 @@ passport.use(
 );
 
 module.exports = {
-	auth: (req, res, next) => {
+	// optimize here with one authenticate function
+	authAdmin: (req, res, next) => {
 		try {
-			// const token = req.cookies.Authorization;
-			const token = req.body.token;
-			// 7 is length of string you want to find subString, endsWith function is find subString in final of String
-			// if user don't have token and want go to admin route redirect adminLogin
+			const decode = jwtHelp.authAccessToken(
+				req.headers.authorization.split(" ")[1],
+				res
+			);
 
-			// render interface login with role
-			if (!token) {
-				// if user(admin) don't have token redirect admin Login
-				// if (req.originalUrl.endsWith("/admin/", 7)) {
-				// 	return res.redirect("/account/adminLogin");
-				// }
-				// if user don't have token redirect customer Login
-				// else {
-				// 	return res.redirect("/account/login");
-				// }
-				res.status(400).send();
-			}
-
-			// if have token start to decode and verify token
-			const decode = jwt.decode(token);
-			jwt.verify(token, ACCESS_JWT_SECRET);
-			// if user have token and access route admin but not admin redirect to home
-			// if (req.originalUrl.endsWith("/admin/", 7) && decode.permission !== 0) {
-			// 	return res.redirect("/");
-			// }
 			if (decode.permission !== 0) {
-				res.status(403).send();
+				res.status(403).send({
+					message: "You do not have permission to do this action",
+					status_code: 403,
+				});
 			}
 			next();
 		} catch (err) {
 			// if accessToken expired, renew accessToken if refreshToken isn't expired
-			if (err.name === "TokenExpiredError") {
-				// jwtHelp.renewAccessToken(req, res);
-				res.send("Token expired");
-			}
+			res.status(401).send({
+				message: "Authentication credentials were not provided.",
+				status_code: 401,
+			});
+		}
+	},
+	authCustomer: (req, res, next) => {
+		try {
+			jwtHelp.authAccessToken(req.headers.authorization.split(" ")[1], res);
+			next();
+		} catch (err) {
+			// if accessToken expired, renew accessToken if refreshToken isn't expired
+			res.status(401).send({
+				message: "Authentication credentials were not provided.",
+				status_code: 401,
+			});
 		}
 	},
 };

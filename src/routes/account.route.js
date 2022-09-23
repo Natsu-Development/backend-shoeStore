@@ -34,7 +34,7 @@ router.get(
 );
 
 // route for test authenticate
-router.get("/testAuth", passportConfig.auth, accountController.testAuth);
+router.get("/testAuth", passportConfig.authAdmin, accountController.testAuth);
 
 // ADMIN LOGIN
 router.get("/adminLogin", accountController.adminLogin);
@@ -63,8 +63,5 @@ router.post("/facebook", accountController.handleLoginFacebook);
 
 //Logout
 router.get("/logout", accountController.logout);
-
-//CHECK LOG
-router.post("/checkLog", accountController.checkLog);
 
 module.exports = router;

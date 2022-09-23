@@ -61,6 +61,7 @@ class accountController {
 	 * /auth/handleLogin:
 	 *   post:
 	 *     summary: User Login.
+	 *     tags: [Authentication]
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -145,6 +146,7 @@ class accountController {
 	 * /auth/google:
 	 *   post:
 	 *     summary: Login by Google.
+	 *     tags: [Authentication]
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -198,6 +200,7 @@ class accountController {
 	 * /auth/facebook:
 	 *   post:
 	 *     summary: Login by facebook.
+	 *     tags: [Authentication]
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -243,6 +246,7 @@ class accountController {
 	 *         description: Error
 	 */
 	async handleLoginFacebook(req, res) {
+		console.log("Test access in facebook function");
 		accountHelp.handleLoginOauth(req, res, "facebook");
 	}
 
@@ -251,6 +255,7 @@ class accountController {
 	 * /auth/verifyToken:
 	 *   post:
 	 *     summary: Verify accessToken.
+	 *     tags: [Authentication]
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -282,6 +287,7 @@ class accountController {
 	 * /auth/refreshToken:
 	 *   post:
 	 *     summary: Refresh accessToken.
+	 *     tags: [Authentication]
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -333,32 +339,6 @@ class accountController {
 		res.clearCookie("refreshToken");
 		res.clearCookie("userInfo");
 		res.redirect("/");
-	}
-
-	/**
-	 * @swagger
-	 * /auth/checkLog:
-	 *   post:
-	 *     summary: Check log.
-	 *     requestBody:
-	 *       content:
-	 *         application/json:
-	 *           schema:
-	 *             type: object
-	 *             properties:
-	 *                data:
-	 *                  type: string
-	 *                  description: The data to log.
-	 *     responses:
-	 *       201:
-	 *         description: Check log payload.
-	 *       400:
-	 *         description: Check log failed
-	 */
-
-	checkLog(req, res) {
-		console.log("test Log", req.body);
-		res.status(200);
 	}
 }
 

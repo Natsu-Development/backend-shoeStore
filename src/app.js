@@ -105,11 +105,29 @@ app.use(express.static(path.join(__dirname, "public")));
 const options = {
 	definition: {
 		openapi: "3.0.0",
-		components: {},
+		components: {
+			securitySchemes: {
+				bearerAuth: {
+					type: "http",
+					scheme: "Bearer",
+					bearerFormat: "JWT",
+					in: "header",
+				},
+			},
+		},
+		security: [
+			{
+				bearerAuth: [],
+			},
+		],
 		info: {
 			title: "Shoe Store API",
 			version: "1.0.0",
 			description: "A simple Express Library API",
+			contact: {
+				name: "Zion",
+				email: "catle.pix@gmail.com",
+			},
 		},
 		servers: [
 			{
@@ -124,12 +142,16 @@ const options = {
 	],
 };
 const specs = swaggerJsDoc(options);
-
 app.use(
 	"/api-docs",
 	swaggerUi.serve,
 	swaggerUi.setup(specs, { explorer: true })
 );
+
+app.use("/swagger.json", (req, res) => {
+	res.setHeader("Content-Type", "application/json");
+	res.send(specs);
+});
 
 // router
 const route = require("./routes/index.route");
@@ -138,8 +160,8 @@ route(app);
 // configure ssl server
 // const sslServer = https.createServer(
 // 	{
-// 		key: fs.readFileSync(path.join(__dirname, "cert", "key.pem")),
-// 		cert: fs.readFileSync(path.join(__dirname, "cert", "cert.pem")),
+// 		key: fs.readFileSync("key.pem"),
+// 		cert: fs.readFileSync("cert.pem"),
 // 		// ca: fs.readFileSync(path.join(__dirname, "cert", "csr.pem")),
 // 	},
 // 	app

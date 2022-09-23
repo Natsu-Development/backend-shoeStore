@@ -1,3 +1,4 @@
+const CategoryType = require("../models/categoryType.model");
 const Category = require("../models/category.model");
 const {
 	mutipleMongooseToObject,
@@ -5,14 +6,14 @@ const {
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
 
-class cateController {
+class cateTypeController {
 	// [GET] /category?type='...'
 	/**
 	 * @swagger
-	 * /admin/category:
+	 * /admin/categoryType:
 	 *   get:
-	 *     summary: List of category.
-	 *     tags: [Admin Category]
+	 *     summary: List type of category.
+	 *     tags: [Admin Type of Category]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     responses:
@@ -42,16 +43,15 @@ class cateController {
 	 */
 	async manager(req, res, next) {
 		// Can use lean() as a callback to change mongoooseList to Object
-		await Category.find()
-			.then((cates) => {
-				console.log("Test access");
+		await CategoryType.find()
+			.then((cateTypes) => {
 				// res.render("adminPages/category/manager", {
 				// 	cates: mutipleMongooseToObject(cates),
 				// 	labels: categoryHelp.setUpLabels(req.query.type),
 				// 	type: req.query.type,
 				// 	layout: "adminLayout",
 				// });
-				res.json(cates);
+				res.json(cateTypes);
 			})
 			.catch((err) => {
 				next(err);
@@ -69,10 +69,10 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/add:
+	 * /admin/categoryType/add:
 	 *   post:
-	 *     summary: Add category.
-	 *     tags: [Admin Category]
+	 *     summary: Add type of category.
+	 *     tags: [Admin Type of Category]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     requestBody:
@@ -82,32 +82,23 @@ class cateController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                name:
+	 *                type:
 	 *                  type: string
-	 *                  description: Name of the category.
+	 *                  description: Type of the category.
 	 *                description:
 	 *                  type: string
-	 *                  description: Description of the category.
-	 *                typeId:
-	 *                  type: string
-	 *                  description: Type id of the category.
+	 *                  description: Description type of the category.
 	 *     responses:
 	 *       201:
-	 *         content:
-	 *           application/json:
-	 *             schema:
-	 *               type: object
-	 *               properties:
-	 *                  message:
-	 *                    type: string
+	 *         description: Created
 	 *       400:
 	 *         description: Error
 	 */
-	// [POST] /category/add
+	// [POST] /categoryType/add
 	create(req, res) {
 		// req.body.type = req.query.type;
 		const newCategory = req.body;
-		const cate = new Category(newCategory);
+		const cate = new CategoryType(newCategory);
 		cate
 			.save()
 			.then(() => {
@@ -136,10 +127,10 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/update/{id}:
+	 * /admin/categoryType/update/{id}:
 	 *   put:
-	 *     summary: Update category.
-	 *     tags: [Admin Category]
+	 *     summary: Update type of category.
+	 *     tags: [Admin Type of Category]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     parameters:
@@ -155,15 +146,12 @@ class cateController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                name:
-	 *                  type: string
-	 *                  description: Name of the category.
-	 *                description:
-	 *                  type: string
-	 *                  description: Description of the category.
 	 *                type:
 	 *                  type: string
 	 *                  description: Type of the category.
+	 *                description:
+	 *                  type: string
+	 *                  description: Description type of the category.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -176,9 +164,9 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	//[PUT] /category/update/:id
+	//[PUT] /categoryType/update/:id
 	update(req, res, next) {
-		Category.updateOne({ _id: req.params.id }, req.body)
+		CategoryType.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
 				// res.redirect(`/admin/category?type=${req.query.type}`);
 				res.status(200).send({ message: "Update successful" });
@@ -191,10 +179,10 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/delete/{id}:
+	 * /admin/categoryType/delete/{id}:
 	 *   delete:
-	 *     summary: Delete category.
-	 *     tags: [Admin Category]
+	 *     summary: Delete type of category.
+	 *     tags: [Admin Type of Category]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     parameters:
@@ -202,7 +190,7 @@ class cateController {
 	 *          name: id
 	 *          type: string
 	 *          required: true
-	 *          description: category ID to delete.
+	 *          description: categoryType ID to delete.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -215,11 +203,13 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	//[DELETE] /category/delete/:id
+	//[DELETE] /categoryType/delete/:id
 	delete(req, res) {
-		Category.deleteOne({ _id: req.params.id })
+		CategoryType.deleteOne({ _id: req.params.id })
 			.then(() => {
-				res.status(200).send({ message: "Deleted" });
+				Category.deleteMany({ typeId: req.params.id }).then(() => {
+					res.status(200).send({ message: "Deleted" });
+				});
 			})
 			.catch((err) => {
 				console.log(err);
@@ -247,4 +237,4 @@ class cateController {
 	}
 }
 
-module.exports = new cateController();
+module.exports = new cateTypeController();

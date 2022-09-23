@@ -1,18 +1,18 @@
-const Category = require("../models/category.model");
+const Cart = require("../models/cart.model");
+const Product = require("../models/product.model");
+const jwtHelp = require("../../utils/jwtHelp");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
-const categoryHelp = require("../../utils/categoryHelp");
 
 class cateController {
-	// [GET] /category?type='...'
 	/**
 	 * @swagger
-	 * /admin/category:
+	 * /customer/cart:
 	 *   get:
-	 *     summary: List of category.
-	 *     tags: [Admin Category]
+	 *     summary: List Cart of user.
+	 *     tags: [Cart]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     responses:
@@ -22,57 +22,59 @@ class cateController {
 	 *             schema:
 	 *               type: object
 	 *               properties:
-	 *                  _id:
+	 *                  image:
 	 *                    type: string
-	 *                    example: 1.
-	 *                  name:
+	 *                    example: image.
+	 *                  productName:
 	 *                    type: string
 	 *                    example: Adidas's product name.
-	 *                  description:
+	 *                  size:
 	 *                    type: string
-	 *                    example: Description of category
-	 *                  type:
-	 *                    type: string
-	 *                    example: The type of category
-	 *                  slug:
-	 *                    type: string
-	 *                    example: The slug of category
+	 *                    example: Size of product
+	 *                  price:
+	 *                    type: number
+	 *                    example: Price of product
+	 *                  quantity:
+	 *                    type: number
+	 *                    example: Quantity of product
 	 *       400:
 	 *         description: Get list failed
 	 */
-	async manager(req, res, next) {
-		// Can use lean() as a callback to change mongoooseList to Object
-		await Category.find()
-			.then((cates) => {
-				console.log("Test access");
-				// res.render("adminPages/category/manager", {
-				// 	cates: mutipleMongooseToObject(cates),
-				// 	labels: categoryHelp.setUpLabels(req.query.type),
-				// 	type: req.query.type,
-				// 	layout: "adminLayout",
-				// });
-				res.json(cates);
+	getCart(req, res, next) {
+		// get userId from token
+		const userId = jwtHelp.decodeTokenGetUserId(
+			req.headers.authorization.split(" ")[1]
+		);
+		// get Cart from userId
+		Cart.find({ userId: userId })
+			.then((carts) => {
+				// cast to object to add value image and productName
+				carts = mutipleMongooseToObject(carts);
+				// get info of product
+				var results = [];
+				carts.forEach(async (cart) => {
+					const product = await Product.findOne({ _id: cart.productId });
+					cart.image = product.arrayImage[0].filename;
+					cart.productName = product.name;
+					results.push(cart);
+					// console.log("test", results);
+					res.json(results);
+				});
+				// console.log("Result", results);
 			})
 			.catch((err) => {
-				next(err);
+				// next(err);
+				console.log(err);
+				res.status(400).send("Invalid input");
 			});
 	}
 
-	// // [GET] /category/add
-	// create(req, res, next) {
-	// 	res.render("adminPages/category/addCategory", {
-	// 		type: req.query.type,
-	// 		labels: categoryHelp.setUpLabels(req.query.type),
-	// 		layout: "adminLayout",
-	// 	});
-	// }
-
 	/**
 	 * @swagger
-	 * /admin/category/add:
+	 * /customer/cart/add:
 	 *   post:
-	 *     summary: Add category.
-	 *     tags: [Admin Category]
+	 *     summary: Add cart.
+	 *     tags: [Cart]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     requestBody:
@@ -82,15 +84,15 @@ class cateController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                name:
+	 *                productId:
 	 *                  type: string
-	 *                  description: Name of the category.
-	 *                description:
-	 *                  type: string
-	 *                  description: Description of the category.
-	 *                typeId:
-	 *                  type: string
-	 *                  description: Type id of the category.
+	 *                  description: Id of product.
+	 *                quantity:
+	 *                  type: number
+	 *                  description: Quantity of product want to add to cart.
+	 *                size:
+	 *                  type: number
+	 *                  description: Size of product
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -103,20 +105,29 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	// [POST] /category/add
 	create(req, res) {
-		// req.body.type = req.query.type;
-		const newCategory = req.body;
-		const cate = new Category(newCategory);
-		cate
-			.save()
-			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
-				res.status(401).send({ message: "Success!" });
+		Product.findOne({ _id: req.body.productId })
+			.then((product) => {
+				const cart = {
+					userId: jwtHelp.decodeTokenGetUserId(
+						req.headers.authorization.split(" ")[1]
+					),
+					productId: req.body.productId,
+					quantity: req.body.quantity,
+					size: req.body.size,
+					total: product.price * req.body.quantity,
+				};
+				const addToCart = new Cart(cart);
+				addToCart.save().then(() => {
+					res.status(401).send("Success");
+				});
 			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
+			.catch((error) => {
+				console.log(error);
+				res.status(400).send({
+					message: "Invalid input",
+					status: 400,
+				});
 			});
 	}
 
@@ -136,10 +147,10 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/update/{id}:
+	 * /customer/cart/update/{id}:
 	 *   put:
-	 *     summary: Update category.
-	 *     tags: [Admin Category]
+	 *     summary: Update cart.
+	 *     tags: [Cart]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     parameters:
@@ -147,7 +158,7 @@ class cateController {
 	 *          name: id
 	 *          type: string
 	 *          required: true
-	 *          description: category id to update.
+	 *          description: id of Cart want to update.
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -155,15 +166,9 @@ class cateController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                name:
-	 *                  type: string
-	 *                  description: Name of the category.
-	 *                description:
-	 *                  type: string
-	 *                  description: Description of the category.
-	 *                type:
-	 *                  type: string
-	 *                  description: Type of the category.
+	 *                quantity:
+	 *                  type: number
+	 *                  description: quantity of cart want to update.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -176,9 +181,8 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	//[PUT] /category/update/:id
 	update(req, res, next) {
-		Category.updateOne({ _id: req.params.id }, req.body)
+		Cart.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
 				// res.redirect(`/admin/category?type=${req.query.type}`);
 				res.status(200).send({ message: "Update successful" });
@@ -191,10 +195,10 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/delete/{id}:
+	 * /customer/cart/delete/{id}:
 	 *   delete:
-	 *     summary: Delete category.
-	 *     tags: [Admin Category]
+	 *     summary: Delete cart.
+	 *     tags: [Cart]
 	 *     security:
 	 *        - bearerAuth: []
 	 *     parameters:
@@ -217,7 +221,7 @@ class cateController {
 	 */
 	//[DELETE] /category/delete/:id
 	delete(req, res) {
-		Category.deleteOne({ _id: req.params.id })
+		Cart.deleteOne({ _id: req.params.id })
 			.then(() => {
 				res.status(200).send({ message: "Deleted" });
 			})

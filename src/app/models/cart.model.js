@@ -3,12 +3,13 @@ const Schema = mongoose.Schema;
 const URLSlug = require("mongoose-slug-generator");
 
 mongoose.plugin(URLSlug);
-const Category = new Schema(
+const Cart = new Schema(
 	{
-		typeId: { type: String, maxLength: 50 },
-		name: { type: String, maxLength: 255 },
-		description: { type: String, maxLength: 600 },
-		slug: { type: String, slug: "name", unique: true },
+		userId: { type: String, maxLength: 50, required: true },
+		productId: { type: String, maxLength: 50, required: true },
+		size: { type: String, maxLength: 255, required: true },
+		quantity: { type: Number },
+		total: { type: Number },
 	},
 	{
 		timestamps: true,
@@ -21,4 +22,4 @@ const Category = new Schema(
 //     next();
 //   });
 
-module.exports = mongoose.model("categorie", Category);
+module.exports = mongoose.model("Cart", Cart);

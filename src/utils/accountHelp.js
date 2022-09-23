@@ -22,12 +22,22 @@ module.exports = {
 			//User exist
 			const existUser = await Account.findOne({ userId: req.body.userId });
 			if (existUser) {
-				const token = jwtHelp.createAccessToken(
-					existUser.userId,
-					existUser.permission,
-					existUser.fullname
+				// always update info of user when account user is exist
+				Account.findOneAndUpdate(
+					{ userId: req.body.userId },
+					req.body,
+					{
+						returnDocument: "after",
+					},
+					(err, userUpdated) => {
+						const token = jwtHelp.createAccessToken(
+							userUpdated.userId,
+							userUpdated.permission,
+							userUpdated.fullname
+						);
+						res.json({ token, userUpdated });
+					}
 				);
-				res.json({ token, existUser });
 			} else {
 				const newUser = new Account({
 					fullname: req.body.fullname,
@@ -39,6 +49,7 @@ module.exports = {
 					authType: authType,
 					picture: req.body.picture,
 				});
+				console.log(newUser);
 				await newUser.save();
 				const token = jwtHelp.createAccessToken(
 					newUser.userId,

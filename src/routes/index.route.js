@@ -41,7 +41,7 @@ function route(app) {
 		next();
 	});
 	// admin routes
-	app.use("/admin", passportConfig.auth, adminRouter);
+	app.use("/api/v1/admin", passportConfig.authAdmin, adminRouter);
 
 	// shoe
 	app.use("/api/v1/shoes", shoeRouter);
@@ -50,7 +50,7 @@ function route(app) {
 	app.use("/api/v1/auth", accountRouter);
 
 	// cart and checkout
-	app.use("/customerService", passportConfig.auth, cusRouter);
+	app.use("/api/v1/customer", passportConfig.authCustomer, cusRouter);
 
 	// site and index
 	app.use("/", siteRouter);

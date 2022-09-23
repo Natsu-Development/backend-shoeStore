@@ -1,5 +1,5 @@
 const Product = require("../models/product.model");
-const Category = require("../models/category.model");
+const CategoryProduct = require("../models/cateProduct.model");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
@@ -10,6 +10,45 @@ const imageHelp = require("../../utils/imageHelp");
 const upload = require("../middlewares/upload.mdw");
 
 class shoeController {
+	/**
+	 * @swagger
+	 * /admin/product:
+	 *   get:
+	 *     summary: List of products.
+	 *     tags: [Admin Products]
+	 *     responses:
+	 *       201:
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  _id:
+	 *                    type: string
+	 *                    example: 1.
+	 *                  productName:
+	 *                    type: string
+	 *                    example: Adidas's product name.
+	 *                  price:
+	 *                    type: integer
+	 *                    example: 68$
+	 *                  introduce:
+	 *                    type: string
+	 *                    example: The introduce of product
+	 *                  arraySize:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{size: 6, amount: 2}, {size: 7, amount: 3}]
+	 *                  arrayImage:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
+	 *                  slug:
+	 *                    type: string
+	 *                    example: The slug of product
+	 *       400:
+	 *         description: Get list failed
+	 */
 	// [GET] /product
 	manager(req, res) {
 		Product.find({}).then((shoes) => {
@@ -23,35 +62,132 @@ class shoeController {
 	}
 
 	// [GET] /product/add
+	// create(req, res) {
+	// 	if (req.query != "warning") delete req.session.errImage;
+	// 	res.render("adminPages/product/productAdd", { layout: "adminLayout" });
+	// }
+
+	/**
+	 * @swagger
+	 * /admin/product/add:
+	 *   post:
+	 *     summary: Add products.
+	 *     tags: [Admin Products]
+	 *     security:
+	 *        - bearerAuth: []
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                  name:
+	 *                    type: string
+	 *                    example: Adidas's product name.
+	 *                  price:
+	 *                    type: integer
+	 *                    example: 68$
+	 *                  introduce:
+	 *                    type: string
+	 *                    example: The introduce of product
+	 *                  description:
+	 *                    type: string
+	 *                    example: The description of product
+	 *                  arrayCategoryId:
+	 *                    type: array
+	 *                    example: [632c260d71e4353b5869f544, 632c268271e4353b5869f559]
+	 *                  size:
+	 *                    type: array
+	 *                    example: [{cateId: 632c269a71e4353b5869f560, amount: 2}, {cateId: 632c302fedc8f3c521113457, amount: 3}]
+	 *                  arrayImage:
+	 *                    type: array
+	 *                    example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
+	 *     responses:
+	 *       201:
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  _id:
+	 *                    type: string
+	 *                    example: 1.
+	 *                  productName:
+	 *                    type: string
+	 *                    example: Adidas's product name.
+	 *                  price:
+	 *                    type: integer
+	 *                    example: 68$
+	 *                  introduce:
+	 *                    type: string
+	 *                    example: The introduce of product
+	 *                  arraySize:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{size: 6, amount: 2}, {size: 7, amount: 3}]
+	 *                  arrayImage:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
+	 *                  slug:
+	 *                    type: string
+	 *                    example: The slug of product
+	 *       400:
+	 *         description: Get list failed
+	 */
+	// [POST] /admin/product/create
 	create(req, res) {
-		if (req.query != "warning") delete req.session.errImage;
-		res.render("adminPages/product/productAdd", { layout: "adminLayout" });
-	}
-	// [POST] /product/save
-	saveCreate(req, res) {
-		upload("image")(req, res, async function (err) {
-			if (err) {
-				// url for redirect back
-				const backUrl = req.header("Referer") || "/";
-				//throw error for the view...
-				req.session.errImage = err;
-				return res.redirect(backUrl + "?warning");
-			}
+		// upload("image")(req, res, async function (err) {
+		// 	if (err) {
+		// 		// url for redirect back
+		// 		const backUrl = req.header("Referer") || "/";
+		// 		//throw error for the view...
+		// 		req.session.errImage = err;
+		// 		return res.redirect(backUrl + "?warning");
+		// 	}
+		// 	const formData = req.body;
+		// 	formData.arrayImage = imageHelp.createArrayImage(req.files);
+		// 	formData.size = productHelp.setAmountForSize(
+		// 		req.body.size,
+		// 		req.body.amountOfSize
+		// 	);
+		// 	formData.amount = productHelp.setAmount(req.body.amountOfSize);
+		// 	const product = new Product(formData);
+		// 	await product
+		// 		.save()
+		// 		.then(() => {
+		// 			res.redirect("/admin/product");
+		// 		})
+		// 		.catch((err) => console.log(err));
+		// });
+		try {
 			const formData = req.body;
-			formData.arrayImage = imageHelp.createArrayImage(req.files);
-			formData.size = productHelp.setAmountForSize(
-				req.body.size,
-				req.body.amountOfSize
-			);
-			formData.amount = productHelp.setAmount(req.body.amountOfSize);
 			const product = new Product(formData);
-			await product
-				.save()
-				.then(() => {
-					res.redirect("/admin/product");
-				})
-				.catch((err) => console.log(err));
-		});
+			product.save().then(() => {
+				Promise.all([
+					req.body.arrayCategoryId.forEach((cateId) => {
+						const cateProduct = new CategoryProduct({
+							cateId: cateId,
+							proId: product._id,
+						});
+						cateProduct.save();
+					}),
+					req.body.size.forEach((size) => {
+						const sizeProduct = new CategoryProduct({
+							cateId: size.cateId,
+							proId: product._id,
+							amount: size.amount,
+						});
+						sizeProduct.save();
+					}),
+				]);
+			});
+			res.status(201);
+		} catch (err) {
+			console.log(err);
+			res.status(400);
+		}
 	}
 
 	// [GET] /product/update/:id
@@ -70,7 +206,7 @@ class shoeController {
 			.catch((err) => console.log(err));
 	}
 	// [PUT] /product/saveUpdate/:id
-	saveUpdate(req, res, next) {
+	update(req, res, next) {
 		upload("image")(req, res, function (err) {
 			if (err) {
 				// url for redirect back
@@ -117,6 +253,7 @@ class shoeController {
 	 * /shoes/displayAllProducts:
 	 *   get:
 	 *     summary: List of products.
+	 *     tags: [Products]
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -194,6 +331,7 @@ class shoeController {
 	 * /shoes/{id}:
 	 *   get:
 	 *     summary: Details of products.
+	 *     tags: [Products]
 	 *     parameters:
 	 *        - in: path
 	 *          name: id
@@ -236,6 +374,7 @@ class shoeController {
 	productDetail(req, res) {
 		Product.findOne({ _id: req.params.id })
 			.then((shoe) => {
+				console.log(shoe);
 				shoe = mongooseToObject(shoe);
 				// res.render("productDetail", { shoe });
 				res.json(shoe);
