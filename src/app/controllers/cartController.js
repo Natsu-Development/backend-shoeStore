@@ -47,20 +47,21 @@ class cateController {
 		);
 		// get Cart from userId
 		Cart.find({ userId: userId })
-			.then((carts) => {
+			.then(async (carts) => {
 				// cast to object to add value image and productName
 				carts = mutipleMongooseToObject(carts);
 				// get info of product
-				var results = [];
-				carts.forEach(async (cart) => {
-					const product = await Product.findOne({ _id: cart.productId });
-					cart.image = product.arrayImage[0].filename;
-					cart.productName = product.name;
-					results.push(cart);
-					// console.log("test", results);
-					res.json(results);
-				});
-				// console.log("Result", results);
+				const results = [];
+				await Promise.all(
+					carts.map(async (cart) => {
+						await Product.findOne({ _id: cart.productId }).then((product) => {
+							cart.image = product.arrayImage[0].filename;
+							cart.productName = product.name;
+							results.push(cart);
+						});
+					})
+				);
+				res.json(results);
 			})
 			.catch((err) => {
 				// next(err);
@@ -195,7 +196,7 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /customer/cart/delete/{id}:
+	 * /customer/cart/delete/{cartId}:
 	 *   delete:
 	 *     summary: Delete cart.
 	 *     tags: [Cart]
@@ -203,10 +204,9 @@ class cateController {
 	 *        - bearerAuth: []
 	 *     parameters:
 	 *        - in: path
-	 *          name: id
-	 *          type: string
+	 *          name: cartId
 	 *          required: true
-	 *          description: category ID to delete.
+	 *          description: array of cart ID to delete.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -219,9 +219,8 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	//[DELETE] /category/delete/:id
 	delete(req, res) {
-		Cart.deleteOne({ _id: req.params.id })
+		Cart.deleteOne({ _id: req.params.cartId })
 			.then(() => {
 				res.status(200).send({ message: "Deleted" });
 			})
