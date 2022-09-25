@@ -1,12 +1,14 @@
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
 const jwtHelp = require("../../utils/jwtHelp");
+const cartHelp = require("../../utils/cartHelp");
+const mongoose = require("mongoose");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
 
-class cateController {
+class cartController {
 	/**
 	 * @swagger
 	 * /customer/cart:
@@ -106,13 +108,21 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	create(req, res) {
+	async create(req, res) {
+		const userId = jwtHelp.decodeTokenGetUserId(
+			req.headers.authorization.split(" ")[1]
+		);
+		// check this product and this size have existed
+		const checkDuplicateCart = cartHelp.updateDuplicateCart(req, userId);
+		if (checkDuplicateCart) {
+			return res.status(200).send("Update successful");
+		}
+
+		// not existed duplicate cart
 		Product.findOne({ _id: req.body.productId })
 			.then((product) => {
 				const cart = {
-					userId: jwtHelp.decodeTokenGetUserId(
-						req.headers.authorization.split(" ")[1]
-					),
+					userId: userId,
 					productId: req.body.productId,
 					quantity: req.body.quantity,
 					size: req.body.size,
@@ -120,7 +130,7 @@ class cateController {
 				};
 				const addToCart = new Cart(cart);
 				addToCart.save().then(() => {
-					res.status(401).send("Success");
+					res.status(200).send("Success");
 				});
 			})
 			.catch((error) => {
@@ -131,20 +141,6 @@ class cateController {
 				});
 			});
 	}
-
-	// [GET] /category/update/:id
-	// async update(req, res, next) {
-	// 	await Category.findById({ _id: req.params.id })
-	// 		.then((cate) => {
-	// 			res.render("adminPages/category/categoryUpdate", {
-	// 				cate: mongooseToObject(cate),
-	// 				labels: categoryHelp.setUpLabels(req.query.type),
-	// 				type: req.query.type,
-	// 				layout: "adminLayout",
-	// 			});
-	// 		})
-	// 		.catch((err) => console.log(err));
-	// }
 
 	/**
 	 * @swagger
@@ -205,8 +201,9 @@ class cateController {
 	 *     parameters:
 	 *        - in: path
 	 *          name: cartId
+	 *          type: string
 	 *          required: true
-	 *          description: array of cart ID to delete.
+	 *          description: cart ID to delete.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -220,7 +217,13 @@ class cateController {
 	 *         description: Error
 	 */
 	delete(req, res) {
-		Cart.deleteOne({ _id: req.params.cartId })
+		// cast to arrObjectId
+		const arrObjectId = req.params.cartId
+			.replace(/\s+/g, "")
+			.split(",")
+			.map((cartId) => mongoose.Types.ObjectId(cartId));
+
+		Cart.deleteMany({ _id: { $in: arrObjectId } })
 			.then(() => {
 				res.status(200).send({ message: "Deleted" });
 			})
@@ -250,4 +253,4 @@ class cateController {
 	}
 }
 
-module.exports = new cateController();
+module.exports = new cartController();
