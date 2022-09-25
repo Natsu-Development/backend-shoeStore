@@ -59,6 +59,7 @@ class cartController {
 						await Product.findOne({ _id: cart.productId }).then((product) => {
 							cart.image = product.arrayImage[0].filename;
 							cart.productName = product.name;
+							cart.productPrice = product.price;
 							results.push(cart);
 						});
 					})

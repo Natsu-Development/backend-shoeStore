@@ -20,7 +20,7 @@ class accountController {
 	 *         email:
 	 *           type: string
 	 *           description: The account's email'.
-	 *           example: example@gmail.com
+	 *           example: catle4551@gmail.com
 	 *         password:
 	 *           type: string
 	 *           description: The account's password.
