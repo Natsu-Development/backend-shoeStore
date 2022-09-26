@@ -88,9 +88,8 @@ class accountController {
 	// [POST] /account/handleCustomerLogin
 	async handleCustomerLogin(req, res) {
 		try {
-			const account = await Account.findOne({ email: req.body.email });
+			let account = await Account.findOne({ email: req.body.email });
 			if (account) {
-				console.log(account);
 				account = mongooseToObject(account);
 				const result = bcrypt.compareSync(req.body.password, account.password);
 				if (result) {
