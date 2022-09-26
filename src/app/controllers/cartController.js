@@ -164,7 +164,10 @@ class cartController {
 	// total update
 	async update(req, res) {
 		try {
-			const updated = await Cart.updateOne({ _id: req.params.id }, req.body);
+			const updated = await Cart.updateOne(
+				{ _id: mongoose.Types.ObjectId(req.params.id) },
+				req.body
+			);
 			if (updated.modifiedCount > 0) {
 				res.status(200).send({ message: "Update successful" });
 			}
