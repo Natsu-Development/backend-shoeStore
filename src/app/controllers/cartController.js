@@ -70,12 +70,15 @@ class cartController {
 	 *                productId:
 	 *                  type: string
 	 *                  description: Id of product.
+	 *                  example: 617e9cb57b1ddb194ce46922
 	 *                quantity:
 	 *                  type: number
 	 *                  description: Quantity of product want to add to cart.
+	 *                  example: 1
 	 *                size:
 	 *                  type: number
 	 *                  description: Size of product
+	 *                  example: 7
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -93,7 +96,7 @@ class cartController {
 			req.headers.authorization.split(" ")[1]
 		);
 		// check this product and this size have existed
-		const checkDuplicateCart = cartHelp.updateDuplicateCart(req, userId);
+		const checkDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
 		if (checkDuplicateCart) {
 			return res.status(200).send("Update successful");
 		}
