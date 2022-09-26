@@ -158,6 +158,8 @@ class order {
 				req.headers.authorization.split(" ")[1]
 			);
 			const carts = await cartHelp.getCartByUserId(userId);
+			const arrCartId = [];
+			// create new order
 			const newOrder = new Order({
 				customerId: userId,
 				total: carts.total,
@@ -165,6 +167,8 @@ class order {
 			});
 
 			const newOrderCreated = await newOrder.save();
+
+			// create new order details
 			await Promise.all(
 				carts.results.map(async (cart) => {
 					const newOrderDetail = new OrderDetail({
@@ -174,15 +178,19 @@ class order {
 						quantity: cart.quantity,
 						price: cart.price,
 					});
+					arrCartId.push(cart._id);
 					await newOrderDetail.save();
 				})
 			);
-			res.status(200).send({
-				message: "Checkout success",
-				status_code: 200,
-			});
-			// delete cart
-			// decrease amount of product
+
+			//delete cart
+			const deletedCart = cartHelp.deleteCart(arrCartId);
+			if (deletedCart) {
+				res.status(200).send({
+					message: "Checkout success",
+					status_code: 200,
+				});
+			}
 		} catch (err) {
 			console.log(err);
 			res.status(400);

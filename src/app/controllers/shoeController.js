@@ -165,26 +165,23 @@ class shoeController {
 			const formData = req.body;
 			const product = new Product(formData);
 			const newProduct = await product.save();
-			await Promise.all(
-				req.body.arrayCategoryId.map(async (cateId) => {
+			await Promise.all([
+				...req.body.arrayCategoryId.map(async (cateId) => {
 					const cateProduct = new CategoryProduct({
 						cateId: cateId,
 						proId: newProduct._id,
 					});
 					const result = await cateProduct.save();
-					console.log("cate Result", result);
 				}),
-				req.body.size.map(async (size) => {
+				...req.body.size.map(async (size) => {
 					const sizeProduct = new CategoryProduct({
 						cateId: size.cateId,
 						proId: newProduct._id,
 						amount: size.amount,
 					});
 					const resultSize = await sizeProduct.save();
-					console.log("Result size", resultSize);
-				})
-			);
-			console.log("test");
+				}),
+			]);
 			return res.status(201).send("Success");
 		} catch (err) {
 			console.log(err);

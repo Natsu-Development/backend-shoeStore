@@ -45,6 +45,13 @@ class cartHelp {
 		);
 		return { results, totalCart };
 	}
+
+	async deleteCart(arrCartId) {
+		const deletedCart = await Cart.deleteMany({ _id: { $in: arrCartId } });
+		if (deletedCart.modifiedCount > 0) {
+			return true;
+		} else return false;
+	}
 }
 
 module.exports = new cartHelp();

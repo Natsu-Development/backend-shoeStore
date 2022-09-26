@@ -86,43 +86,30 @@ class accountController {
 	 *         description: Login failed
 	 */
 	// [POST] /account/handleCustomerLogin
-	handleCustomerLogin(req, res) {
-		Account.findOne({ email: req.body.email })
-			.then((account) => {
-				if (account) {
-					account = mongooseToObject(account);
-					const result = bcrypt.compareSync(
-						req.body.password,
-						account.password
+	async handleCustomerLogin(req, res) {
+		try {
+			const account = await Account.findOne({ email: req.body.email });
+			if (account) {
+				console.log(account);
+				account = mongooseToObject(account);
+				const result = bcrypt.compareSync(req.body.password, account.password);
+				if (result) {
+					const tokens = jwtHelp.encodeAndStoreToken(
+						account._id,
+						account.permission,
+						account.fullname
 					);
-					if (result) {
-						const tokens = jwtHelp.encodeAndStoreToken(
-							account._id,
-							account.permission,
-							account.fullname
-						);
-						// res.cookie("Authorization", tokens.accessToken, {
-						// 	maxAge: 600000,
-						// 	httpOnly: true,
-						// });
-						// res.cookie("RefreshToken", tokens.refreshToken, {
-						// 	maxAge: 600000,
-						// 	httpOnly: true,
-						// });
-						// return res.redirect("/");
-						res.status(201).send(tokens);
-					}
-					// req.session.loginErr =
-					// 	"Your password is incorrect. Please try again.";
-					// return res.redirect("back");
-					res.status(400).send();
+					res.status(200).send(tokens);
+				} else {
+					res.status(400).send("Your password is incorrect. Please try again");
 				}
-				// req.session.loginErr =
-				// 	"Your account name or your password is incorrect. Please try again.";
-				// return res.redirect("back");
-				res.status(400).send();
-			})
-			.catch((err) => console.log(err));
+			} else {
+				res.status(400).send("Your email is incorrect. Please try again");
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(400).send("Invalid input");
+		}
 	}
 
 	//[GET] /account/register

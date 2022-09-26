@@ -46,16 +46,6 @@ class orderHelp {
 		return total;
 	}
 
-	// get next orderId
-	async getOrderId() {
-		// select max
-		const maxOrderId = await Order.find({}).sort({ _id: -1 }).limit(1);
-		if (maxOrderId.length === 0) {
-			return 1;
-		}
-		return maxOrderId[0]._id;
-	}
-
 	async handleSubOrderUpdate(listForUpdate, listSubOrder) {
 		for (var i = 0; i < listForUpdate.length; i++) {
 			// update subOrder from listSubOrder (info of shoe in subOrder) and listForUpdate(id of subOrder)
