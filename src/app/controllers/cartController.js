@@ -161,16 +161,17 @@ class cartController {
 	 *       400:
 	 *         description: Error
 	 */
-	update(req, res, next) {
-		Cart.updateOne({ _id: req.params.id }, req.body)
-			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
+	// total update
+	async update(req, res) {
+		try {
+			const updated = await Cart.updateOne({ _id: req.params.id }, req.body);
+			if (updated.modifiedCount > 0) {
 				res.status(200).send({ message: "Update successful" });
-			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
-			});
+			}
+		} catch (error) {
+			console.log(error);
+			res.status(400).send({ message: "Invalid input" });
+		}
 	}
 
 	/**
