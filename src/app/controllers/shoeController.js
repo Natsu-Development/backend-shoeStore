@@ -137,7 +137,7 @@ class shoeController {
 	 *         description: Get list failed
 	 */
 	// [POST] /admin/product/create
-	create(req, res) {
+	async create(req, res) {
 		// upload("image")(req, res, async function (err) {
 		// 	if (err) {
 		// 		// url for redirect back
@@ -164,26 +164,28 @@ class shoeController {
 		try {
 			const formData = req.body;
 			const product = new Product(formData);
-			product.save().then(() => {
-				Promise.all([
-					req.body.arrayCategoryId.forEach((cateId) => {
-						const cateProduct = new CategoryProduct({
-							cateId: cateId,
-							proId: product._id,
-						});
-						cateProduct.save();
-					}),
-					req.body.size.forEach((size) => {
-						const sizeProduct = new CategoryProduct({
-							cateId: size.cateId,
-							proId: product._id,
-							amount: size.amount,
-						});
-						sizeProduct.save();
-					}),
-				]);
-			});
-			res.status(201);
+			const newProduct = await product.save();
+			await Promise.all(
+				req.body.arrayCategoryId.map(async (cateId) => {
+					const cateProduct = new CategoryProduct({
+						cateId: cateId,
+						proId: newProduct._id,
+					});
+					const result = await cateProduct.save();
+					console.log("cate Result", result);
+				}),
+				req.body.size.map(async (size) => {
+					const sizeProduct = new CategoryProduct({
+						cateId: size.cateId,
+						proId: newProduct._id,
+						amount: size.amount,
+					});
+					const resultSize = await sizeProduct.save();
+					console.log("Result size", resultSize);
+				})
+			);
+			console.log("test");
+			return res.status(201).send("Success");
 		} catch (err) {
 			console.log(err);
 			res.status(400);

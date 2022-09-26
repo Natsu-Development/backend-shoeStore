@@ -25,6 +25,26 @@ class cartHelp {
 			})
 		);
 	}
+
+	async getCartByUserId(userId) {
+		let carts = await Cart.find({ userId: userId });
+		carts = mutipleMongooseToObject(carts);
+		let totalCart = 0;
+		// get info of product
+		const results = [];
+		await Promise.all(
+			carts.map(async (cart) => {
+				await Product.findOne({ _id: cart.productId }).then((product) => {
+					cart.image = product.arrayImage[0].filename;
+					cart.productName = product.name;
+					cart.productPrice = product.price;
+					totalCart += cart.quantity * product.price;
+					results.push(cart);
+				});
+			})
+		);
+		return { results, totalCart };
+	}
 }
 
 module.exports = new cartHelp();

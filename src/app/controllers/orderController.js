@@ -1,6 +1,11 @@
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
-const { mutipleMongooseToObject,mongooseToObject } = require("../../utils/mongoose");
+const cartHelp = require("../../utils/cartHelp");
+const jwtHelp = require("../../utils/jwtHelp");
+const {
+	mutipleMongooseToObject,
+	mongooseToObject,
+} = require("../../utils/mongoose");
 const orderHelp = require("../../utils/orderHelp");
 const jwt = require("jsonwebtoken");
 
@@ -47,15 +52,14 @@ class order {
 
 	//[GET] /order/orderUpdate/:id
 	orderUpdate(req, res) {
-		OrderDetail.find({ orderDetailId: req.params.id })
-            .then((orderDetails) => {
-                orderDetails = mutipleMongooseToObject(orderDetails);
-                res.render("adminPages/order/orderUpdate", {
-                    orderDetails,
-                    orderId: req.params.id,
-                    layout: "adminLayout",
-                });
-            });
+		OrderDetail.find({ orderDetailId: req.params.id }).then((orderDetails) => {
+			orderDetails = mutipleMongooseToObject(orderDetails);
+			res.render("adminPages/order/orderUpdate", {
+				orderDetails,
+				orderId: req.params.id,
+				layout: "adminLayout",
+			});
+		});
 	}
 
 	//[PUT] order/saveUpdate/:id
@@ -71,12 +75,15 @@ class order {
 			req.body.quantity,
 			req.body.price
 		);
-        console.log("🚀 ~ file: orderController.js ~ line 75 ~ order ~ saveUpdate ~ listSubOrder", listSubOrder)
-		
+		console.log(
+			"🚀 ~ file: orderController.js ~ line 75 ~ order ~ saveUpdate ~ listSubOrder",
+			listSubOrder
+		);
+
 		// subOrder Update
 		await orderHelp.handleSubOrderUpdate(listForUpdate, listSubOrder);
 
-		// new subOrder 
+		// new subOrder
 		await orderHelp.handleNewSubOrder(listForAdd, listSubOrder, req.params.id);
 
 		// subOrder Delete
@@ -123,51 +130,63 @@ class order {
 			await newOrderDetail.save();
 		}
 		const newOrder = new Order(order);
-		newOrder.save()
+		newOrder
+			.save()
 			.then(() => {
 				console.log("done");
 			})
 			.catch((err) => console.log(err));
 	}
 
-	//[POST] /checkout (client)
+	/**
+	 * @swagger
+	 * /customer/checkout:
+	 *   post:
+	 *     summary: Checkout cart.
+	 *     tags: [Customer Service]
+	 *     security:
+	 *        - bearerAuth: []
+	 *     responses:
+	 *       201:
+	 *         description: Checkout success
+	 *       400:
+	 *         description: Get list failed
+	 */
 	async checkout(req, res) {
-		// decode accessToken to get info of user
-		const decode = jwt.decode(req.cookies.Authorization);
-		var order = {
-			customerId: decode.id,
-			date: new Date(),
-			total: req.body.total,
-			confirmed: 0,
-		};
-		// get all of product in cart to checkout
-		var cartCheckout = orderHelp.formatOrder(
-			req.body.shoeId,
-			req.body.size,
-			req.body.quantity,
-			req.body.price
-		);
-		// get orderId for next order
-		const nextOrderId = await orderHelp.getOrderId();
-		for (var i = 0; i < cartCheckout.length; i++) {
-			// get next orderId from order
-			cartCheckout[i].orderDetailId = nextOrderId;
-			const newOrderDetail = new OrderDetail(cartCheckout[i]);
-			orderHelp.handleAmountProduct(
-				cartCheckout[i].shoeId,
-				cartCheckout[i].size,
-				cartCheckout[i].quantity
+		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
 			);
-			await newOrderDetail.save();
+			const carts = await cartHelp.getCartByUserId(userId);
+			const newOrder = new Order({
+				customerId: userId,
+				total: carts.total,
+				confirmed: 0,
+			});
+
+			const newOrderCreated = await newOrder.save();
+			await Promise.all(
+				carts.results.map(async (cart) => {
+					const newOrderDetail = new OrderDetail({
+						orderDetailId: newOrderCreated._id,
+						shoeId: cart.shoeId,
+						size: cart.size,
+						quantity: cart.quantity,
+						price: cart.price,
+					});
+					await newOrderDetail.save();
+				})
+			);
+			res.status(200).send({
+				message: "Checkout success",
+				status_code: 200,
+			});
+			// delete cart
+			// decrease amount of product
+		} catch (err) {
+			console.log(err);
+			res.status(400);
 		}
-		const newOrder = new Order(order);
-		newOrder.save()
-			.then(() => {
-				res.render("checkoutComplete", {
-					checkoutComplete: true,
-				});
-			})
-			.catch((err) => console.log(err));
 	}
 }
 

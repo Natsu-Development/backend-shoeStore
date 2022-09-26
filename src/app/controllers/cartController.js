@@ -42,35 +42,14 @@ class cartController {
 	 *       400:
 	 *         description: Get list failed
 	 */
-	getCart(req, res, next) {
+	async getCart(req, res, flag) {
 		// get userId from token
 		const userId = jwtHelp.decodeTokenGetUserId(
 			req.headers.authorization.split(" ")[1]
 		);
 		// get Cart from userId
-		Cart.find({ userId: userId })
-			.then(async (carts) => {
-				// cast to object to add value image and productName
-				carts = mutipleMongooseToObject(carts);
-				// get info of product
-				const results = [];
-				await Promise.all(
-					carts.map(async (cart) => {
-						await Product.findOne({ _id: cart.productId }).then((product) => {
-							cart.image = product.arrayImage[0].filename;
-							cart.productName = product.name;
-							cart.productPrice = product.price;
-							results.push(cart);
-						});
-					})
-				);
-				res.json(results);
-			})
-			.catch((err) => {
-				// next(err);
-				console.log(err);
-				res.status(400).send("Invalid input");
-			});
+		const results = await cartHelp.getCartByUserId(userId);
+		res.json(results);
 	}
 
 	/**
