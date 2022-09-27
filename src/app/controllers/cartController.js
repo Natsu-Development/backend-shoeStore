@@ -146,9 +146,18 @@ class cartController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
+	 *                productId:
+	 *                  type: string
+	 *                  description: id of cart's product want to update.
+	 *                  example: 617e9cb57b1ddb194ce46922
 	 *                quantity:
 	 *                  type: number
 	 *                  description: quantity of cart want to update.
+	 *                  example: 2
+	 *                size:
+	 *                  type: number
+	 *                  description: size of cart want to update.
+	 *                  example: 7.5
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -164,12 +173,20 @@ class cartController {
 	// total update
 	async update(req, res) {
 		try {
-			const updated = await Cart.updateOne(
-				{ _id: mongoose.Types.ObjectId(req.params.id) },
-				req.body
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
 			);
+
+			const product = await Product.findOne({ _id: req.body.productId });
+			const updated = await Cart.updateOne(
+				{ $and: [{ _id: req.params.id }, { userId: userId }] },
+				{ ...req.body, total: req.body.quantity * product.price }
+			);
+
 			if (updated.modifiedCount > 0) {
 				res.status(200).send({ message: "Update successful" });
+			} else {
+				res.status(400).send({ message: "Invalid Input" });
 			}
 		} catch (error) {
 			console.log(error);
