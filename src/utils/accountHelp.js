@@ -21,6 +21,7 @@ module.exports = {
 		try {
 			//User exist
 			const existUser = await Account.findOne({ userId: req.body.userId });
+			const expired_at = new Date().setDate(new Date().getDate() + 3);
 			if (existUser) {
 				// always update info of user when account user is exist
 				Account.findOneAndUpdate(
@@ -35,7 +36,7 @@ module.exports = {
 							userUpdated.permission,
 							userUpdated.fullname
 						);
-						res.json({ token, userUpdated });
+						res.json({ token, userUpdated, expired_at });
 					}
 				);
 			} else {
@@ -56,7 +57,7 @@ module.exports = {
 					newUser.permission,
 					newUser.fullname
 				);
-				res.json({ token, newUser });
+				res.json({ token, newUser, expired_at });
 			}
 		} catch (err) {
 			res.status(400).send();

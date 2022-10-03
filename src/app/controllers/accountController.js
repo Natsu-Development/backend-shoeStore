@@ -98,8 +98,12 @@ class accountController {
 						user.permission,
 						user.fullname
 					);
-					console.log("user", user, tokens);
-					res.status(200).send({ tokens, user });
+					const expired_at = new Date().setDate(new Date().getDate() + 3);
+					// console.log(
+					// 	"🚀 ~ file: accountController.js ~ line 102 ~ accountController ~ handleCustomerLogin ~ expired_at",
+					// 	expired_at
+					// );
+					res.status(200).send({ tokens, user, expired_at });
 				} else {
 					res.status(400).send("Your password is incorrect. Please try again");
 				}
