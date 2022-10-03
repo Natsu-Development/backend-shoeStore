@@ -1,4 +1,5 @@
 const Category = require("../models/category.model");
+const CategoryType = require("../models/categoryType.model");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
@@ -6,15 +7,20 @@ const {
 const categoryHelp = require("../../utils/categoryHelp");
 
 class cateController {
-	// [GET] /category?type='...'
 	/**
 	 * @swagger
-	 * /admin/category:
+	 * /admin/categoryByType/{typeId}:
 	 *   get:
-	 *     summary: List of category.
+	 *     summary: List of category by type.
 	 *     tags: [Admin Category]
 	 *     security:
 	 *        - bearerAuth: []
+	 *     parameters:
+	 *        - in: path
+	 *          name: typeId
+	 *          type: string
+	 *          required: true
+	 *          description: typeId of category to display.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -40,22 +46,25 @@ class cateController {
 	 *       400:
 	 *         description: Get list failed
 	 */
-	async manager(req, res, next) {
-		// Can use lean() as a callback to change mongoooseList to Object
-		await Category.find()
-			.then((cates) => {
-				console.log("Test access");
-				// res.render("adminPages/category/manager", {
-				// 	cates: mutipleMongooseToObject(cates),
-				// 	labels: categoryHelp.setUpLabels(req.query.type),
-				// 	type: req.query.type,
-				// 	layout: "adminLayout",
-				// });
-				res.json(cates);
-			})
-			.catch((err) => {
-				next(err);
+	async manager(req, res) {
+		try {
+			const catesByType = await Category.findOne({
+				typeId: req.params.typeId,
 			});
+			console.log(
+				"🚀 ~ file: cateController.js ~ line 54 ~ cateController ~ manager ~ catesByType",
+				catesByType
+			);
+			// res.status(200).send(catesByType);
+			res.render("adminPages/category/manager", {
+				catesByType: catesByType,
+				// labels: categoryHelp.setUpLabels(req.query.type),
+				layout: "adminLayout",
+			});
+		} catch (err) {
+			console.log(err);
+			res.status(400).send("Invalid input");
+		}
 	}
 
 	// // [GET] /category/add
@@ -69,12 +78,18 @@ class cateController {
 
 	/**
 	 * @swagger
-	 * /admin/category/add:
+	 * /admin/category/{typeId}/add:
 	 *   post:
 	 *     summary: Add category.
 	 *     tags: [Admin Category]
 	 *     security:
 	 *        - bearerAuth: []
+	 *     parameters:
+	 *        - in: path
+	 *          name: typeId
+	 *          type: string
+	 *          required: true
+	 *          description: typeId of category to add.
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -88,9 +103,6 @@ class cateController {
 	 *                description:
 	 *                  type: string
 	 *                  description: Description of the category.
-	 *                typeId:
-	 *                  type: string
-	 *                  description: Type id of the category.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -103,21 +115,24 @@ class cateController {
 	 *       400:
 	 *         description: Error
 	 */
-	// [POST] /category/add
-	create(req, res) {
-		// req.body.type = req.query.type;
-		const newCategory = req.body;
-		const cate = new Category(newCategory);
-		cate
-			.save()
-			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
-				res.status(401).send({ message: "Success!" });
-			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
+	async create(req, res) {
+		try {
+			// check typeId have exist in category type
+			const typeIdExist = await CategoryType.findOne({
+				_id: req.params.typeId,
 			});
+			if (typeIdExist) {
+				const newCategory = { ...req.body, typeId: req.params.typeId };
+				const cate = new Category(newCategory);
+				await cate.save();
+				res.status(200).send({ message: "Success!" });
+			} else {
+				res.status(400).send({ message: "Invalid input" });
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(400).send({ message: "Invalid input" });
+		}
 	}
 
 	// [GET] /category/update/:id

@@ -40,8 +40,10 @@ function route(app) {
 		res.locals.loginErr = req.session.loginErr;
 		next();
 	});
-	// admin routes
-	app.use("/api/v1/admin", passportConfig.authAdmin, adminRouter);
+	// admin routes api
+	// app.use("/api/v1/admin", passportConfig.authAdmin, adminRouter);
+	// admin routes handlebars
+	app.use("/admin", adminRouter);
 
 	// shoe
 	app.use("/api/v1/shoes", shoeRouter);

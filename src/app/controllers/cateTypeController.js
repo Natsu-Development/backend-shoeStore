@@ -43,29 +43,33 @@ class cateTypeController {
 	 */
 	async manager(req, res, next) {
 		// Can use lean() as a callback to change mongoooseList to Object
-		await CategoryType.find()
+		CategoryType.find()
 			.then((cateTypes) => {
-				// res.render("adminPages/category/manager", {
-				// 	cates: mutipleMongooseToObject(cates),
-				// 	labels: categoryHelp.setUpLabels(req.query.type),
-				// 	type: req.query.type,
-				// 	layout: "adminLayout",
-				// });
-				res.json(cateTypes);
+				res.render("adminPages/categoryType/manager", {
+					cateTypes: mutipleMongooseToObject(cateTypes),
+					layout: "adminLayout",
+				});
+				// res.json(cateTypes);
 			})
 			.catch((err) => {
 				next(err);
 			});
 	}
 
-	// // [GET] /category/add
-	// create(req, res, next) {
-	// 	res.render("adminPages/category/addCategory", {
-	// 		type: req.query.type,
-	// 		labels: categoryHelp.setUpLabels(req.query.type),
-	// 		layout: "adminLayout",
-	// 	});
-	// }
+	// [GET] /categoryType/renderCreate
+	renderCreate(req, res) {
+		res.render("adminPages/categoryType/addCategoryType", {
+			layout: "adminLayout",
+		});
+	}
+
+	// [GET] /categoryType/getAll
+	getAll(req, res) {
+		CategoryType.find().then((cateTypes) => {
+			cateTypes = mutipleMongooseToObject(cateTypes);
+			res.send(cateTypes);
+		});
+	}
 
 	/**
 	 * @swagger

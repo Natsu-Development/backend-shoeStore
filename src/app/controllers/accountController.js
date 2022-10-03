@@ -58,7 +58,7 @@ class accountController {
 
 	/**
 	 * @swagger
-	 * /auth/handleLogin:
+	 * /auth/login:
 	 *   post:
 	 *     summary: User Login.
 	 *     tags: [Authentication]
@@ -85,20 +85,21 @@ class accountController {
 	 *       400:
 	 *         description: Login failed
 	 */
-	// [POST] /account/handleCustomerLogin
 	async handleCustomerLogin(req, res) {
 		try {
-			let account = await Account.findOne({ email: req.body.email });
-			if (account) {
-				account = mongooseToObject(account);
-				const result = bcrypt.compareSync(req.body.password, account.password);
+			console.log("Body", req.body);
+			let user = await Account.findOne({ email: req.body.email });
+			if (user) {
+				user = mongooseToObject(user);
+				const result = bcrypt.compareSync(req.body.password, user.password);
 				if (result) {
 					const tokens = jwtHelp.encodeAndStoreToken(
-						account._id,
-						account.permission,
-						account.fullname
+						user._id,
+						user.permission,
+						user.fullname
 					);
-					res.status(200).send(tokens);
+					console.log("user", user, tokens);
+					res.status(200).send({ tokens, user });
 				} else {
 					res.status(400).send("Your password is incorrect. Please try again");
 				}

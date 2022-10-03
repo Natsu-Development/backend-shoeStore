@@ -6,22 +6,24 @@ const shoeController = require("../app/controllers/shoeController");
 const accountController = require("../app/controllers/accountController");
 const orderController = require("../app/controllers/orderController");
 
-const passportConfig = require("../app/middlewares/passport.mdw");
-
 // //ACCOUNT
 // router.get('/adminLogin', accountController.adminLogin);
 // router.post('/account/handleAdminLogin', accountController.handleAdminLogin);
 // router.get('/account/renewAccessToken', accountController.renewAccessToken);
 
 // CATEGORY
-router.get("/category", cateController.manager);
-router.post("/category/add", cateController.create);
+router.get("/category/:typeId", cateController.manager);
+router.post("/category/:typeId/add", cateController.create);
 router.put("/category/update/:id", cateController.update);
 router.delete("/category/delete/:id", cateController.delete);
 router.get("/category/:slug", cateController.findCategoryByName);
 
 // CATEGORY TYPE
+// interface for category type
+router.get("/categoryType/addType", cateTypeController.renderCreate);
+// API
 router.get("/categoryType", cateTypeController.manager);
+router.get("/categoryType/getAll", cateTypeController.getAll);
 router.post("/categoryType/add", cateTypeController.create);
 router.put("/categoryType/update/:id", cateTypeController.update);
 router.delete("/categoryType/delete/:id", cateTypeController.delete);

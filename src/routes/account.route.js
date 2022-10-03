@@ -41,8 +41,8 @@ router.get("/adminLogin", accountController.adminLogin);
 router.post("/handleAdminLogin", accountController.handleAdminLogin);
 
 //LOGIN
-router.get("/login", accountController.customLogin);
-router.post("/handleLogin", accountController.handleCustomerLogin);
+// router.get("/login", accountController.customLogin);
+router.post("/login", accountController.handleCustomerLogin);
 
 // VERIFY TOKEN
 router.post("/verifyToken", accountController.authAccessToken);

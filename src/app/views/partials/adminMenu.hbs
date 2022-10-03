@@ -10,14 +10,15 @@
     <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
         <li class="active"><a href="index.html"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
         </li>
-        <li class=" nav-item"><a><i class="ft-server"></i><span class="menu-title" data-i18n="">Category</span></a>
-            <ul class="menu-content">
-                <li><a class="menu-item" href="/admin/category?type=brand">Category by Brand</a>
-                </li>
-                <li><a class="menu-item" href="/admin/category?type=style">Category by Style</a>
-                </li>
-                <li><a class="menu-item" href="/admin/category?type=size">Category by Size</a>
-                </li>
+        <li class=" nav-item"><a href="/admin/categoryType"><i class="ft-server"></i><span class="menu-title" data-i18n="">Category type</span></a>
+        </li>
+        <li class=" nav-item">
+            <a id="getAllType">
+                <i class="ft-server"></i>
+                <span class="menu-title" data-i18n="">Category</span>
+            </a>
+            <ul class="menu-content" id="displayType">
+                {{!-- Category by type call API and display here --}}
             </ul>
         </li>
         <li class=" nav-item"><a><i class="ft-server"></i><span class="menu-title" data-i18n="">Product</span></a>
@@ -54,3 +55,25 @@
     </div><a class="btn btn-danger btn-block btn-glow btn-upgrade-pro mx-1" href="https://themeselection.com/products/chameleon-admin-modern-bootstrap-webapp-dashboard-html-template-ui-kit/" target="_blank">Download PRO!</a>
     <div class="navigation-background"></div>
 </div>
+
+<script>
+    document.getElementById('getAllType').addEventListener('click', () => {
+        $.ajax({
+            url: "/admin/categoryType/getAll",
+            method: 'GET',
+            success:function(datas){
+                var output = "";
+                datas.forEach((data) => {
+                    output += 
+                    `<li>
+                        <a class="menu-item" href="/admin/category/${data._id}">Category by ${data.type}</a>
+                    </li>`;
+                });
+                $("#displayType").html(output);
+            },
+            error: function(err){
+                alert('error', err);
+            }
+        })
+    })
+</script>

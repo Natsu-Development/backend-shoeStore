@@ -5,6 +5,7 @@ const path = require("path");
 const methodOverride = require("method-override");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
 const fs = require("fs");
 const http = require("http");
 
@@ -13,6 +14,11 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("../swagger.json");
 const swaggerJsDoc = require("swagger-jsdoc");
 
+// method public (get/post/...) and json
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+//override method (Post, put, patch)
+app.use(methodOverride("_method"));
 //cookieParser
 app.use(cookieParser());
 //session
@@ -32,8 +38,6 @@ app.use(cors());
 // database
 const db = require("./config/");
 db.connect();
-//override method (Post, put, patch)
-app.use(methodOverride("_method"));
 
 // express handlebars
 const exphbs = require("express-handlebars");
@@ -92,9 +96,6 @@ app.engine(
 );
 app.set("view engine", ".hbs");
 app.set("views", "src/app/views");
-// method public (get/post/...) and json
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 // static route to public for user and admin
 // app.use('/public', express.static('public'));
@@ -114,12 +115,8 @@ const options = {
 					in: "header",
 				},
 			},
+			persistAuthorization: true,
 		},
-		security: [
-			{
-				bearerAuth: [],
-			},
-		],
 		info: {
 			title: "Shoe Store API",
 			version: "1.0.0",
