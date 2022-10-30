@@ -355,6 +355,8 @@ class cateController {
 
 		console.log("test", result);
 
+		res.status(200).send(result);
+
 		// console.log(categoryList);
 	}
 }
