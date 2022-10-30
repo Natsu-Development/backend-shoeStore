@@ -330,34 +330,13 @@ class cateController {
 			},
 		]);
 
-		let i = 1;
 		let result = categoryList.reduce((c, v) => {
-			c[v.type] = c[v.type] || {};
-			// console.log("test", v);
-			c[v.type]["cateId" + i] = v.result._id;
-			// console.log("_id", v.result._id);
-			c[v.type]["cateName" + i] = v.result.name;
-			i++;
-			// console.log("_id", v.result.name);
+			c[v.type] = c[v.type] || [];
+			c[v.type].push({ cateId: v.result._id, cateName: v.result.name });
 			return c;
 		}, {});
 
-		// let result = categoryList.reduce((c, v) => {
-		// 	c[v.type]['item'] = c[v.type]['item'] || i = 1;
-		// 	// console.log("test", v);
-		// 	c[v.type]['item'] = v.result._id;
-		// 	// console.log("_id", v.result._id);
-		// 	c[v.type]["cateName" + i] = v.result.name;
-		// 	i++;
-		// 	// console.log("_id", v.result.name);
-		// 	return c;
-		// }, {});
-
-		console.log("test", result);
-
 		res.status(200).send(result);
-
-		// console.log(categoryList);
 	}
 }
 
