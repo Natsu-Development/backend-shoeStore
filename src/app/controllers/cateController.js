@@ -117,6 +117,7 @@ class cateController {
 	 */
 	async create(req, res) {
 		try {
+			console.log("test api");
 			// check typeId have exist in category type
 			const typeIdExist = await CategoryType.findOne({
 				_id: req.params.typeId,
@@ -259,6 +260,102 @@ class cateController {
 			.catch((err) => {
 				next(err);
 			});
+	}
+
+	async getAllTypes(req, res) {
+		const typeList = await CategoryType.find({});
+		const result = [];
+		typeList.forEach((type) => {
+			result.push({ type: type.type });
+		});
+		return result;
+	}
+
+	// CLIENT
+	/**
+	 * @swagger
+	 * /category:
+	 *   get:
+	 *     summary: List of category.
+	 *     tags: [Category]
+	 *     responses:
+	 *       200:
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  _id:
+	 *                    type: string
+	 *                    example: 1.
+	 *                  productName:
+	 *                    type: string
+	 *                    example: Adidas's product name.
+	 *                  price:
+	 *                    type: integer
+	 *                    example: 68$
+	 *                  introduce:
+	 *                    type: string
+	 *                    example: The introduce of product
+	 *                  arraySize:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{size: 6, amount: 2}, {size: 7, amount: 3}]
+	 *                  arrayImage:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
+	 *                  slug:
+	 *                    type: string
+	 *                    example: The slug of product
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async getAllCategory(req, res) {
+		const categoryList = await CategoryType.aggregate([
+			{ $addFields: { cateTypeId: { $toString: "$_id" } } },
+			{
+				$lookup: {
+					from: "categories",
+					localField: "cateTypeId",
+					foreignField: "typeId",
+					as: "result",
+				},
+			},
+			{
+				$unwind: {
+					path: "$result",
+					preserveNullAndEmptyArrays: false,
+				},
+			},
+		]);
+
+		let i = 1;
+		let result = categoryList.reduce((c, v) => {
+			c[v.type] = c[v.type] || {};
+			// console.log("test", v);
+			c[v.type]["cateId" + i] = v.result._id;
+			// console.log("_id", v.result._id);
+			c[v.type]["cateName" + i] = v.result.name;
+			i++;
+			// console.log("_id", v.result.name);
+			return c;
+		}, {});
+
+		// let result = categoryList.reduce((c, v) => {
+		// 	c[v.type]['item'] = c[v.type]['item'] || i = 1;
+		// 	// console.log("test", v);
+		// 	c[v.type]['item'] = v.result._id;
+		// 	// console.log("_id", v.result._id);
+		// 	c[v.type]["cateName" + i] = v.result.name;
+		// 	i++;
+		// 	// console.log("_id", v.result.name);
+		// 	return c;
+		// }, {});
+
+		console.log("test", result);
+
+		// console.log(categoryList);
 	}
 }
 

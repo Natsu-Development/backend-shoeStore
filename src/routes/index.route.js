@@ -55,7 +55,7 @@ function route(app) {
 	app.use("/api/v1/customer", passportConfig.authCustomer, cusRouter);
 
 	// site and index
-	app.use("/", siteRouter);
+	app.use("/api/v1", siteRouter);
 }
 
 module.exports = route;

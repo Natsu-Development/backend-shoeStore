@@ -27,6 +27,9 @@ const Account = new Schema(
 		fullname: {
 			type: String,
 		},
+		accountName: {
+			type: String,
+		},
 		userId: {
 			type: String,
 		},
@@ -63,17 +66,13 @@ const Account = new Schema(
 );
 
 // hash password previous save user info
-Account.pre("save", async (next) => {
+Account.pre("save", async function (next) {
 	try {
 		if (this.authType !== "local") {
 			next();
 		}
 		const salt = await bcrypt.genSalt(10);
-		const passwordHashed = await bcrypt.hashPassword(this.password, salt);
-		console.log(
-			"🚀 ~ file: account.model.js ~ line 53 ~ Account.pre ~ passwordHashed",
-			passwordHashed
-		);
+		const passwordHashed = await bcrypt.hash(this.password, salt);
 
 		this.password = passwordHashed;
 		next();

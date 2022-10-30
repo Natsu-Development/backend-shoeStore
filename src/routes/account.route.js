@@ -50,9 +50,8 @@ router.post("/verifyToken", accountController.authAccessToken);
 router.post("/refreshToken", accountController.renewAccessToken);
 
 //REGISTER
-router.get("/register", accountController.customerRegister);
 router.post(
-	"/handleRegister",
+	"/register",
 	accountHelp.hasExistAccountName,
 	accountController.handleCustomerRegister
 );

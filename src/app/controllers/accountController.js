@@ -1,6 +1,7 @@
 const Account = require("../models/account.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const jwtHelp = require("../../utils/jwtHelp");
 const {
 	mutipleMongooseToObject,
@@ -48,12 +49,6 @@ class accountController {
 				return res.redirect("/admin");
 			}
 		});
-	}
-
-	//CUSTOMER
-	//[GET] /account/login
-	customLogin(req, res) {
-		res.render("customerLogin", { layout: false });
 	}
 
 	/**
@@ -116,20 +111,73 @@ class accountController {
 		}
 	}
 
-	//[GET] /account/register
-	customerRegister(req, res) {
-		if (!req.query.warning) delete req.session.registerErr;
-		res.render("customerRegis", { layout: false });
-	}
-
-	//[POST] /account/saveRegister
+	/**
+	 * @swagger
+	 * /auth/register:
+	 *   post:
+	 *     summary: User Register.
+	 *     tags: [Customer Service]
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                fullname:
+	 *                  type: string
+	 *                  description: The user's id.
+	 *                  example: catledeptrai
+	 *                email:
+	 *                  type: string
+	 *                  description: Email's account.
+	 *                  example: catle4552@gmail.com
+	 *                accountName:
+	 *                  type: string
+	 *                  description: AccountName's account.
+	 *                  example: testAccountName
+	 *                password:
+	 *                  type: string
+	 *                  description: Password's account.
+	 *                  example: 12345678
+	 *                address:
+	 *                  type: string
+	 *                  description: Account's address.
+	 *                  example: Ho Chi Minh
+	 *                numberPhone:
+	 *                  type: string
+	 *                  description: Account's number phone.
+	 *                  example: 0924812421
+	 *     responses:
+	 *       201:
+	 *         description: Login payload.
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  token:
+	 *                    type: string
+	 *                    description: The accessToken.
+	 *                  refreshToken:
+	 *                    type: string
+	 *                    description: The refreshToken to refresh token.
+	 *       400:
+	 *         description: Login failed
+	 */
 	handleCustomerRegister(req, res) {
 		req.body.permission = "2";
+		req.body.userId = new mongoose.Types.ObjectId().toString();
 		const newAccount = new Account(req.body);
 		newAccount
 			.save()
-			.then(res.render("customerLogin", { layout: false }))
-			.catch((err) => console.log(err));
+			.then(() => {
+				res.status(201).send("Success");
+			})
+			.catch((err) => {
+				console.log(err);
+				res.status(400).send("Invalid input");
+			});
 	}
 
 	/**

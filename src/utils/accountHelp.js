@@ -7,15 +7,22 @@ module.exports = {
 			$and: [{ accountName: req.body.accountName }, { permission: "2" }],
 		})
 			.then((accounts) => {
-				if (accounts) {
-					const backUrl = req.header("Referer") || "/";
-					req.session.registerErr =
-						"This accountName is existing. Please choose a other accountName";
-					return res.redirect(backUrl + "?warning");
+				if (accounts.length > 0) {
+					console.log("accounts", accounts);
+					// const backUrl = req.header("Referer") || "/";
+					// req.session.registerErr =
+					// 	"This accountName is existing. Please choose a other accountName";
+					return res.status(400).send({
+						message:
+							"This accountName is already exist. Please choose another accountName",
+					});
 				}
 				next();
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				console.log(err);
+				res.status(400).send("Invalid input");
+			});
 	},
 	handleLoginOauth: async (req, res, authType) => {
 		try {
@@ -42,6 +49,7 @@ module.exports = {
 			} else {
 				const newUser = new Account({
 					fullname: req.body.fullname,
+					accountName: req.body.email,
 					userId: req.body.userId,
 					email: req.body.email,
 					address: "",
