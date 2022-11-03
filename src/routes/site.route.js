@@ -13,4 +13,6 @@ router.get("/", Product.displayAllProduct);
 // display all category
 router.get("/category", Category.getAllCategory);
 
+// filter category
+router.post("/category/filter", Category.filterByCategory);
 module.exports = router;

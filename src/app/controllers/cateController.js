@@ -1,5 +1,7 @@
 const Category = require("../models/category.model");
 const CategoryType = require("../models/categoryType.model");
+const CateProduct = require("../models/cateProduct.model");
+const Product = require("../models/product.model");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
@@ -285,29 +287,14 @@ class cateController {
 	 *             schema:
 	 *               type: object
 	 *               properties:
-	 *                  _id:
-	 *                    type: string
-	 *                    example: 1.
-	 *                  productName:
-	 *                    type: string
-	 *                    example: Adidas's product name.
-	 *                  price:
-	 *                    type: integer
-	 *                    example: 68$
-	 *                  introduce:
-	 *                    type: string
-	 *                    example: The introduce of product
-	 *                  arraySize:
+	 *                  brand:
 	 *                    type: array
 	 *                    items:
-	 *                      example: [{size: 6, amount: 2}, {size: 7, amount: 3}]
-	 *                  arrayImage:
+	 *                    example: [{"cateId": "632c260d71e4353b5869f544", "cateName": "Adidas"}, {"cateId": "635a9662e2d2ecfc5ae46158", "cateName": "Nike"}]
+	 *                  style:
 	 *                    type: array
 	 *                    items:
-	 *                      example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
-	 *                  slug:
-	 *                    type: string
-	 *                    example: The slug of product
+	 *                    example: [{"cateId": "632c260d71e4353b5869f544", "cateName": "Sneaker"}, {"cateId": "635a9662e2d2ecfc5ae46158", "cateName": "Dad shoes"}]
 	 *       400:
 	 *         description: Get list failed
 	 */
@@ -337,6 +324,65 @@ class cateController {
 		}, {});
 
 		res.status(200).send(result);
+	}
+
+	/**
+	 * @swagger
+	 * /category/filter:
+	 *   post:
+	 *     summary: List of category.
+	 *     tags: [Category]
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                arrayCateId:
+	 *                  type: array
+	 *                  example: ["632c260d71e4353b5869f544", "632c268271e4353b5869f559", "632c269a71e4353b5869f560", "632c302fedc8f3c521113457"]
+	 *                  description: The array of categories to filter.
+	 *     responses:
+	 *       200:
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  _id:
+	 *                    type: string
+	 *                    example: 1.
+	 *                  productName:
+	 *                    type: string
+	 *                    example: Adidas's product name.
+	 *                  price:
+	 *                    type: integer
+	 *                    example: 68$
+	 *                  introduce:
+	 *                    type: string
+	 *                    example: The introduce of product
+	 *                  arraySize:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{size: 6, amount: 2}, {size: 7, amount: 3}]
+	 *                  arrayImage:
+	 *                    type: array
+	 *                    items:
+	 *                      example: [{position: 0, filename: imgName1}, {position: 1, filename: imgName2}]
+	 *                  slug:
+	 *                    type: string
+	 *                    example: The slug of product
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async filterByCategory(req, res) {
+		console.log("Request", req.body);
+		const result = await CateProduct.find({
+			cateId: { $in: req.body.arrayCateId },
+			amount: { $not: null },
+		});
+		console.log("Result", result);
 	}
 }
 

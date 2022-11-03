@@ -12,10 +12,4 @@ const CategoryProduct = new Schema(
 	}
 );
 
-// sell for category
-// articleSchema.pre("save", function(next) {
-//     this.slug = this.title.split(" ").join("-");
-//     next();
-//   });
-
 module.exports = mongoose.model("CategoryProduct", CategoryProduct);
