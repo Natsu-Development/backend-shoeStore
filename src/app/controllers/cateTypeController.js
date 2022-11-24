@@ -63,6 +63,19 @@ class cateTypeController {
 		});
 	}
 
+	// [GET] /categoryType/renderUpdate
+	renderUpdate(req, res) {
+		CategoryType.findById({ _id: req.params.id })
+			.then((cateType) => {
+				res.render("adminPages/categoryType/categoryTypeUpdate", {
+					cateType: mongooseToObject(cateType),
+					labels: categoryHelp.setUpLabels(cateType.type),
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => console.log(err));
+	}
+
 	// [GET] /categoryType/getAll
 	getAll(req, res) {
 		CategoryType.find().then((cateTypes) => {
@@ -106,12 +119,10 @@ class cateTypeController {
 		cate
 			.save()
 			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
-				res.status(401).send({ message: "Success!" });
+				res.redirect("/admin/categoryType");
 			})
 			.catch((err) => {
 				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
 			});
 	}
 
@@ -169,15 +180,16 @@ class cateTypeController {
 	 *         description: Error
 	 */
 	//[PUT] /categoryType/update/:id
-	update(req, res, next) {
+	update(req, res) {
+		console.log(req.body);
 		CategoryType.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
-				res.status(200).send({ message: "Update successful" });
+				res.redirect(`/admin/categoryType`);
+				// res.status(200).send({ message: "Update successful" });
 			})
 			.catch((err) => {
 				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
+				// res.status(400).send({ message: "Invalid input" });
 			});
 	}
 
@@ -212,12 +224,11 @@ class cateTypeController {
 		CategoryType.deleteOne({ _id: req.params.id })
 			.then(() => {
 				Category.deleteMany({ typeId: req.params.id }).then(() => {
-					res.status(200).send({ message: "Deleted" });
+					res.redirect("/admin/categoryType");
 				});
 			})
 			.catch((err) => {
 				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
 			});
 	}
 

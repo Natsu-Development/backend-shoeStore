@@ -50,17 +50,15 @@ class cateController {
 	 */
 	async manager(req, res) {
 		try {
-			const catesByType = await Category.findOne({
+			const catesByType = await Category.find({
 				typeId: req.params.typeId,
 			});
-			console.log(
-				"🚀 ~ file: cateController.js ~ line 54 ~ cateController ~ manager ~ catesByType",
-				catesByType
-			);
-			// res.status(200).send(catesByType);
+			const type = await CategoryType.findById(req.params.typeId);
+
 			res.render("adminPages/category/manager", {
-				catesByType: catesByType,
-				// labels: categoryHelp.setUpLabels(req.query.type),
+				catesByType: mutipleMongooseToObject(catesByType),
+				type: mongooseToObject(type),
+				labels: categoryHelp.setUpLabels(type.type),
 				layout: "adminLayout",
 			});
 		} catch (err) {
@@ -69,14 +67,15 @@ class cateController {
 		}
 	}
 
-	// // [GET] /category/add
-	// create(req, res, next) {
-	// 	res.render("adminPages/category/addCategory", {
-	// 		type: req.query.type,
-	// 		labels: categoryHelp.setUpLabels(req.query.type),
-	// 		layout: "adminLayout",
-	// 	});
-	// }
+	// [GET] /category/add
+	async renderCreate(req, res, next) {
+		const type = await CategoryType.findById(req.params.typeId);
+		res.render("adminPages/category/addCategory", {
+			type: mongooseToObject(type),
+			labels: categoryHelp.setUpLabels(type.type),
+			layout: "adminLayout",
+		});
+	}
 
 	/**
 	 * @swagger
@@ -119,38 +118,40 @@ class cateController {
 	 */
 	async create(req, res) {
 		try {
-			console.log("test api");
-			// check typeId have exist in category type
-			const typeIdExist = await CategoryType.findOne({
-				_id: req.params.typeId,
-			});
-			if (typeIdExist) {
-				const newCategory = { ...req.body, typeId: req.params.typeId };
-				const cate = new Category(newCategory);
-				await cate.save();
-				res.status(200).send({ message: "Success!" });
-			} else {
-				res.status(400).send({ message: "Invalid input" });
-			}
+			// // check typeId have exist in category type
+			// const typeIdExist = await CategoryType.findOne({
+			// 	_id: req.params.typeId,
+			// });
+			// if (typeIdExist) {
+			const newCategory = { ...req.body, typeId: req.params.typeId };
+			const cate = new Category(newCategory);
+			await cate.save();
+			res.redirect(`/admin/category/${req.params.typeId}`);
+
+			// res.status(200).send({ message: "Success!" });
+			// } else {
+			// 	res.status(400).send({ message: "Invalid input" });
+			// }
 		} catch (err) {
 			console.log(err);
-			res.status(400).send({ message: "Invalid input" });
+			// res.status(400).send({ message: "Invalid input" });
 		}
 	}
 
 	// [GET] /category/update/:id
-	// async update(req, res, next) {
-	// 	await Category.findById({ _id: req.params.id })
-	// 		.then((cate) => {
-	// 			res.render("adminPages/category/categoryUpdate", {
-	// 				cate: mongooseToObject(cate),
-	// 				labels: categoryHelp.setUpLabels(req.query.type),
-	// 				type: req.query.type,
-	// 				layout: "adminLayout",
-	// 			});
-	// 		})
-	// 		.catch((err) => console.log(err));
-	// }
+	async renderUpdate(req, res) {
+		const type = await CategoryType.findById(req.params.typeId);
+		Category.findById({ _id: req.params.cateId })
+			.then((cate) => {
+				res.render("adminPages/category/categoryUpdate", {
+					cate: mongooseToObject(cate),
+					labels: categoryHelp.setUpLabels(type.type),
+					type: mongooseToObject(type),
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => console.log(err));
+	}
 
 	/**
 	 * @swagger
@@ -196,14 +197,12 @@ class cateController {
 	 */
 	//[PUT] /category/update/:id
 	update(req, res, next) {
-		Category.updateOne({ _id: req.params.id }, req.body)
+		Category.updateOne({ _id: req.params.cateId }, req.body)
 			.then(() => {
-				// res.redirect(`/admin/category?type=${req.query.type}`);
-				res.status(200).send({ message: "Update successful" });
+				res.redirect(`/admin/category/${req.params.typeId}`);
 			})
 			.catch((err) => {
 				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
 			});
 	}
 
@@ -237,11 +236,10 @@ class cateController {
 	delete(req, res) {
 		Category.deleteOne({ _id: req.params.id })
 			.then(() => {
-				res.status(200).send({ message: "Deleted" });
+				res.redirect("back");
 			})
 			.catch((err) => {
 				console.log(err);
-				res.status(400).send({ message: "Invalid input" });
 			});
 	}
 
@@ -377,12 +375,55 @@ class cateController {
 	 *         description: Get list failed
 	 */
 	async filterByCategory(req, res) {
-		console.log("Request", req.body);
-		const result = await CateProduct.find({
-			cateId: { $in: req.body.arrayCateId },
-			amount: { $not: null },
-		});
-		console.log("Result", result);
+		const productList = await Product.aggregate([
+			{ $addFields: { productId: { $toString: "$_id" } } },
+			{
+				$lookup: {
+					from: "categoryproducts",
+					localField: "productId",
+					foreignField: "proId",
+					as: "result",
+				},
+			},
+			{
+				$unwind: {
+					path: "$result",
+					preserveNullAndEmptyArrays: false,
+				},
+			},
+		]);
+
+		let results = [];
+		results.push(productList.reduce((c, v) => {
+			c[v.productId] = c[v.productId] || [];
+			c[v.productId].push(v.result.cateId);
+			return c;
+		}, {}));
+		console.log('Result', results);
+
+		let test = [];
+		for(let i = 0; i < results.length; i++) {
+			// console.log(results[i]);
+			// results[i] = Object.entries(results[i]);
+			console.log(typeof results[i][0]);
+			console.log(results[i][0]);
+		}
+		results.forEach((result) => {
+			let flag = 0;
+			console.log('test', result);
+			console.log(typeof result);
+			flag = result.every((element) => {
+				if(req.arrayCateId.include(element)) {
+					return true;
+				}
+				return false;
+			});
+			if(flag) {
+				console.log(result);
+				// test.push(result);
+			}
+		})
+		// console.log('Result test', result[0]);
 	}
 }
 

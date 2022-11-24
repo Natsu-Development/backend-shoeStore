@@ -12,7 +12,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/admin">Home</a>
                     </li>
-                    <li class="breadcrumb-item active">Category by {{type}}
+                    <li class="breadcrumb-item active">Category by {{type.type}}
                     </li>
                 </ol>
                 </div>
@@ -24,11 +24,11 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">List of Categories by {{type}}</h4>
+                            <h4 class="card-title">List of Categories by {{type.type}}</h4>
                             <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                             <div class="heading-elements" style="top: 10px">
                                 <ul class="list-inline mb-0"> 
-                                    <a href="/admin/category/add?type={{type}}"><button class="btn btn-primary">Add {{type}}</button></a>
+                                    <a href="/admin/category/add/{{type._id}}"><button class="btn btn-primary">Add {{type.type}}</button></a>
                                     <input type="hidden" value="{{type}}" id="getType">
                                     <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
                                     {{!-- <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li> --}}
@@ -57,7 +57,7 @@
                                             <th scope="row"></th>
                                             <td>{{this.name}}</td>
                                             <td>{{this.description}}</td>
-                                            <td><a href="/admin/category/update/{{this._id}}?type={{type}}"><button class="btn btn-warning">Edit</button></a></td>
+                                            <td><a href="/admin/category/update/{{this.typeId}}/{{this._id}}"><button class="btn btn-warning">Edit</button></a></td>
                                             <td>
                                                 <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
                                                     <button class="btn btn-danger">Delete</button>
@@ -117,7 +117,7 @@
         
         // Click the button confirm to delete force
         btnDeleteCategory.onclick = function() {
-            formToDelete.action = `/admin/category/delete/${categoryId}?_method=DELETE&type=${type}`;
+            formToDelete.action = `/admin/category/delete/${categoryId}?_method=DELETE`;
             formToDelete.submit();
         }
     });

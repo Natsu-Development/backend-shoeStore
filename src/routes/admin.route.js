@@ -12,15 +12,19 @@ const orderController = require("../app/controllers/orderController");
 // router.get('/account/renewAccessToken', accountController.renewAccessToken);
 
 // CATEGORY
+router.get("/category/add/:typeId", cateController.renderCreate);
+router.get("/category/update/:typeId/:cateId", cateController.renderUpdate);
+// Handle 
 router.get("/category/:typeId", cateController.manager);
 router.post("/category/:typeId/add", cateController.create);
-router.put("/category/update/:id", cateController.update);
+router.put("/category/update/:typeId/:cateId", cateController.update);
 router.delete("/category/delete/:id", cateController.delete);
 router.get("/category/:slug", cateController.findCategoryByName);
 
 // CATEGORY TYPE
 // interface for category type
 router.get("/categoryType/addType", cateTypeController.renderCreate);
+router.get("/categoryType/update/:id", cateTypeController.renderUpdate);
 // API
 router.get("/categoryType", cateTypeController.manager);
 router.get("/categoryType/getAll", cateTypeController.getAll);
@@ -31,9 +35,9 @@ router.get("/categoryType/:slug", cateTypeController.findCategoryByName);
 
 //PRODUCT
 router.get("/product", shoeController.manager);
-// router.get("/product/add", shoeController.create);
-router.post("/product/add", shoeController.create);
-// router.get("/product/update/:id", shoeController.update);
+router.get("/product/add", shoeController.renderCreate);
+router.post("/product/save", shoeController.create);
+router.get("/product/update/:id", shoeController.renderUpdate);
 router.put("/product/saveUpdate/:id", shoeController.update);
 router.delete("/product/delete/:id", shoeController.delete);
 // router.get('/category/:slug', shoeController.findShoeByName);

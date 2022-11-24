@@ -1,4 +1,5 @@
 const Product = require("../models/product.model");
+const Category = require("../models/category.model");
 const CategoryProduct = require("../models/cateProduct.model");
 const {
 	mutipleMongooseToObject,
@@ -53,19 +54,18 @@ class shoeController {
 	manager(req, res) {
 		Product.find({}).then((shoes) => {
 			shoes = mutipleMongooseToObject(shoes);
-			// res.render('adminPages/product/manager', {
-			//     shoes,
-			//     layout: 'adminLayout'
-			// });
-			res.json(shoes);
+			res.render('adminPages/product/manager', {
+			    shoes,
+			    layout: 'adminLayout'
+			});
 		});
 	}
 
 	// [GET] /product/add
-	// create(req, res) {
-	// 	if (req.query != "warning") delete req.session.errImage;
-	// 	res.render("adminPages/product/productAdd", { layout: "adminLayout" });
-	// }
+	renderCreate(req, res) {
+		if (req.query != "warning") delete req.session.errImage;
+		res.render("adminPages/product/productAdd", { layout: "adminLayout" });
+	}
 
 	/**
 	 * @swagger
@@ -138,51 +138,47 @@ class shoeController {
 	 */
 	// [POST] /admin/product/create
 	async create(req, res) {
-		// upload("image")(req, res, async function (err) {
-		// 	if (err) {
-		// 		// url for redirect back
-		// 		const backUrl = req.header("Referer") || "/";
-		// 		//throw error for the view...
-		// 		req.session.errImage = err;
-		// 		return res.redirect(backUrl + "?warning");
-		// 	}
-		// 	const formData = req.body;
-		// 	formData.arrayImage = imageHelp.createArrayImage(req.files);
-		// 	formData.size = productHelp.setAmountForSize(
-		// 		req.body.size,
-		// 		req.body.amountOfSize
-		// 	);
-		// 	formData.amount = productHelp.setAmount(req.body.amountOfSize);
-		// 	const product = new Product(formData);
-		// 	await product
-		// 		.save()
-		// 		.then(() => {
-		// 			res.redirect("/admin/product");
-		// 		})
-		// 		.catch((err) => console.log(err));
-		// });
 		try {
-			const formData = req.body;
-			const product = new Product(formData);
-			const newProduct = await product.save();
-			await Promise.all([
-				...req.body.arrayCategoryId.map(async (cateId) => {
-					const cateProduct = new CategoryProduct({
-						cateId: cateId,
-						proId: newProduct._id,
-					});
-					const result = await cateProduct.save();
-				}),
-				...req.body.size.map(async (size) => {
-					const sizeProduct = new CategoryProduct({
-						cateId: size.cateId,
-						proId: newProduct._id,
-						amount: size.amount,
-					});
-					const resultSize = await sizeProduct.save();
-				}),
-			]);
-			return res.status(201).send("Success");
+			upload("image")(req, res, async function (err) {
+				if (err) {
+					// url for redirect back
+					const backUrl = req.header("Referer") || "/";
+					//throw error for the view...
+					req.session.errImage = err;
+					console.log('error', err);
+					return res.redirect(backUrl + "?warning");
+				}
+				const formData = req.body;
+				formData.arrayCategoryId = productHelp.setArrayCategory(req.body);
+				formData.arrayImage = imageHelp.createArrayImage(req.files);
+				formData.size = productHelp.setAmountForSize(
+					req.body.size,
+					req.body.amountOfSize
+				);
+				console.log(formData);
+				const product = new Product(formData);
+				const newProduct = await product.save();
+				await Promise.all([
+					...req.body.arrayCategoryId.map(async (cateId) => {
+						const cateProduct = new CategoryProduct({
+							cateId: cateId,
+							proId: newProduct._id,
+						});
+						const result = await cateProduct.save();
+					}),
+					...formData.size.map(async (size) => {
+						if(size.amount > 0) {
+							const sizeProduct = new CategoryProduct({
+								cateId: size.cateId,
+								proId: newProduct._id,
+								amount: size.amount,
+							});
+							const resultSize = await sizeProduct.save();
+						}
+					}),
+				]);
+				res.redirect("/admin/product");
+			});
 		} catch (err) {
 			console.log(err);
 			res.status(400);
@@ -190,20 +186,36 @@ class shoeController {
 	}
 
 	// [GET] /product/update/:id
-	update(req, res, next) {
+	async renderUpdate(req, res, next) {
 		// have err in process update image
 		if (req.query != "warning") delete req.session.errImage;
+
+		// get all Cate of product
+		const cateIdsProduct = await CategoryProduct.find({proId: req.params.id});
+		var arrCateId = [];
+		cateIdsProduct.forEach(cateId => {
+			arrCateId.push(cateId.cateId);
+		});
+		const resultCate = await Category.find({
+			_id: {
+				$in: arrCateId
+			}
+		});
+				
 		// display product need update to view...
 		Product.findOne({ _id: req.params.id })
 			.then((product) => {
 				const result = mongooseToObject(product);
 				res.render("adminPages/product/productUpdate", {
 					result,
+					resultCateBrand: resultCate[0]._id,
+					resultCateStyle: resultCate[1]._id,
 					layout: "adminLayout",
 				});
 			})
 			.catch((err) => console.log(err));
 	}
+	
 	// [PUT] /product/saveUpdate/:id
 	update(req, res, next) {
 		upload("image")(req, res, function (err) {

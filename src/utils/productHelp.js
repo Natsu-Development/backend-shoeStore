@@ -17,6 +17,14 @@ module.exports = {
 		}
 		return result;
 	},
+
+	setArrayCategory: (request) => {
+		var result = [];
+		result.push(request.brand);
+		result.push(request.style);
+		return result;
+	},
+
 	setAmount: (amountOfSize) => {
 		var amount = 0;
 		amountOfSize = amountOfSize.map(Number);

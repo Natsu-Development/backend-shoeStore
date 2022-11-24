@@ -3,7 +3,7 @@
         <div class="content-wrapper-before"></div>
         <div class="content-header row">
             <div class="content-header-left col-md-4 col-12 mb-2">
-            <h3 class="content-header-title">Category</h3>
+            <h3 class="content-header-title">Category Type</h3>
             </div>
             <div class="content-header-right col-md-8 col-12">
             <div class="breadcrumbs-top float-md-right">
@@ -12,9 +12,9 @@
                     {{!-- must automation this link --}}
                     <li class="breadcrumb-item"><a href="/admin">Home</a>
                     </li>
-                    <li class="breadcrumb-item"><a href="/admin/category/{{type._id}}">Category By {{type.type}}</a>
+                    <li class="breadcrumb-item"><a href="/admin/categoryType">Category Type</a>
                     </li>
-                    <li class="breadcrumb-item active">Add {{type.type}}
+                    <li class="breadcrumb-item active">Update Category Type
                     </li>
                 </ol>
                 </div>
@@ -26,7 +26,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Add {{type.type}}</h4>
+                            <h4 class="card-title">Update Category Type</h4>
                             <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                             <div class="heading-elements">
                                 <ul class="list-inline mb-0">
@@ -39,14 +39,14 @@
                         </div>
                         <div class="card-content collapse show">
                             {{!-- why have enctype and it's not work --}}
-                            <form action="/admin/category/{{type._id}}/add" method="POST" style="margin: 0 20px;">
+                            <form action="/admin/categoryType/update/{{cateType._id}}?_method=PUT" method="POST" style="margin: 0 20px;">
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">{{labels.label1}}</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter category name">
+                                    <input type="text" class="form-control" name="type" placeholder="Enter type of cate" value="{{cateType.type}}">
                                 </div>
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">{{labels.label2}}</label>
-                                    <input type="text" class="form-control" name="description" placeholder="Enter Description">
+                                    <input type="text" class="form-control" name="description" placeholder="Enter Description" value="{{cateType.description}}">
                                 </div>
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </form>

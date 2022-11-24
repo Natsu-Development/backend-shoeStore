@@ -1,7 +1,7 @@
 const multer = require('multer');
 
 module.exports = function(fileName) {
-    const maxSize = 2200000;
+    const maxSize = 5200000;
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
           // edit storage to save  

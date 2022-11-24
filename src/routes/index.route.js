@@ -9,6 +9,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../utils/mongoose");
+const CategoryType = require("../app/models/categoryType.model");
 const Category = require("../app/models/category.model");
 const categoryHelp = require("../utils/categoryHelp");
 const Shoe = require("../app/models/product.model");
@@ -19,13 +20,43 @@ const passportConfig = require("../app/middlewares/passport.mdw");
 function route(app) {
 	// locals, why session not access in handlebars?
 	app.use(async (req, res, next) => {
-		await Category.find({}).then((cates) => {
-			cates = mutipleMongooseToObject(cates);
-			var resultFilter = categoryHelp.filterCategory(cates);
-			res.locals.listBrand = resultFilter.listBrand;
-			res.locals.listStyle = resultFilter.listStyle;
-			res.locals.listSize = categoryHelp.sortSize(resultFilter.listSize);
-		});
+		// await Category.find({}).then((cates) => {
+		// 	cates = mutipleMongooseToObject(cates);
+		// 	var resultFilter = categoryHelp.filterCategory(cates);
+		// 	res.locals.listBrand = resultFilter.listBrand;
+		// 	res.locals.listStyle = resultFilter.listStyle;
+		// 	res.locals.listSize = categoryHelp.sortSize(resultFilter.listSize);
+		// });
+		const categoryList = await CategoryType.aggregate([
+			{ $addFields: { cateTypeId: { $toString: "$_id" } } },
+			{
+				$lookup: {
+					from: "categories",
+					localField: "cateTypeId",
+					foreignField: "typeId",
+					as: "result",
+				},
+			},
+			{
+				$unwind: {
+					path: "$result",
+					preserveNullAndEmptyArrays: false,
+				},
+			},
+		]);
+
+		let result = categoryList.reduce((c, v) => {
+			c[v.type] = c[v.type] || [];
+			c[v.type].push({ cateId: v.result._id, cateName: v.result.name });
+			return c;
+		}, {});
+
+		var resultFilter = categoryHelp.filterCategory(result);
+		res.locals.listBrand = resultFilter.value0;
+		res.locals.listStyle = resultFilter.value1;
+		// res.locals.listSize = categoryHelp.sortSize(value2);
+		res.locals.listSize = categoryHelp.sortSize(resultFilter.value2);
+
 		await Shoe.find({}).then((shoes) => {
 			shoes = mutipleMongooseToObject(shoes);
 			res.locals.listShoe = shoes;
