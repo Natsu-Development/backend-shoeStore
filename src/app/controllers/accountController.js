@@ -18,9 +18,9 @@ class accountController {
 	 *     handleLogin:
 	 *       type: object
 	 *       properties:
-	 *         email:
+	 *         accountName:
 	 *           type: string
-	 *           description: The account's email'.
+	 *           description: The account's name'.
 	 *           example: catle4551@gmail.com
 	 *         password:
 	 *           type: string
@@ -83,8 +83,9 @@ class accountController {
 	async handleCustomerLogin(req, res) {
 		try {
 			console.log("Body", req.body);
-			let user = await Account.findOne({ email: req.body.email });
+			let user = await Account.findOne({ accountName: req.body.accountName });
 			if (user) {
+				console.log('user', user);
 				user = mongooseToObject(user);
 				const result = bcrypt.compareSync(req.body.password, user.password);
 				if (result) {
@@ -94,16 +95,12 @@ class accountController {
 						user.fullname
 					);
 					const expired_at = new Date().setDate(new Date().getDate() + 3);
-					// console.log(
-					// 	"🚀 ~ file: accountController.js ~ line 102 ~ accountController ~ handleCustomerLogin ~ expired_at",
-					// 	expired_at
-					// );
 					res.status(200).send({ tokens, user, expired_at });
 				} else {
 					res.status(400).send("Your password is incorrect. Please try again");
 				}
 			} else {
-				res.status(400).send("Your email is incorrect. Please try again");
+				res.status(400).send("Your account name is incorrect. Please try again");
 			}
 		} catch (err) {
 			console.log(err);

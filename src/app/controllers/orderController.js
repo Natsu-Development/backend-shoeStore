@@ -157,12 +157,19 @@ class order {
 			const userId = jwtHelp.decodeTokenGetUserId(
 				req.headers.authorization.split(" ")[1]
 			);
+			console.log("userId: " + userId);
 			const carts = await cartHelp.getCartByUserId(userId);
+			if(carts.total === 0 || carts.results.length === 0) {
+				return res.status(400).send({ 
+					message: "Cart empty",
+					status_code: 400
+				});
+			} 
 			const arrCartId = [];
-			// create new order
+			//create new order
 			const newOrder = new Order({
 				customerId: userId,
-				total: carts.total,
+				total: carts.totalCart,
 				confirmed: 0,
 			});
 
@@ -173,10 +180,10 @@ class order {
 				carts.results.map(async (cart) => {
 					const newOrderDetail = new OrderDetail({
 						orderDetailId: newOrderCreated._id,
-						shoeId: cart.shoeId,
+						shoeId: cart.productId,
 						size: cart.size,
 						quantity: cart.quantity,
-						price: cart.price,
+						price: cart.productPrice,
 					});
 					arrCartId.push(cart._id);
 					await newOrderDetail.save();
