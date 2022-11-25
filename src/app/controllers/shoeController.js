@@ -264,6 +264,11 @@ class shoeController {
 	 *   get:
 	 *     summary: List of products.
 	 *     tags: [Products]
+	 *     parameters:
+	 *        - in: query
+	 *          name: search
+	 *          type: string
+	 *          description: shoe name of the shoe to get.
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -301,7 +306,7 @@ class shoeController {
 	async displayAllProduct(req, res) {
 		// if have request search Product
 		if (req.query.search) {
-			let object = productHelp.setCondition(req.body, "search");
+			let object = productHelp.setCondition(req.query, "search");
 			let products = await Product.find(object);
 			products = mutipleMongooseToObject(products);
 			return res.status(200).send(products);

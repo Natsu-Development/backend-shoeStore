@@ -86,9 +86,9 @@
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">Sizes in US/UK (Enter the amount of the shoes)</label>
                                     {{#each listSize}}
-                                    <div class ="form-check">
+                                    <div class ="form-check" style="margin-bottom: 14px">
                                         <input value="{{this.cateId}}" name="size" type="hidden">
-                                        <label class="form-check-label" for="flexCheckDefault">
+                                        <label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
                                             {{this.cateName}}
                                         </label>
                                         <input type="number" name="amountOfSize" placeholder="Enter amount of this size" value="0" min="0">
