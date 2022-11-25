@@ -17,6 +17,12 @@ router.get("/myOrder", orderController.getMyOrder);
 // get my order
 router.get("/myOrderDetail/:orderDetailId", orderController.getMyOrderDetail);
 
+// confirmed delivered
+router.post(
+	"/confirmDelivered/:orderId",
+	orderController.customerConfirmedDelivered
+);
+
 router.get("/checkoutComplete", (req, res) => {
 	res.render("checkoutComplete");
 });

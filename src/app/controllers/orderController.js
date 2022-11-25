@@ -16,7 +16,11 @@ class order {
 		Order.find({ status: 3 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
+				orders.forEach((order) => {
+					order.createdAt = orderHelp.formatDate(order.createdAt);
+				});
 				res.render("adminPages/order/orders", {
+					orderCompleted: true,
 					orders,
 					layout: "adminLayout",
 				});
@@ -26,11 +30,48 @@ class order {
 
 	// [GET] /orderNotConfirm
 	orderNotConfirm(req, res) {
-		Order.find({ confirmed: 0 })
+		Order.find({ status: 0 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
+				orders.forEach((order) => {
+					order.createdAt = orderHelp.formatDate(order.createdAt);
+				});
 				res.render("adminPages/order/orders", {
 					notConfirm: true,
+					orders,
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => console.log(err));
+	}
+
+	// [GET] /orderInTransit
+	orderInTransit(req, res) {
+		Order.find({ status: 2 })
+			.then((orders) => {
+				orders = mutipleMongooseToObject(orders);
+				orders.forEach((order) => {
+					order.createdAt = orderHelp.formatDate(order.createdAt);
+				});
+				res.render("adminPages/order/orders", {
+					inTransit: true,
+					orders,
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => console.log(err));
+	}
+
+	// [GET] /orderConfirmed
+	orderConfirmed(req, res) {
+		Order.find({ status: 1 })
+			.then((orders) => {
+				orders = mutipleMongooseToObject(orders);
+				orders.forEach((order) => {
+					order.createdAt = orderHelp.formatDate(order.createdAt);
+				});
+				res.render("adminPages/order/orders", {
+					confirmed: true,
 					orders,
 					layout: "adminLayout",
 				});
@@ -285,6 +326,49 @@ class order {
 					status_code: 400,
 				});
 			});
+	}
+
+	/**
+	 * @swagger
+	 * /customer/confirmDelivered/{orderId}:
+	 *   post:
+	 *     summary: Change status order(in_transit -> completed).
+	 *     tags: [Customer Service]
+	 *     parameters:
+	 *        - in: path
+	 *          name: orderId
+	 *          type: string
+	 *          required: true
+	 *          description: order ID of the order to get orderDetail.
+	 *     security:
+	 *        - bearerAuth: []
+	 *     responses:
+	 *       201:
+	 *         description: Confirmed successful
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async customerConfirmedDelivered(req, res) {
+		try {
+			// get status of order
+			const order = await Order.findOne({ _id: req.params.orderId });
+
+			if (order.status !== 2) {
+				return res.status(403).send({ message: "Forbidden request" });
+			}
+
+			console.log("test", order);
+
+			Order.updateOne(
+				{ _id: req.params.orderId },
+				{ $set: { status: order.status + 1 } }
+			).then(() => {
+				res.status(200).send({ message: "Success" });
+			});
+		} catch (err) {
+			console.log(err);
+			res.status(200).send({ message: "Invalid input" });
+		}
 	}
 }
 

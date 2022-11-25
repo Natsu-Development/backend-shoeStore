@@ -47,65 +47,145 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Customer Id</th>
-                                            <th>Date</th>
+                                            <th>Date & Time</th>
                                             <th>Total</th>
                                             <th>Action(Click Button To Change Status)</th>
                                             <th>View OrderDetails</th>
-                                            {{!-- <th>Action</th> --}}
+                                            <th>Other Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {{!-- Order not confirm --}}
                                         {{#if notConfirm}}   
-                                        {{#each orders}}
-                                        <tr>
-                                            <th scope="row"></th>
-                                            <td>{{this.customerId}}</td>
-                                            <td>{{this.date}}</td>
-                                            <td>{{this.total}}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
-                                                    {{#when this.status 'eq' 0}}
-                                                        Confirm
-                                                    {{/when}}
-                                                    {{#when this.status 'eq' 1}}
-                                                        Confirmed(wait for shipping)
-                                                    {{/when}}
-                                                    {{#when this.status 'eq' 2}}
-                                                        In Transaction
-                                                    {{/when}}
-                                                    {{#when this.status 'eq' 3}}
-                                                        Completed
-                                                    {{/when}}
-                                                </button>
-                                            </td> 
-                                            <td>
-                                                <a href="/admin/order/orderDetails/{{this._id}}">
-                                                    <button type="button" class="btn btn-warning">Details</button>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {{/each}}
+                                            {{#each orders}}
+                                            <tr>
+                                                <th scope="row"></th>
+                                                <td>{{this.customerId}}</td>
+                                                <td>{{this.createdAt}}</td>
+                                                <td>{{this.total}}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                        {{#when this.status 'eq' 0}}
+                                                            Confirm
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 1}}
+                                                            Confirmed(wait for shipping)
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 2}}
+                                                            In Transaction
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 3}}
+                                                            Completed
+                                                        {{/when}}
+                                                    </button>
+                                                </td> 
+                                                <td>
+                                                    <a href="/admin/order/orderDetails/{{this._id}}">
+                                                        <button type="button" class="btn btn-warning">Details</button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {{/each}}
+                                        {{!-- End order not confirm --}}
 
+                                        {{!-- Start order confirm --}}
+                                        {{else if confirmed}}
+                                            {{#each orders}}
+                                            <tr>
+                                            <th scope="row"></th>
+                                                <td>{{this.customerId}}</td>
+                                                <td>{{this.createdAt}}</td>
+                                                <td>{{this.total}}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                        {{#when this.status 'eq' 0}}
+                                                            Confirm
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 1}}
+                                                            Confirmed(wait for shipping)
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 2}}
+                                                            In Transaction
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 3}}
+                                                            Completed
+                                                        {{/when}}
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <a href="/admin/order/orderDetails/{{this._id}}">
+                                                        <button class="btn btn-primary">Details</button>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <a href="/admin/order/orderUpdate/{{this._id}}">
+                                                        <button class="btn btn-primary">Update</button>
+                                                    </a>
+                                                </td>
+                                            </tr>    
+                                            {{/each}}                                           
+                                        {{!-- End order confirm --}}
+
+                                        {{!-- Start order in_transit --}}
+                                        {{else if inTransit}}
+                                            {{#each orders}}
+                                            <tr>
+                                            <th scope="row"></th>
+                                                <td>{{this.customerId}}</td>
+                                                <td>{{this.createdAt}}</td>
+                                                <td>{{this.total}}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                        {{#when this.status 'eq' 0}}
+                                                            Confirm
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 1}}
+                                                            Confirmed(wait for shipping)
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 2}}
+                                                            In Transit
+                                                        {{/when}}
+                                                        {{#when this.status 'eq' 3}}
+                                                            Completed
+                                                        {{/when}}
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <a href="/admin/order/orderDetails/{{this._id}}">
+                                                        <button class="btn btn-primary">Details</button>
+                                                    </a>
+                                                </td>
+                                                {{!-- <td>
+                                                    <a href="/admin/order/orderUpdate/{{this._id}}">
+                                                        <button class="btn btn-primary">Update</button>
+                                                    </a>
+                                                </td> --}}
+                                            </tr>    
+                                            {{/each}}
+                                        {{!-- End order in_transit --}}
+
+                                        {{!-- Start order complete --}}
                                         {{else}}
-                                        {{#each orders}}
-                                        <tr>
-                                        <th scope="row"></th>
-                                            <td>{{this.customerId}}</td>
-                                            <td>{{this.date}}</td>
-                                            <td>{{this.total}}</td>
-                                            <td>Confirmed</td>
-                                            <td>
-                                                <a href="/admin/order/orderDetails/{{this._id}}">
-                                                    <button class="btn btn-primary">Details</button>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <a href="/admin/order/orderUpdate/{{this._id}}">
-                                                    <button class="btn btn-primary">Update</button>
-                                                </a>
-                                            </td>
-                                        </tr>    
-                                        {{/each}}
+                                            {{#each orders}}
+                                            <tr>
+                                            <th scope="row"></th>
+                                                <td>{{this.customerId}}</td>
+                                                <td>{{this.createdAt}}</td>
+                                                <td>{{this.total}}</td>
+                                                <td>Completed</td>
+                                                <td>
+                                                    <a href="/admin/order/orderDetails/{{this._id}}">
+                                                        <button class="btn btn-primary">Details</button>
+                                                    </a>
+                                                </td>
+                                                {{!-- <td>
+                                                    <a href="/admin/order/orderUpdate/{{this._id}}">
+                                                        <button class="btn btn-primary">Update</button>
+                                                    </a>
+                                                </td> --}}
+                                            </tr>    
+                                            {{/each}}
+                                        {{!-- End order complete --}}
                                         {{/if}}    
                                     </tbody>
                                 </table>

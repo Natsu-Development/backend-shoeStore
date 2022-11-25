@@ -217,6 +217,23 @@ class orderHelp {
 			})
 			.catch((err) => console.log(err));
 	}
+
+	formatDate(date) {
+		const dateFormat = new Date(date);
+		return (
+			dateFormat.getDate() +
+			"/" +
+			(dateFormat.getMonth() + 1) +
+			"/" +
+			dateFormat.getFullYear() +
+			" " +
+			dateFormat.getHours() +
+			":" +
+			dateFormat.getMinutes() +
+			":" +
+			dateFormat.getSeconds()
+		);
+	}
 }
 
 module.exports = new orderHelp();

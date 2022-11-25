@@ -45,6 +45,8 @@ router.delete("/product/delete/:id", shoeController.delete);
 //ORDER AND ORDERDETAILS
 router.get("/order", orderController.manager);
 router.get("/orderNotConfirm", orderController.orderNotConfirm);
+router.get("/orderInTransit", orderController.orderInTransit);
+router.get("/orderConfirmed", orderController.orderConfirmed);
 router.get("/order/add", orderController.create);
 router.post("/order/save", orderController.saveCreate);
 router.get("/order/orderDetails/:id", orderController.viewOrderDetails);
