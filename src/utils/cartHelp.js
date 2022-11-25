@@ -34,18 +34,20 @@ class cartHelp {
 		let totalCart = 0;
 		// get info of product
 		const results = [];
-		await Promise.all(
-			carts.map(async (cart) => {
-				await Product.findOne({ _id: cart.productId }).then((product) => {
-					cart.image = product.arrayImage[0].filename;
-					cart.productName = product.name;
-					cart.productPrice = product.price;
-					totalCart += cart.quantity * product.price;
-					results.push(cart);
-				});
-			})
-		);
-		return { results, totalCart };
+		if (carts?.length) {
+			await Promise.all(
+				carts.map(async (cart) => {
+					await Product.findOne({ _id: cart.productId }).then((product) => {
+						cart.image = product.arrayImage[0].filename;
+						cart.productName = product.name;
+						cart.productPrice = product.price;
+						totalCart += cart.quantity * product.price;
+						results.push(cart);
+					});
+				})
+			);
+			return { results, totalCart };
+		}
 	}
 
 	async deleteCart(arrCartId) {

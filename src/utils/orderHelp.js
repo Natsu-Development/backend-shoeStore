@@ -1,6 +1,8 @@
 const Order = require("../app/models/order.model");
 const OrderDetail = require("../app/models/orderDetail.model");
 const Product = require("../app/models/product.model");
+const Category = require("../app/models/category.model");
+const CategoryProduct = require("../app/models/cateProduct.model");
 const { mutipleMongooseToObject, mongooseToObject } = require("mongoose");
 
 class orderHelp {
@@ -161,30 +163,41 @@ class orderHelp {
 	}
 
 	// decrease amount of Product (situation: add subOrder)
-	decreaseAmountProduct(newSubOrder) {
-		var amount, sizeToSave;
+	async decreaseAmountProduct(newSubOrder) {
+		const category = await Category.findOne({ name: newSubOrder.size });
 
-		Product.findOne({ _id: newSubOrder.shoeId }).then((product) => {
-			product.size.forEach((objectSize) => {
-				if (objectSize.size === newSubOrder.size) {
-					objectSize.amount = Number(objectSize.amount);
-					objectSize.amount -= Number(newSubOrder.quantity);
-					amount = objectSize.amount;
-					sizeToSave = objectSize;
-
-					console.log(
-						"🚀 ~ file: orderHelp.js ~ line 174 ~ orderHelp ~ .then ~ objectSize.amount",
-						objectSize.amount
-					);
-
-					this.saveChangeAmountOfProduct(
-						newSubOrder.shoeId,
-						sizeToSave,
-						amount
-					);
-				}
-			});
+		const result = await CategoryProduct.findOne({
+			proId: newSubOrder.shoeId,
+			cateId: category._id,
 		});
+		console.log("result", result);
+
+		await CategoryProduct.updateOne(
+			{ _id: result._id },
+			{ amount: result.amount - newSubOrder.quantity }
+		);
+
+		// Product.findOne({ _id: newSubOrder.shoeId }).then((product) => {
+		// 	product.size.forEach((objectSize) => {
+		// 		if (objectSize.size === newSubOrder.size) {
+		// 			objectSize.amount = Number(objectSize.amount);
+		// 			objectSize.amount -= Number(newSubOrder.quantity);
+		// 			amount = objectSize.amount;
+		// 			sizeToSave = objectSize;
+
+		// 			console.log(
+		// 				"🚀 ~ file: orderHelp.js ~ line 174 ~ orderHelp ~ .then ~ objectSize.amount",
+		// 				objectSize.amount
+		// 			);
+
+		// 			this.saveChangeAmountOfProduct(
+		// 				newSubOrder.shoeId,
+		// 				sizeToSave,
+		// 				amount
+		// 			);
+		// 		}
+		// 	});
+		// });
 	}
 
 	// save changes amount of product
@@ -233,6 +246,16 @@ class orderHelp {
 			":" +
 			dateFormat.getSeconds()
 		);
+	}
+
+	// get next orderId
+	async getOrderId() {
+		// select max
+		const maxOrderId = await Order.find({}).sort({ _id: -1 }).limit(1);
+		if (maxOrderId.length === 0) {
+			return 1;
+		}
+		return maxOrderId[0]._id + 1;
 	}
 }
 

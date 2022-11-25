@@ -117,11 +117,11 @@
                                                         <button class="btn btn-primary">Details</button>
                                                     </a>
                                                 </td>
-                                                <td>
+                                                {{!-- <td>
                                                     <a href="/admin/order/orderUpdate/{{this._id}}">
                                                         <button class="btn btn-primary">Update</button>
                                                     </a>
-                                                </td>
+                                                </td> --}}
                                             </tr>    
                                             {{/each}}                                           
                                         {{!-- End order confirm --}}
@@ -135,7 +135,7 @@
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>
-                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})" style="">
                                                         {{#when this.status 'eq' 0}}
                                                             Confirm
                                                         {{/when}}

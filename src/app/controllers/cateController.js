@@ -375,55 +375,21 @@ class cateController {
 	 *         description: Get list failed
 	 */
 	async filterByCategory(req, res) {
-		const productList = await Product.aggregate([
-			{ $addFields: { productId: { $toString: "$_id" } } },
-			{
-				$lookup: {
-					from: "categoryproducts",
-					localField: "productId",
-					foreignField: "proId",
-					as: "result",
-				},
-			},
-			{
-				$unwind: {
-					path: "$result",
-					preserveNullAndEmptyArrays: false,
-				},
-			},
-		]);
+		const records = await CateProduct.find({
+			cateId: { $in: req.body.arrayCateId },
+			$or: [{ amount: { $exists: false } }, { amount: { $gt: 0 } }],
+		});
 
-		let results = [];
-		results.push(productList.reduce((c, v) => {
-			c[v.productId] = c[v.productId] || [];
-			c[v.productId].push(v.result.cateId);
-			return c;
-		}, {}));
-		console.log('Result', results);
+		let arrayProId = [];
+		records.forEach((record) => {
+			arrayProId.push(record.proId);
+		});
 
-		let test = [];
-		for(let i = 0; i < results.length; i++) {
-			// console.log(results[i]);
-			// results[i] = Object.entries(results[i]);
-			console.log(typeof results[i][0]);
-			console.log(results[i][0]);
-		}
-		results.forEach((result) => {
-			let flag = 0;
-			console.log('test', result);
-			console.log(typeof result);
-			flag = result.every((element) => {
-				if(req.arrayCateId.include(element)) {
-					return true;
-				}
-				return false;
-			});
-			if(flag) {
-				console.log(result);
-				// test.push(result);
-			}
-		})
-		// console.log('Result test', result[0]);
+		// eliminate duplicate items
+		arrayProId = [...new Set(arrayProId)];
+
+		const result = await Product.find({ _id: { $in: arrayProId } });
+		res.status(200).send(result);
 	}
 }
 

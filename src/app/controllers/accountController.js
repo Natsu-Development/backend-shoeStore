@@ -78,7 +78,6 @@ class accountController {
 	 */
 	async handleCustomerLogin(req, res) {
 		try {
-			console.log("Body", req.body);
 			let user = await Account.findOne({ accountName: req.body.accountName });
 			if (user) {
 				user = mongooseToObject(user);
@@ -279,7 +278,6 @@ class accountController {
 	 *         description: Error
 	 */
 	async handleLoginFacebook(req, res) {
-		console.log("Test access in facebook function");
 		accountHelp.handleLoginOauth(req, res, "facebook");
 	}
 

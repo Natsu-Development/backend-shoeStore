@@ -63,7 +63,7 @@
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">Size</label>
                                         <select name="size" class="form-control" id="setSize1">
-
+                                           
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -92,13 +92,12 @@
         var shoeId = seletedShoe.value;
         var output = '', price = 0;
         var list = {{{json listShoe}}};
+        var listSize = {{{json listSize}}}
         for(var i = 0; i < list.length; i++) {
             if(list[i]._id === shoeId) {
                 price = list[i].price;
-                for(var j = 0; j < list[i].size.length; j++) {
-                    if(list[i].size[j].amount > 0) {
-                        output += `<option value="${list[i].size[j].size}">${list[i].size[j].size}</option>`
-                    }
+                for(var j = 0; j < listSize.length; j++) {
+                    output += `<option value="${listSize[j].cateName}">${listSize[j].cateName}</option>`
                 }
             }
         }

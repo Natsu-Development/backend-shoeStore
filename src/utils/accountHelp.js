@@ -39,7 +39,7 @@ module.exports = {
 					},
 					(err, userUpdated) => {
 						const token = jwtHelp.createAccessToken(
-							userUpdated.userId,
+							userUpdated._id,
 							userUpdated.permission,
 							userUpdated.fullname
 						);
@@ -61,7 +61,7 @@ module.exports = {
 				console.log(newUser);
 				await newUser.save();
 				const token = jwtHelp.createAccessToken(
-					newUser.userId,
+					newUser._id,
 					newUser.permission,
 					newUser.fullname
 				);

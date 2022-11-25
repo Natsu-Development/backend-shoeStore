@@ -23,7 +23,6 @@ class order {
 					const account = await Account.findById(order.customerId);
 					order.customerName = account.fullname;
 					order.createdAt = orderHelp.formatDate(order.createdAt);
-					console.log(order);
 				});
 				res.render("adminPages/order/orders", {
 					orderCompleted: true,
@@ -39,7 +38,9 @@ class order {
 		Order.find({ status: 0 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
-				orders.forEach((order) => {
+				orders.forEach(async (order) => {
+					const account = await Account.findById(order.customerId);
+					order.customerName = account.fullname;
 					order.createdAt = orderHelp.formatDate(order.createdAt);
 				});
 				res.render("adminPages/order/orders", {
@@ -56,7 +57,9 @@ class order {
 		Order.find({ status: 2 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
-				orders.forEach((order) => {
+				orders.forEach(async (order) => {
+					const account = await Account.findById(order.customerId);
+					order.customerName = account.fullname;
 					order.createdAt = orderHelp.formatDate(order.createdAt);
 				});
 				res.render("adminPages/order/orders", {
@@ -73,7 +76,9 @@ class order {
 		Order.find({ status: 1 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
-				orders.forEach((order) => {
+				orders.forEach(async (order) => {
+					const account = await Account.findById(order.customerId);
+					order.customerName = account.fullname;
 					order.createdAt = orderHelp.formatDate(order.createdAt);
 				});
 				res.render("adminPages/order/orders", {
@@ -155,7 +160,15 @@ class order {
 	}
 
 	//[PUT] /order/changeStatus
-	changeOrderStatus(req, res) {
+	async changeOrderStatus(req, res) {
+		// order be confirmed
+		if (req.params.currentStatus == 0) {
+			const orders = await OrderDetail.find({ orderDetailId: req.params.id });
+			orders.forEach((order) => {
+				orderHelp.decreaseAmountProduct(order);
+			});
+		}
+
 		Order.updateOne(
 			{ _id: req.params.id },
 			{ $set: { status: Number(req.params.currentStatus) + 1 } }
@@ -171,12 +184,10 @@ class order {
 
 	//[POST] /order/save
 	async saveCreate(req, res) {
-		console.log(req.body);
 		var order = {
 			customerId: req.body.customerId,
-			date: new Date(),
-			total: orderHelp.setTotal(req.body.price, req.body.quantity),
-			confirmed: 1,
+			total: orderHelp.setTotalForNewOrder(req.body.price, req.body.quantity),
+			status: 1,
 		};
 		var listOrderDetails = orderHelp.formatOrder(
 			req.body.shoeId,
@@ -195,7 +206,7 @@ class order {
 		newOrder
 			.save()
 			.then(() => {
-				console.log("done");
+				res.redirect("/admin/orderConfirmed");
 			})
 			.catch((err) => console.log(err));
 	}

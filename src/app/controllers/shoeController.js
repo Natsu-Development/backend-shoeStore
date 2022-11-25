@@ -54,9 +54,9 @@ class shoeController {
 	manager(req, res) {
 		Product.find({}).then((shoes) => {
 			shoes = mutipleMongooseToObject(shoes);
-			res.render('adminPages/product/manager', {
-			    shoes,
-			    layout: 'adminLayout'
+			res.render("adminPages/product/manager", {
+				shoes,
+				layout: "adminLayout",
 			});
 		});
 	}
@@ -145,7 +145,7 @@ class shoeController {
 					const backUrl = req.header("Referer") || "/";
 					//throw error for the view...
 					req.session.errImage = err;
-					console.log('error', err);
+					console.log("error", err);
 					return res.redirect(backUrl + "?warning");
 				}
 				const formData = req.body;
@@ -155,21 +155,20 @@ class shoeController {
 					req.body.size,
 					req.body.amountOfSize
 				);
-				console.log(formData);
 				const product = new Product(formData);
 				const newProduct = await product.save();
 				await Promise.all([
-					...req.body.arrayCategoryId.map(async (cateId) => {
+					formData.arrayCategoryId.map(async (cateId) => {
 						const cateProduct = new CategoryProduct({
 							cateId: cateId,
 							proId: newProduct._id,
 						});
 						const result = await cateProduct.save();
 					}),
-					...formData.size.map(async (size) => {
-						if(size.amount > 0) {
+					formData.size.map(async (size) => {
+						if (size.amount > 0) {
 							const sizeProduct = new CategoryProduct({
-								cateId: size.cateId,
+								cateId: size.size,
 								proId: newProduct._id,
 								amount: size.amount,
 							});
@@ -191,17 +190,17 @@ class shoeController {
 		if (req.query != "warning") delete req.session.errImage;
 
 		// get all Cate of product
-		const cateIdsProduct = await CategoryProduct.find({proId: req.params.id});
+		const cateIdsProduct = await CategoryProduct.find({ proId: req.params.id });
 		var arrCateId = [];
-		cateIdsProduct.forEach(cateId => {
+		cateIdsProduct.forEach((cateId) => {
 			arrCateId.push(cateId.cateId);
 		});
 		const resultCate = await Category.find({
 			_id: {
-				$in: arrCateId
-			}
+				$in: arrCateId,
+			},
 		});
-				
+
 		// display product need update to view...
 		Product.findOne({ _id: req.params.id })
 			.then((product) => {
@@ -215,7 +214,7 @@ class shoeController {
 			})
 			.catch((err) => console.log(err));
 	}
-	
+
 	// [PUT] /product/saveUpdate/:id
 	update(req, res, next) {
 		upload("image")(req, res, function (err) {
@@ -299,31 +298,15 @@ class shoeController {
 	 *         description: Get list failed
 	 */
 	// display product in home
-	displayAllProduct(req, res) {
+	async displayAllProduct(req, res) {
 		// if have request search Product
-		// if (req.body.search) {
-		// 	let object = productHelp.setCondition(req.body, "search");
-		// 	Product.find(object)
-		// 		.then((shoes) => {
-		// 			shoes = mutipleMongooseToObject(shoes);
-		// 			if (
-		// 				req.header("Referer") === "http://localhost:3000/" ||
-		// 				req.header("Referer") === "http://localhost:3000/shoes/shoeByGender"
-		// 			) {
-		// 				res.json({
-		// 					beforeUrl: req.header("Referer"),
-		// 					data: shoes,
-		// 				});
-		// 			} else {
-		// 				res.json({
-		// 					search: req.body.search,
-		// 				});
-		// 			}
-		// 		})
-		// 		.catch((err) => console.log(err));
-		// }
+		if (req.query.search) {
+			let object = productHelp.setCondition(req.body, "search");
+			let products = await Product.find(object);
+			products = mutipleMongooseToObject(products);
+			return res.status(200).send(products);
+		}
 		// display all product
-		// else {
 		Product.find({})
 			.then((shoes) => {
 				shoes = mutipleMongooseToObject(shoes);
@@ -334,7 +317,6 @@ class shoeController {
 				console.log(err);
 				res.status(400);
 			});
-		// }
 	}
 
 	/**
