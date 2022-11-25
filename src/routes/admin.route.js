@@ -14,7 +14,7 @@ const orderController = require("../app/controllers/orderController");
 // CATEGORY
 router.get("/category/add/:typeId", cateController.renderCreate);
 router.get("/category/update/:typeId/:cateId", cateController.renderUpdate);
-// Handle 
+// Handle
 router.get("/category/:typeId", cateController.manager);
 router.post("/category/:typeId/add", cateController.create);
 router.put("/category/update/:typeId/:cateId", cateController.update);
@@ -49,7 +49,10 @@ router.get("/order/add", orderController.create);
 router.post("/order/save", orderController.saveCreate);
 router.get("/order/orderDetails/:id", orderController.viewOrderDetails);
 router.get("/order/orderUpdate/:id", orderController.orderUpdate);
-router.put("/order/orderConfirm/:id", orderController.orderConfirm);
+router.put(
+	"/order/changeOrderStatus/:id/:currentStatus",
+	orderController.changeOrderStatus
+);
 router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 
 //dashboard

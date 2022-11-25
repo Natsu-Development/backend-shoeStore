@@ -13,7 +13,7 @@ const jwt = require("jsonwebtoken");
 class order {
 	// [GET] /order
 	manager(req, res) {
-		Order.find({ confirmed: 1 })
+		Order.find({ status: 3 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
 				res.render("adminPages/order/orders", {
@@ -93,13 +93,13 @@ class order {
 		await orderHelp.setTotalForOrderUpdate(req.params.id);
 	}
 
-	//[PUT] /order/orderConfirm
-	orderConfirm(req, res) {
-		Order.updateMany(
-			{ orderDetailId: req.params.id },
-			{ $set: { confirmed: 1 } }
+	//[PUT] /order/changeStatus
+	changeOrderStatus(req, res) {
+		Order.updateOne(
+			{ _id: req.params.id },
+			{ $set: { status: Number(req.params.currentStatus) + 1 } }
 		).then(() => {
-			console.log("oke");
+			res.redirect("back");
 		});
 	}
 
@@ -190,7 +190,7 @@ class order {
 			const newOrder = new Order({
 				customerId: userId,
 				total: carts.totalCart,
-				confirmed: 0,
+				status: 0,
 			});
 
 			const newOrderCreated = await newOrder.save();

@@ -29,7 +29,7 @@
                             <div class="heading-elements" style="top: 10px">
                                 <ul class="list-inline mb-0"> 
                                     <a href="/admin/order/add"><button class="btn btn-primary">Add</button></a>
-                                    <input type="hidden" value="{{type}}" id="getType">
+                                    {{!-- <input type="hidden" value="{{type}}" id="getType"> --}}
                                     <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
                                     {{!-- <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li> --}}
                                     <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
@@ -49,9 +49,9 @@
                                             <th>Customer Id</th>
                                             <th>Date</th>
                                             <th>Total</th>
-                                            <th>Action</th>
+                                            <th>Action(Click Button To Change Status)</th>
                                             <th>View OrderDetails</th>
-                                            <th>Action</th>
+                                            {{!-- <th>Action</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -63,7 +63,20 @@
                                             <td>{{this.date}}</td>
                                             <td>{{this.total}}</td>
                                             <td>
-                                                <button type="button" class="btn btn-primary" id="btnConfirm" onclick="confirmOrder({{this._id}})">Confirm</button>
+                                                <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                    {{#when this.status 'eq' 0}}
+                                                        Confirm
+                                                    {{/when}}
+                                                    {{#when this.status 'eq' 1}}
+                                                        Confirmed(wait for shipping)
+                                                    {{/when}}
+                                                    {{#when this.status 'eq' 2}}
+                                                        In Transaction
+                                                    {{/when}}
+                                                    {{#when this.status 'eq' 3}}
+                                                        Completed
+                                                    {{/when}}
+                                                </button>
                                             </td> 
                                             <td>
                                                 <a href="/admin/order/orderDetails/{{this._id}}">
@@ -109,11 +122,11 @@
 <form name="confirm-order-form" method="POST"></form>
 
 <script>
-    function confirmOrder(orderId) {
-        // form and button for confirm order
-        var confirmOrderForm = document.forms['confirm-order-form'];
-        // When click button confirm to confirm order
-        confirmOrderForm.action = `/admin/order/orderConfirm/${orderId}?_method=PUT`;
-        confirmOrderForm.submit();
+    function changeStatusOrder(orderId, currentStatus) {
+        // form and button for change order status
+        var changeStatusOrderForm = document.forms['confirm-order-form'];
+        // When click button confirm to change order status
+        changeStatusOrderForm.action = `/admin/order/changeOrderStatus/${orderId}/${currentStatus}?_method=PUT`;
+        changeStatusOrderForm.submit();
     }
 </script>
