@@ -3,6 +3,7 @@ const siteRouter = require("./site.route");
 const cusRouter = require("./cus.route");
 const accountRouter = require("./account.route");
 const adminRouter = require("./admin.route");
+const siteAdminRouter = require("./siteAdmin.route");
 
 // models and help of Category
 const {
@@ -74,7 +75,7 @@ function route(app) {
 	// admin routes api
 	// app.use("/api/v1/admin", passportConfig.authAdmin, adminRouter);
 	// admin routes handlebars
-	app.use("/admin", adminRouter);
+	app.use("/admin", passportConfig.authAdmin, adminRouter);
 
 	// shoe
 	app.use("/api/v1/shoes", shoeRouter);
@@ -87,6 +88,8 @@ function route(app) {
 
 	// site and index
 	app.use("/api/v1", siteRouter);
-}
 
+	//admin login page and handle login
+	app.use("/", siteAdminRouter);
+}
 module.exports = route;

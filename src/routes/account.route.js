@@ -36,10 +36,6 @@ router.get(
 // route for test authenticate
 router.get("/testAuth", passportConfig.authAdmin, accountController.testAuth);
 
-// ADMIN LOGIN
-router.get("/adminLogin", accountController.adminLogin);
-router.post("/handleAdminLogin", accountController.handleAdminLogin);
-
 //LOGIN
 // router.get("/login", accountController.customLogin);
 router.post("/login", accountController.handleCustomerLogin);

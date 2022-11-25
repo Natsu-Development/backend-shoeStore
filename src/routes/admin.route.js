@@ -6,10 +6,10 @@ const shoeController = require("../app/controllers/shoeController");
 const accountController = require("../app/controllers/accountController");
 const orderController = require("../app/controllers/orderController");
 
-// //ACCOUNT
-// router.get('/adminLogin', accountController.adminLogin);
-// router.post('/account/handleAdminLogin', accountController.handleAdminLogin);
-// router.get('/account/renewAccessToken', accountController.renewAccessToken);
+//ACCOUNT
+// router.get("/adminLogin", accountController.adminLogin);
+router.post("/account/handleAdminLogin", accountController.handleAdminLogin);
+router.get("/account/renewAccessToken", accountController.renewAccessToken);
 
 // CATEGORY
 router.get("/category/add/:typeId", cateController.renderCreate);
@@ -58,8 +58,6 @@ router.put(
 router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 
 //dashboard
-router.get("/", (req, res) => {
-	res.render("adminPages/", { layout: "adminLayout" });
-});
+router.get("/", cateTypeController.manager);
 
 module.exports = router;

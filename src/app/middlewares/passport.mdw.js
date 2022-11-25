@@ -135,24 +135,26 @@ module.exports = {
 	// optimize here with one authenticate function
 	authAdmin: (req, res, next) => {
 		try {
-			const decode = jwtHelp.authAccessToken(
-				req.headers.authorization.split(" ")[1],
-				res
-			);
+			const token = req.cookies.Authorization;
 
-			if (decode.permission !== 0) {
-				res.status(403).send({
-					message: "You do not have permission to do this action",
-					status_code: 403,
-				});
+			// empty token
+			if (!token) {
+				return res.redirect("/");
 			}
+
+			const decode = jwt.decode(token);
+			jwt.verify(token, ACCESS_JWT_SECRET);
+
+			if (req.originalUrl.endsWith("/admin/", 7) && decode.permission !== 0) {
+				return res.redirect("/");
+			}
+
 			next();
 		} catch (err) {
-			// if accessToken expired, renew accessToken if refreshToken isn't expired
-			res.status(401).send({
-				message: "Authentication credentials were not provided.",
-				status_code: 401,
-			});
+			if (err.name === "TokenExpiredError") {
+				jwtHelp.renewAccessToken(req, res);
+				res.send("Token expired");
+			}
 		}
 	},
 	authCustomer: (req, res, next) => {

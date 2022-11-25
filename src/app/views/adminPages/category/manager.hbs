@@ -54,7 +54,7 @@
                                     <tbody>
                                         {{#each catesByType}}
                                         <tr>
-                                            <th scope="row"></th>
+                                            <th scope="row">{{inc @index}}</th>
                                             <td>{{this.name}}</td>
                                             <td>{{this.description}}</td>
                                             <td><a href="/admin/category/update/{{this.typeId}}/{{this._id}}"><button class="btn btn-warning">Edit</button></a></td>

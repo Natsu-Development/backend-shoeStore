@@ -27,10 +27,6 @@ class accountController {
 	 *           description: The account's password.
 	 *           example: 12345678
 	 */
-	// [GET] /account/adminLogin
-	adminLogin(req, res) {
-		res.render("adminPages/adminLogin", { layout: false });
-	}
 
 	// [POST] /account/handleAdminLogin
 	handleAdminLogin(req, res) {
@@ -39,7 +35,7 @@ class accountController {
 			account = mongooseToObject(account);
 			const result = bcrypt.compareSync(req.body.password, account.password);
 			if (result) {
-				jwtHelp.encodeAndStoreToken(
+				jwtHelp.encodeAndStoreTokenAdmin(
 					account.userId,
 					account.permission,
 					account.fullname,
@@ -85,7 +81,6 @@ class accountController {
 			console.log("Body", req.body);
 			let user = await Account.findOne({ accountName: req.body.accountName });
 			if (user) {
-				console.log('user', user);
 				user = mongooseToObject(user);
 				const result = bcrypt.compareSync(req.body.password, user.password);
 				if (result) {
@@ -100,7 +95,9 @@ class accountController {
 					res.status(400).send("Your password is incorrect. Please try again");
 				}
 			} else {
-				res.status(400).send("Your account name is incorrect. Please try again");
+				res
+					.status(400)
+					.send("Your account name is incorrect. Please try again");
 			}
 		} catch (err) {
 			console.log(err);

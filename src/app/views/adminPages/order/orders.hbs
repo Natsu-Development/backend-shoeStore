@@ -46,7 +46,7 @@
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <th>Customer Id</th>
+                                            <th>Customer Name</th>
                                             <th>Date & Time</th>
                                             <th>Total</th>
                                             <th>Action(Click Button To Change Status)</th>
@@ -59,8 +59,8 @@
                                         {{#if notConfirm}}   
                                             {{#each orders}}
                                             <tr>
-                                                <th scope="row"></th>
-                                                <td>{{this.customerId}}</td>
+                                                <th scope="row">{{inc @index}}</th>
+                                                <td>{{this.customerName}}</td>
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>
@@ -92,8 +92,8 @@
                                         {{else if confirmed}}
                                             {{#each orders}}
                                             <tr>
-                                            <th scope="row"></th>
-                                                <td>{{this.customerId}}</td>
+                                            <th scope="row">{{inc @index}}</th>
+                                                <td>{{this.customerName}}</td>
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>
@@ -130,8 +130,8 @@
                                         {{else if inTransit}}
                                             {{#each orders}}
                                             <tr>
-                                            <th scope="row"></th>
-                                                <td>{{this.customerId}}</td>
+                                            <th scope="row">{{inc @index}}</th>
+                                                <td>{{this.customerName}}</td>
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>
@@ -168,8 +168,8 @@
                                         {{else}}
                                             {{#each orders}}
                                             <tr>
-                                            <th scope="row"></th>
-                                                <td>{{this.customerId}}</td>
+                                            <th scope="row">{{inc @index}}</th>
+                                                <td>{{this.customerName}}</td>
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>Completed</td>

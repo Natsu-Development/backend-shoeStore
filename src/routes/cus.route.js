@@ -17,6 +17,8 @@ router.get("/myOrder", orderController.getMyOrder);
 // get my order
 router.get("/myOrderDetail/:orderDetailId", orderController.getMyOrderDetail);
 
+//cancel orders
+router.delete("/cancelOrder/:orderId", orderController.cancelOrder);
 // confirmed delivered
 router.post(
 	"/confirmDelivered/:orderId",

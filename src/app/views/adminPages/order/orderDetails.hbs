@@ -38,10 +38,11 @@
                         </div>
                         <div class="card-content collapse show">
                             <div class="table-responsive">
-                                <table class="table table-bordered mb-0">
+                                <table class="table table-bordered mb-0" style="text-align: center">
                                     <thead>
                                         <tr>
                                             <th>No</th>
+                                            <th>Image</th>
                                             <th>Shoe Name</th>
                                             <th>Size</th>
                                             <th>Quantity</th>
@@ -52,8 +53,9 @@
                                     <tbody>
                                         {{#each orderDetails}}
                                         <tr>
-                                            <th scope="row"></th>
-                                            <td>{{this.shoeId}}</td>
+                                            <th scope="row">{{inc @index}}</th>
+                                            <td><img class="" src="/upload/{{this.image}}" alt="Card image cap" style="width: 100px; height: 100px"></td>
+                                            <td>{{this.productName}}</td>
                                             <td>{{this.size}}</td>
                                             <td>{{this.quantity}}</td>
                                             <td>{{this.price}}</td>

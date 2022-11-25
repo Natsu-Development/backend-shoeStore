@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Account = require("../models/account.model");
@@ -10,6 +11,7 @@ const {
 } = require("../../utils/mongoose");
 const orderHelp = require("../../utils/orderHelp");
 const jwt = require("jsonwebtoken");
+const { Mongoose } = require("mongoose");
 
 class order {
 	// [GET] /order
@@ -17,8 +19,11 @@ class order {
 		Order.find({ status: 3 })
 			.then((orders) => {
 				orders = mutipleMongooseToObject(orders);
-				orders.forEach((order) => {
+				orders.forEach(async (order) => {
+					const account = await Account.findById(order.customerId);
+					order.customerName = account.fullname;
 					order.createdAt = orderHelp.formatDate(order.createdAt);
+					console.log(order);
 				});
 				res.render("adminPages/order/orders", {
 					orderCompleted: true,
@@ -80,17 +85,31 @@ class order {
 			.catch((err) => console.log(err));
 	}
 
-	// [GET] /order/detailNotConfirm/:id
-	viewOrderDetails(req, res) {
-		OrderDetail.find({ orderDetailId: req.params.id })
-			.then((orderDetails) => {
-				orderDetails = mutipleMongooseToObject(orderDetails);
-				res.render("adminPages/order/orderDetails", {
-					orderDetails,
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => console.log(err));
+	// [GET] /order/orderDetails/:id
+	async viewOrderDetails(req, res) {
+		try {
+			let orderDetails = await OrderDetail.find({
+				orderDetailId: req.params.id,
+			});
+			orderDetails = mutipleMongooseToObject(orderDetails);
+
+			// get info of product
+			const results = [];
+			await Promise.all(
+				orderDetails.map(async (orderDetail) => {
+					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
+						orderDetail.image = product.arrayImage[0].filename;
+						orderDetail.productName = product.name;
+						console.log(orderDetail);
+						results.push(orderDetail);
+					});
+				})
+			);
+			res.render("adminPages/order/orderDetails", {
+				orderDetails: results,
+				layout: "adminLayout",
+			});
+		} catch (error) {}
 	}
 
 	//[GET] /order/orderUpdate/:id
@@ -293,7 +312,6 @@ class order {
 				myOrder.createdAt = orderHelp.formatDate(myOrder.createdAt);
 			});
 
-			console.log(myOrders);
 			res.status(200).send(myOrders);
 		} catch (err) {
 			console.log(err);
@@ -333,7 +351,6 @@ class order {
 			await Promise.all(
 				orderDetails.map(async (orderDetail) => {
 					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
-						console.log("product", product);
 						orderDetail.image = product.arrayImage[0].filename;
 						orderDetail.productName = product.name;
 						console.log(orderDetail);
@@ -389,6 +406,40 @@ class order {
 			console.log(err);
 			res.status(200).send({ message: "Invalid input" });
 		}
+	}
+
+	/**
+	 * @swagger
+	 * /customer/cancelOrder/{orderId}:
+	 *   delete:
+	 *     summary: Cancel order.
+	 *     tags: [Customer Service]
+	 *     parameters:
+	 *        - in: path
+	 *          name: orderId
+	 *          type: string
+	 *          required: true
+	 *          description: order ID of the order to get orderDetail.
+	 *     security:
+	 *        - bearerAuth: []
+	 *     responses:
+	 *       201:
+	 *         description: Cancel successful
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async cancelOrder(req, res) {
+		const orders = await Order.findById(req.params.orderId);
+		if (orders.status !== 0) {
+			return res
+				.status(403)
+				.send({ message: "Order be confirmed not allow to cancel" });
+		}
+
+		//delete
+		await OrderDetail.deleteMany({ orderDetailId: req.params.orderId });
+		await Order.deleteOne({ _id: req.params.orderId });
+		res.status(200).send({ message: "Success" });
 	}
 }
 
