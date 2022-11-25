@@ -1,6 +1,7 @@
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Account = require("../models/account.model");
+const Product = require("../models/product.model");
 const cartHelp = require("../../utils/cartHelp");
 const jwtHelp = require("../../utils/jwtHelp");
 const {
@@ -285,8 +286,15 @@ class order {
 				req.headers.authorization.split(" ")[1]
 			);
 
-			const myOrder = await Order.find({ customerId: userId });
-			res.status(200).send(myOrder);
+			let myOrders = await Order.find({ customerId: userId });
+			myOrders = mutipleMongooseToObject(myOrders);
+
+			myOrders.forEach((myOrder) => {
+				myOrder.createdAt = orderHelp.formatDate(myOrder.createdAt);
+			});
+
+			console.log(myOrders);
+			res.status(200).send(myOrders);
 		} catch (err) {
 			console.log(err);
 			res.status(400).send({ message: "Invalid input" });
@@ -313,19 +321,31 @@ class order {
 	 *       400:
 	 *         description: Get list failed
 	 */
-	getMyOrderDetail(req, res) {
-		OrderDetail.find({ orderDetailId: req.params.orderDetailId })
-			.then((orderDetails) => {
-				orderDetails = mutipleMongooseToObject(orderDetails);
-				res.status(200).send(orderDetails);
-			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400).send({
-					message: "Invalid input",
-					status_code: 400,
-				});
+	async getMyOrderDetail(req, res) {
+		try {
+			let orderDetails = await OrderDetail.find({
+				orderDetailId: req.params.orderDetailId,
 			});
+			orderDetails = mutipleMongooseToObject(orderDetails);
+
+			// get info of product
+			const results = [];
+			await Promise.all(
+				orderDetails.map(async (orderDetail) => {
+					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
+						console.log("product", product);
+						orderDetail.image = product.arrayImage[0].filename;
+						orderDetail.productName = product.name;
+						console.log(orderDetail);
+						results.push(orderDetail);
+					});
+				})
+			);
+			res.status(200).send(results);
+		} catch (err) {
+			console.log(err);
+			res.status(400).send({ message: "Invalid input" });
+		}
 	}
 
 	/**

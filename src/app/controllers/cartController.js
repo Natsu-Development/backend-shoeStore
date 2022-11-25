@@ -172,27 +172,18 @@ class cartController {
 	 *         description: Error
 	 */
 	async update(req, res) {
-		console.log("Test", req.body);
 		try {
 			const userId = jwtHelp.decodeTokenGetUserId(
 				req.headers.authorization.split(" ")[1]
 			);
-			console.log("test", req.body.productId);
 
 			const product = await Product.findById({
 				_id: req.body.productId,
 			});
-			console.log(
-				"🚀 ~ file: cartController.js ~ line 181 ~ cartController ~ update ~ product",
-				product
-			);
+
 			const updated = await Cart.updateOne(
 				{ $and: [{ _id: req.params.id }, { userId: userId }] },
 				{ ...req.body, total: req.body.quantity * product.price }
-			);
-			console.log(
-				"🚀 ~ file: cartController.js ~ line 185 ~ cartController ~ update ~ updated",
-				updated
 			);
 
 			if (updated.modifiedCount > 0) {
