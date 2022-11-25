@@ -1,5 +1,6 @@
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
+const Account = require("../models/account.model");
 const cartHelp = require("../../utils/cartHelp");
 const jwtHelp = require("../../utils/jwtHelp");
 const {
@@ -146,6 +147,25 @@ class order {
 	 *     tags: [Customer Service]
 	 *     security:
 	 *        - bearerAuth: []
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                  fullname:
+	 *                    type: string
+	 *                    example: Zion Le.
+	 *                  address:
+	 *                    type: string
+	 *                    example: Ho Chi Minh City
+	 *                  numberPhone:
+	 *                    type: string
+	 *                    example: 0924714552
+	 *                  email:
+	 *                    type: string
+	 *                    example: zion.l@itcgroup.io
 	 *     responses:
 	 *       201:
 	 *         description: Checkout success
@@ -157,14 +177,14 @@ class order {
 			const userId = jwtHelp.decodeTokenGetUserId(
 				req.headers.authorization.split(" ")[1]
 			);
-			console.log("userId: " + userId);
+			await Account.updateOne({ _id: userId }, req.body);
 			const carts = await cartHelp.getCartByUserId(userId);
-			if(carts.total === 0 || carts.results.length === 0) {
-				return res.status(400).send({ 
+			if (carts.total === 0 || carts.results.length === 0) {
+				return res.status(400).send({
 					message: "Cart empty",
-					status_code: 400
+					status_code: 400,
 				});
-			} 
+			}
 			const arrCartId = [];
 			//create new order
 			const newOrder = new Order({
@@ -202,6 +222,69 @@ class order {
 			console.log(err);
 			res.status(400);
 		}
+	}
+
+	/**
+	 * @swagger
+	 * /customer/myOrder:
+	 *   get:
+	 *     summary: Get my Order.
+	 *     tags: [Customer Service]
+	 *     security:
+	 *        - bearerAuth: []
+	 *     responses:
+	 *       201:
+	 *         description: Checkout success
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async getMyOrder(req, res) {
+		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
+
+			const myOrder = await Order.find({ customerId: userId });
+			res.status(200).send(myOrder);
+		} catch (err) {
+			console.log(err);
+			res.status(400).send({ message: "Invalid input" });
+		}
+	}
+
+	/**
+	 * @swagger
+	 * /customer/myOrderDetail/{orderDetailId}:
+	 *   get:
+	 *     summary: Get my Order Detail.
+	 *     tags: [Customer Service]
+	 *     parameters:
+	 *        - in: path
+	 *          name: orderDetailId
+	 *          type: string
+	 *          required: true
+	 *          description: order ID of the order to get orderDetail.
+	 *     security:
+	 *        - bearerAuth: []
+	 *     responses:
+	 *       201:
+	 *         description: Checkout success
+	 *       400:
+	 *         description: Get list failed
+	 */
+	getMyOrderDetail(req, res) {
+		OrderDetail.find({ orderDetailId: req.params.orderDetailId })
+			.then((orderDetails) => {
+				orderDetails = mutipleMongooseToObject(orderDetails);
+				res.status(200).send(orderDetails);
+			})
+			.catch((err) => {
+				console.log(err);
+				res.status(400).send({
+					message: "Invalid input",
+					status_code: 400,
+				});
+			});
 	}
 }
 

@@ -11,6 +11,12 @@ router.delete("/cart/delete/:cartId", cartController.delete);
 // check out
 router.post("/checkout", orderController.checkout);
 
+// get all order
+router.get("/myOrder", orderController.getMyOrder);
+
+// get my order
+router.get("/myOrderDetail/:orderDetailId", orderController.getMyOrderDetail);
+
 router.get("/checkoutComplete", (req, res) => {
 	res.render("checkoutComplete");
 });
