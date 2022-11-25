@@ -173,7 +173,15 @@ class order {
 			{ _id: req.params.id },
 			{ $set: { status: Number(req.params.currentStatus) + 1 } }
 		).then(() => {
-			res.redirect("back");
+			if (Number(req.params.currentStatus) + 1 == 1) {
+				res.redirect("/admin/orderConfirmed");
+			} else if (Number(req.params.currentStatus) + 1 == 2) {
+				res.redirect("/admin/orderInTransit");
+			} else if (Number(req.params.currentStatus) + 1 == 3) {
+				res.redirect("/admin/order");
+			} else {
+				res.redirect("/admin/orderNotConfirm");
+			}
 		});
 	}
 

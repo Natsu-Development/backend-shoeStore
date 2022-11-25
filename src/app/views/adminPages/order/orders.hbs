@@ -42,7 +42,7 @@
                                 <p class="card-text">Add <code>.table-bordered</code> for borders on all sides of the table and cells.</p>
                             </div> --}}
                             <div class="table-responsive">
-                                <table class="table table-bordered mb-0">
+                                <table class="table table-bordered mb-0" style="text-align: center;">
                                     <thead>
                                         <tr>
                                             <th>No</th>
@@ -135,7 +135,7 @@
                                                 <td>{{this.createdAt}}</td>
                                                 <td>{{this.total}}</td>
                                                 <td>
-                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})" style="">
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})" disabled>
                                                         {{#when this.status 'eq' 0}}
                                                             Confirm
                                                         {{/when}}
