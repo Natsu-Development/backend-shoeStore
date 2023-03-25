@@ -1,6 +1,7 @@
 const Order = require("../app/models/order.model");
 const OrderDetail = require("../app/models/orderDetail.model");
 const Product = require("../app/models/product.model");
+const Account = require("../app/models/account.model");
 const Category = require("../app/models/category.model");
 const CategoryProduct = require("../app/models/cateProduct.model");
 const { mutipleMongooseToObject, mongooseToObject } = require("mongoose");
@@ -256,6 +257,30 @@ class orderHelp {
 			return 1;
 		}
 		return maxOrderId[0]._id + 1;
+	}
+
+	// get order by Status
+	async getOrderByStatus(status, res) {
+		try {
+			// must have lean() method to change attribute of object from mongo document
+			// mongo document => js Object
+			var orders = await Order.find({ status: status }).lean();
+			var account;
+			await Promise.all(
+				orders.map(async (order) => {
+					account = await Account.findById(order.customerId);
+					order.customerName = account.fullname;
+					order.createdAt = this.formatDate(order.createdAt);
+				})
+			);
+
+			res.render("adminPages/order/orders", {
+				orders,
+				layout: "adminLayout",
+			});
+		} catch (err) {
+			console.log(err);
+		}
 	}
 }
 

@@ -44,22 +44,10 @@
                                     <label for="exampleInputEmail1">Name</label>
                                     <input type="text" class="form-control" name="name" placeholder="Enter shoeName">
                                 </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Brand of product</label>
-                                    <select name="brand" class="form-control">
-                                        {{#each listBrand}}
-                                            <option value="{{this.cateId}}">{{this.cateName}}</option>
-                                        {{/each}}
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Style of product</label>
-                                    <select name="style" class="form-control">
-                                        {{#each listStyle}}
-                                            <option value="{{this.cateId}}">{{this.cateName}}</option>
-                                        {{/each}}
-                                    </select>
-                                </div>
+                                
+                                {{!-- Get all CateTyped added and category of this type --}}
+                                {{getAnotherCateAdded listCateType listAnotherCateAdded}}
+                                
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Introduce of product</label>
                                     <input type="text" class="form-control" name="introduce" placeholder="Enter the introduce of this shoe">
@@ -85,7 +73,7 @@
                                 <button class="btn btn-primary" id="btnDeleteFieldImage" type="button">Delete Image Of Shoe</button>
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">Sizes in US/UK (Enter the amount of the shoes)</label>
-                                    {{#each listSize}}
+                                    {{#each listSizeAdded}}
                                     <div class ="form-check" style="margin-bottom: 14px">
                                         <input value="{{this.cateId}}" name="size" type="hidden">
                                         <label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">

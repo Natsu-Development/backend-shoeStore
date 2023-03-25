@@ -158,9 +158,13 @@ class accountController {
 	 *       400:
 	 *         description: Login failed
 	 */
-	handleCustomerRegister(req, res) {
+	async handleCustomerRegister(req, res) {
 		req.body.permission = "2";
 		req.body.userId = new mongoose.Types.ObjectId().toString();
+		const existedAccount = await Account.find({accountName: req.body.accountName});
+		if(existedAccount) {
+			return res.status(400).send({message: "Account Name already existed. Please try again."});
+		}
 		const newAccount = new Account(req.body);
 		newAccount
 			.save()
@@ -370,6 +374,85 @@ class accountController {
 		res.clearCookie("refreshToken");
 		res.clearCookie("userInfo");
 		res.redirect("/");
+	}
+
+	manager(req, res, next) {
+		Account.find()
+			.then((accounts) => {
+				res.render("adminPages/account/manager", {
+					accounts: mutipleMongooseToObject(accounts),
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => {
+				next(err);
+			});
+	}
+
+	// [GET] /accounts/renderCreate
+	renderCreate(req, res) {
+		if (req.query != "warning") delete req.session.errImage;
+		res.render("adminPages/account/addAccount", {
+			layout: "adminLayout",
+		});
+	}
+
+	// [GET] /accounts/update/:id
+	renderUpdate(req, res) {
+		Account.findById({ _id: req.params.id })
+			.then((account) => {
+				res.render("adminPages/account/accountUpdate", {
+					account: mongooseToObject(account),
+					layout: "adminLayout",
+				});
+			})
+			.catch((err) => console.log(err));
+	}
+
+	//[POST] /accounts/save
+	async create(req, res) {
+		req.body.authType = 'local';
+		const existedAccount = await Account.findOne({accountName: req.body.accountName});
+		if(existedAccount) {
+			// url for redirect back
+			const backUrl = req.header("Referer") || "/";
+			//throw error for the view...
+			req.session.errText = 'This account name already existed. Please try again.';
+			return res.redirect(backUrl + "?warning");	
+		}
+		console.log("req", req.body);
+		const newAccount = new Account(req.body);
+		newAccount
+			.save()
+			.then(() => {
+				res.redirect('/admin/accounts');
+			})
+			.catch((err) => {
+				console.log(err);
+				res.redirect('/admin/accounts');
+			});
+	}
+
+	//[PUT] /accounts/update/:id
+	update(req, res, next) {
+		Account.updateOne({ _id: req.params.id }, req.body)
+			.then(() => {
+				res.redirect(`/admin/accounts`);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}
+
+	//[DELETE] /accounts/delete/:id
+	delete(req, res) {
+		Account.deleteOne({ _id: req.params.id })
+			.then(() => {
+				res.redirect("back");
+			})
+			.catch((err) => {
+				console.log(err);
+			});
 	}
 }
 

@@ -10,28 +10,17 @@ module.exports = {
 		}
 	},
 
-	filterCategory: (arrayCategory) => {
-		var k = "value",
-			i = 0;
+	getCateSize: (arrayCategory) => {
+		let listSize = [];
+
 		for (category in arrayCategory) {
-			eval("var " + k + i + ";");
-		}
-		var index = 0;
-		for (category in arrayCategory) {
-			if (index === 0) {
-				value0 = arrayCategory[category];
-			} else if (index === 1) {
-				value1 = arrayCategory[category];
-			} else {
-				value2 = arrayCategory[category];
+			if (Number(arrayCategory[category][0].cateName)) {
+				listSize = arrayCategory[category];
+				delete arrayCategory[category];
 			}
-			index++;
 		}
-		// const listBrand = arrayCategory.filter(brand => brand.type==='brand');
-		// const listSize = arrayCategory.filter(size => size.type==='size');
-		// const listStyle = arrayCategory.filter(style => style.type==='style');
-		// return {listBrand, listSize, listStyle};
-		return { value0, value1, value2 };
+
+		return { listSize };
 	},
 
 	sortSize: (listSize) => {

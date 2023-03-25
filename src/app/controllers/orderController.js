@@ -16,78 +16,22 @@ const { Mongoose } = require("mongoose");
 class order {
 	// [GET] /order
 	manager(req, res) {
-		Order.find({ status: 3 })
-			.then((orders) => {
-				orders = mutipleMongooseToObject(orders);
-				orders.forEach(async (order) => {
-					const account = await Account.findById(order.customerId);
-					order.customerName = account.fullname;
-					order.createdAt = orderHelp.formatDate(order.createdAt);
-				});
-				res.render("adminPages/order/orders", {
-					orderCompleted: true,
-					orders,
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => console.log(err));
+		orderHelp.getOrderByStatus(3, res);
 	}
 
 	// [GET] /orderNotConfirm
 	orderNotConfirm(req, res) {
-		Order.find({ status: 0 })
-			.then((orders) => {
-				orders = mutipleMongooseToObject(orders);
-				orders.forEach(async (order) => {
-					const account = await Account.findById(order.customerId);
-					order.customerName = account.fullname;
-					order.createdAt = orderHelp.formatDate(order.createdAt);
-				});
-				res.render("adminPages/order/orders", {
-					notConfirm: true,
-					orders,
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => console.log(err));
+		orderHelp.getOrderByStatus(0, res);
 	}
 
 	// [GET] /orderInTransit
 	orderInTransit(req, res) {
-		Order.find({ status: 2 })
-			.then((orders) => {
-				orders = mutipleMongooseToObject(orders);
-				orders.forEach(async (order) => {
-					const account = await Account.findById(order.customerId);
-					order.customerName = account.fullname;
-					order.createdAt = orderHelp.formatDate(order.createdAt);
-				});
-				res.render("adminPages/order/orders", {
-					inTransit: true,
-					orders,
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => console.log(err));
+		orderHelp.getOrderByStatus(2, res);
 	}
 
 	// [GET] /orderConfirmed
 	orderConfirmed(req, res) {
-		Order.find({ status: 1 })
-			.then((orders) => {
-				orders = mutipleMongooseToObject(orders);
-				orders.forEach(async (order) => {
-					const account = await Account.findById(order.customerId);
-					order.customerName = account.fullname;
-					order.createdAt = orderHelp.formatDate(order.createdAt);
-				});
-				res.render("adminPages/order/orders", {
-					confirmed: true,
-					orders,
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => console.log(err));
+		orderHelp.getOrderByStatus(1, res);
 	}
 
 	// [GET] /order/orderDetails/:id
@@ -105,7 +49,6 @@ class order {
 					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
 						orderDetail.image = product.arrayImage[0].filename;
 						orderDetail.productName = product.name;
-						console.log(orderDetail);
 						results.push(orderDetail);
 					});
 				})
@@ -181,6 +124,26 @@ class order {
 				res.redirect("/admin/order");
 			} else {
 				res.redirect("/admin/orderNotConfirm");
+			}
+		});
+	}
+
+	// [PUT] /order/revertStatus
+	async revertOrderStatus(req, res) {
+		// if order is confirmed, can't revert status, check again ???
+		// if have gonna increaseAmountProduct from amount of order.
+
+		// start to revert status
+		Order.updateOne(
+			{ _id: req.params.id },
+			{ $set: { status: Number(req.params.currentStatus) - 1 } }
+		).then(() => {
+			if (Number(req.params.currentStatus) - 1 == 1) {
+				res.redirect("/admin/orderConfirmed");
+			} else if (Number(req.params.currentStatus) - 1 == 2) {
+				res.redirect("/admin/orderInTransit");
+			} else {
+				res.redirect("/admin/order");
 			}
 		});
 	}

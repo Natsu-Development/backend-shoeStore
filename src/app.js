@@ -53,20 +53,106 @@ app.engine(
 	exphbs({
 		extname: ".hbs",
 		helpers: {
-			getCategoryAdded: (cateId, cateName, cateIdOfProduct) => {
-				var output = "";
-				if (cateId.toString() === cateIdOfProduct) {
-					output = `<option value="${cateId}" selected>${cateName}</option>`;
-				} else {
-					output = `<option value="${cateId}">${cateName}</option>`;
+			getCategoryAssigned: (
+				listCateAdded,
+				listCateOfShoe,
+				listCateTypeAdded
+			) => {
+				var output = "",
+					nameOfType,
+					flag = 0;
+				for (typeIdAdded in listCateAdded) {
+					listCateOfShoe.forEach((cate) => {
+						if (cate.typeId === typeIdAdded) {
+							// get cate type added
+							for (cateType in listCateTypeAdded) {
+								if (cateType === cate.typeId) {
+									nameOfType = listCateTypeAdded[cateType][0].typeName;
+									// first letter to upperCase
+									output += `<div class="form-group">
+											<label for="exampleInputEmail1">${
+												nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
+											} of product</label>
+											<select name="cateIds" class="form-control">`;
+									flag = 1;
+									break;
+								}
+							}
+
+							// get cate selected of product
+							listCateAdded[typeIdAdded].forEach((cateAdded) => {
+								if (cateAdded.cateId.toString() === cate.cateId) {
+									output += `<option value="${cateAdded.cateId}" selected>${cateAdded.cateName}</option>`;
+								} else {
+									output += `<option value="${cateAdded.cateId}">${cateAdded.cateName}</option>`;
+								}
+							});
+
+							output += `</select>
+								</div>
+							`;
+						} else {
+							// CateType product not assigned
+							flag = 0;
+						}
+					});
+				}
+
+				// execute by last object
+				if (flag === 0) {
+					nameOfType =
+						listCateTypeAdded[Object.keys(listCateAdded).pop()][0].typeName;
+
+					// first letter to upperCase
+					output += `<div class="form-group">
+							<label for="exampleInputEmail1">${
+								nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
+							} of product</label>
+							<select name="cateIds" class="form-control">
+								<option value="" selected>--- Select Category Of ${
+									nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
+								} ---</option>
+							`;
+
+					// get cate of this type
+					listCateAdded[typeIdAdded].forEach((cateAdded) => {
+						output += `<option value="${cateAdded.cateId}">${cateAdded.cateName}</option>`;
+					});
+					output += `</select>
+								</div>
+							`;
 				}
 				return new Handlebars.SafeString(output);
 			},
-			getCategory: (cateId, cateName, cateIdOfProduct) => {
-				console.log("...");
-				if (cateId.toString() === cateIdOfProduct) {
-					return new Handlebars.SafeString(`${cateName}`);
+
+			getAnotherCateAdded: (listType, listAnotherCate) => {
+				var output = "",
+					nameOfType = "";
+				for (typeId in listType) {
+					for (typeIdOfCate in listAnotherCate) {
+						if (typeId === typeIdOfCate) {
+							nameOfType = listType[typeId][0].typeName;
+							output += `<div class="form-group">
+											<label for="exampleInputEmail1">${
+												nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
+											} of product</label>
+											<select name="cateIds" class="form-control">
+												<option value="" selected>--- Select Category Of ${
+													nameOfType.charAt(0).toUpperCase() +
+													nameOfType.slice(1)
+												} ---</option>`;
+
+							// get all cate of this type
+							listAnotherCate[typeIdOfCate].forEach((cate) => {
+								output += `<option value="${cate.cateId}">${cate.cateName}</option>`;
+							});
+							output += `</select>
+								</div>
+							`;
+						}
+					}
 				}
+				return new Handlebars.SafeString(output);
 			},
 
 			formatCurrency: (price) => {

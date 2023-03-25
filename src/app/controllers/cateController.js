@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const Category = require("../models/category.model");
 const CategoryType = require("../models/categoryType.model");
 const CateProduct = require("../models/cateProduct.model");
@@ -297,31 +299,36 @@ class cateController {
 	 *         description: Get list failed
 	 */
 	async getAllCategory(req, res) {
-		const categoryList = await CategoryType.aggregate([
-			{ $addFields: { cateTypeId: { $toString: "$_id" } } },
-			{
-				$lookup: {
-					from: "categories",
-					localField: "cateTypeId",
-					foreignField: "typeId",
-					as: "result",
+		try {
+			const categoryList = await CategoryType.aggregate([
+				{ $addFields: { cateTypeId: { $toString: "$_id" } } },
+				{
+					$lookup: {
+						from: "categories",
+						localField: "cateTypeId",
+						foreignField: "typeId",
+						as: "result",
+					},
 				},
-			},
-			{
-				$unwind: {
-					path: "$result",
-					preserveNullAndEmptyArrays: false,
+				{
+					$unwind: {
+						path: "$result",
+						preserveNullAndEmptyArrays: false,
+					},
 				},
-			},
-		]);
+			]);
 
-		let result = categoryList.reduce((c, v) => {
-			c[v.type] = c[v.type] || [];
-			c[v.type].push({ cateId: v.result._id, cateName: v.result.name });
-			return c;
-		}, {});
+			let result = categoryList.reduce((c, v) => {
+				c[v.type] = c[v.type] || [];
+				c[v.type].push({ cateId: v.result._id, cateName: v.result.name });
+				return c;
+			}, {});
 
-		res.status(200).send(result);
+			res.status(200).send(result);
+		} catch (err) {
+			console.log(err);
+			res.status(400).send({ message: "Bad request" });
+		}
 	}
 
 	/**
@@ -341,6 +348,9 @@ class cateController {
 	 *                  type: array
 	 *                  example: ["632c260d71e4353b5869f544", "632c268271e4353b5869f559", "632c269a71e4353b5869f560", "632c302fedc8f3c521113457"]
 	 *                  description: The array of categories to filter.
+	 *                option:
+	 *                  type: string
+	 *                  example: "AND"
 	 *     responses:
 	 *       200:
 	 *         content:
@@ -375,21 +385,47 @@ class cateController {
 	 *         description: Get list failed
 	 */
 	async filterByCategory(req, res) {
+		const listCateId = req.body.arrayCateId;
 		const records = await CateProduct.find({
-			cateId: { $in: req.body.arrayCateId },
-			$or: [{ amount: { $exists: false } }, { amount: { $gt: 0 } }],
+			cateId: { $in: listCateId },
+			// $or: [{ amount: { $exists: false } }, { amount: { $gt: 0 } }],
 		});
 
-		let arrayProId = [];
-		records.forEach((record) => {
-			arrayProId.push(record.proId);
-		});
+		// OR Filter
+		if (req.body.option === "OR") {
+			let arrayProId = [];
+			records.forEach((record) => {
+				arrayProId.push(record.proId);
+			});
 
-		// eliminate duplicate items
-		arrayProId = [...new Set(arrayProId)];
+			// eliminate duplicate items
+			arrayProId = [...new Set(arrayProId)];
 
-		const result = await Product.find({ _id: { $in: arrayProId } });
-		res.status(200).send(result);
+			const filterOr = await Product.find({ _id: { $in: arrayProId } });
+			return res.status(200).send(filterOr);
+		}
+
+		let isExisted,
+			listProId = [];
+
+		// AND Filter Handle in here
+		const groupByProId = _.groupBy(records, "proId");
+		for (let proId in groupByProId) {
+			isExisted = true;
+			listCateId.forEach((cateId) => {
+				if (!groupByProId[proId].find((proId) => proId.cateId === cateId)) {
+					isExisted = false;
+					return;
+				}
+			});
+
+			if (isExisted) {
+				listProId.push(proId);
+			}
+		}
+
+		const filterAnd = await Product.find({ _id: { $in: listProId } });
+		return res.status(200).send(filterAnd);
 	}
 }
 

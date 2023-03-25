@@ -6,7 +6,14 @@ const shoeController = require("../app/controllers/shoeController");
 const accountController = require("../app/controllers/accountController");
 const orderController = require("../app/controllers/orderController");
 
-//ACCOUNT
+// ACCOUNT INTERFACE
+router.get("/accounts/add", accountController.renderCreate);
+router.get("/accounts/update/:id", accountController.renderUpdate);
+//ACCOUNT HANDLE
+router.get("/accounts", accountController.manager);
+router.post("/accounts/save", accountController.create);
+router.put("/accounts/update/:id", accountController.update);
+router.delete("/accounts/delete/:id", accountController.delete);
 // router.get("/adminLogin", accountController.adminLogin);
 router.post("/account/handleAdminLogin", accountController.handleAdminLogin);
 router.get("/account/renewAccessToken", accountController.renewAccessToken);
@@ -54,6 +61,10 @@ router.get("/order/orderUpdate/:id", orderController.orderUpdate);
 router.put(
 	"/order/changeOrderStatus/:id/:currentStatus",
 	orderController.changeOrderStatus
+);
+router.put(
+	"/order/revertStatus/:id/:currentStatus",
+	orderController.revertOrderStatus
 );
 router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 

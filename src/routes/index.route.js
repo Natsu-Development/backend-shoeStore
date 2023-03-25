@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const shoeRouter = require("./shoes.route");
 const siteRouter = require("./site.route");
 const cusRouter = require("./cus.route");
@@ -45,18 +47,28 @@ function route(app) {
 				},
 			},
 		]);
+		// console.log("List", categoryList);
 
 		let result = categoryList.reduce((c, v) => {
-			c[v.type] = c[v.type] || [];
-			c[v.type].push({ cateId: v.result._id, cateName: v.result.name });
+			c[v.cateTypeId] = c[v.cateTypeId] || [];
+			c[v.cateTypeId].push({ cateId: v.result._id, cateName: v.result.name });
 			return c;
 		}, {});
 
-		var resultFilter = categoryHelp.filterCategory(result);
-		res.locals.listBrand = resultFilter.value0;
-		res.locals.listStyle = resultFilter.value1;
-		// res.locals.listSize = categoryHelp.sortSize(value2);
-		res.locals.listSize = categoryHelp.sortSize(resultFilter.value2);
+		let listCateType = categoryList.reduce((c, v) => {
+			c[v.cateTypeId] = c[v.cateTypeId] || [];
+			c[v.cateTypeId].push({ typeName: v.type });
+			return c;
+		}, {});
+
+		var resultFilter = categoryHelp.getCateSize(result, res);
+		res.locals.listSizeAdded = resultFilter.listSize;
+		res.locals.listAnotherCateAdded = result;
+		// console.log(
+		// 	"🚀 ~ file: index.route.js:67 ~ app.use ~ res.locals.listAnotherCateAdded:",
+		// 	res.locals.listAnotherCateAdded
+		// );
+		res.locals.listCateType = listCateType;
 
 		await Shoe.find({}).then((shoes) => {
 			shoes = mutipleMongooseToObject(shoes);
@@ -67,7 +79,10 @@ function route(app) {
 			accounts = mutipleMongooseToObject(accounts);
 			res.locals.listCustomer = accounts;
 		});
+
+		// some errors
 		res.locals.errImage = req.session.errImage;
+		res.locals.errText = req.session.errText;
 		res.locals.registerErr = req.session.registerErr;
 		res.locals.loginErr = req.session.loginErr;
 		next();

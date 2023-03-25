@@ -10,7 +10,7 @@ module.exports = {
 				continue;
 			}
 			result.push({
-				size: size[i],
+				sizeId: size[i],
 				amount: amountOfSize[i],
 			});
 			i++;
