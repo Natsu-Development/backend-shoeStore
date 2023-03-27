@@ -38,7 +38,7 @@ const Account = new Schema(
 		},
 		email: {
 			type: String,
-			required: true,
+			// required: true,
 		},
 		address: {
 			type: String,

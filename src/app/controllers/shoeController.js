@@ -482,6 +482,7 @@ class shoeController {
 	 *          type: string
 	 *          required: true
 	 *          description: shoe ID of the shoe to get.
+	 *          example: 6380e790ad8a239b8c5166a2
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -515,11 +516,38 @@ class shoeController {
 	 *       400:
 	 *         description: Get item failed
 	 */
-	productDetail(req, res) {
+	async productDetail(req, res) {
+		const listCatePro = await CategoryProduct.find({ proId: req.params.id });
+		let listCateId = [],
+			listAnotherCate = [],
+			listCateSize = [],
+			totalAmount = 0;
+
+		listCatePro.forEach((catePro) => {
+			if (catePro?.amount) {
+				totalAmount += catePro.amount;
+			}
+			listCateId.push(catePro.cateId);
+		});
+
+		const listCate = await Category.find({ _id: { $in: listCateId } });
+		listCate.forEach((cate) => {
+			if (Number(cate.name)) {
+				listCateSize.push(cate.name);
+			} else {
+				listAnotherCate.push(cate.name);
+			}
+		});
+
 		Product.findOne({ _id: req.params.id })
 			.then((shoe) => {
 				shoe = mongooseToObject(shoe);
-				res.json(shoe);
+				res.json({
+					shoeDetail: shoe,
+					listCateSize,
+					listAnotherCate,
+					totalAmount,
+				});
 			})
 			.catch((err) => {
 				console.log(err);
