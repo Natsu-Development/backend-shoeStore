@@ -70,7 +70,7 @@ class cartController {
 	 *                productId:
 	 *                  type: string
 	 *                  description: Id of product.
-	 *                  example: 617e9cb57b1ddb194ce46922
+	 *                  example: 6380e790ad8a239b8c5166a2
 	 *                quantity:
 	 *                  type: number
 	 *                  description: Quantity of product want to add to cart.
@@ -96,9 +96,12 @@ class cartController {
 			req.headers.authorization.split(" ")[1]
 		);
 		// check this product and this size have existed
-		const checkDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
-		if (checkDuplicateCart) {
-			return res.status(200).send("Update successful");
+		const isDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
+		if (isDuplicateCart.cartUpdated) {
+			return res.status(200).send({
+				cart: isDuplicateCart.cartUpdated,
+				product: isDuplicateCart.product,
+			});
 		}
 
 		// not existed duplicate cart
@@ -113,7 +116,7 @@ class cartController {
 				};
 				const addToCart = new Cart(cart);
 				addToCart.save().then(() => {
-					res.status(200).send("Success");
+					res.status(200).send({ cart, product });
 				});
 			})
 			.catch((error) => {

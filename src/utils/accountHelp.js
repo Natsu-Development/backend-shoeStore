@@ -49,7 +49,6 @@ module.exports = {
 			} else {
 				const newUser = new Account({
 					fullname: req.body.fullname,
-					accountName: req.body.email,
 					userId: req.body.userId,
 					email: req.body.email,
 					address: "",

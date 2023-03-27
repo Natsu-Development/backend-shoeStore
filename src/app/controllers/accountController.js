@@ -21,7 +21,7 @@ class accountController {
 	 *         accountName:
 	 *           type: string
 	 *           description: The account's name'.
-	 *           example: catle4551@gmail.com
+	 *           example: testAccountName
 	 *         password:
 	 *           type: string
 	 *           description: The account's password.
@@ -161,9 +161,13 @@ class accountController {
 	async handleCustomerRegister(req, res) {
 		req.body.permission = "2";
 		req.body.userId = new mongoose.Types.ObjectId().toString();
-		const existedAccount = await Account.find({accountName: req.body.accountName});
-		if(existedAccount) {
-			return res.status(400).send({message: "Account Name already existed. Please try again."});
+		const existedAccount = await Account.find({
+			accountName: req.body.accountName,
+		});
+		if (existedAccount.length > 0) {
+			return res
+				.status(400)
+				.send({ message: "Account Name already existed. Please try again." });
 		}
 		const newAccount = new Account(req.body);
 		newAccount
@@ -411,25 +415,28 @@ class accountController {
 
 	//[POST] /accounts/save
 	async create(req, res) {
-		req.body.authType = 'local';
-		const existedAccount = await Account.findOne({accountName: req.body.accountName});
-		if(existedAccount) {
+		req.body.authType = "local";
+		const existedAccount = await Account.findOne({
+			accountName: req.body.accountName,
+		});
+		if (existedAccount) {
 			// url for redirect back
 			const backUrl = req.header("Referer") || "/";
 			//throw error for the view...
-			req.session.errText = 'This account name already existed. Please try again.';
-			return res.redirect(backUrl + "?warning");	
+			req.session.errText =
+				"This account name already existed. Please try again.";
+			return res.redirect(backUrl + "?warning");
 		}
 		console.log("req", req.body);
 		const newAccount = new Account(req.body);
 		newAccount
 			.save()
 			.then(() => {
-				res.redirect('/admin/accounts');
+				res.redirect("/admin/accounts");
 			})
 			.catch((err) => {
 				console.log(err);
-				res.redirect('/admin/accounts');
+				res.redirect("/admin/accounts");
 			});
 	}
 

@@ -4,7 +4,9 @@ const { mutipleMongooseToObject, mongooseToObject } = require("./mongoose");
 
 class cartHelp {
 	async updateDuplicateCart(req, userId) {
-		let flag = 0;
+		let flag = 0,
+			product,
+			cartUpdated;
 		let carts = await Cart.find({ userId: userId });
 		carts = mutipleMongooseToObject(carts);
 		await Promise.all(
@@ -14,18 +16,19 @@ class cartHelp {
 					cart.size == req.body.size
 				) {
 					cart.quantity += req.body.quantity;
-					const product = await Product.findOne({ _id: req.body.productId });
-					const updateSuccess = await Cart.updateOne(
+					product = await Product.findOne({ _id: req.body.productId });
+					cartUpdated = await Cart.findOneAndUpdate(
 						{ _id: cart._id },
-						{ quantity: cart.quantity, total: product.price * cart.quantity }
+						{ quantity: cart.quantity, total: product.price * cart.quantity },
+						{ returnDocument: "after" }
 					);
-					console.log("update success", updateSuccess);
+					// console.log("update success", updateSuccess);
 					flag = 1;
 				}
 			})
 		);
-		if (flag === 1) return true;
-		return false;
+		if (flag === 1) return { product, cartUpdated };
+		return {};
 	}
 
 	async getCartByUserId(userId) {
