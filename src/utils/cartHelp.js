@@ -22,7 +22,6 @@ class cartHelp {
 						{ quantity: cart.quantity, total: product.price * cart.quantity },
 						{ returnDocument: "after" }
 					);
-					// console.log("update success", updateSuccess);
 					flag = 1;
 				}
 			})
