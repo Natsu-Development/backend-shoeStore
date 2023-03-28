@@ -115,8 +115,8 @@ class cartController {
 					total: product.price * req.body.quantity,
 				};
 				const addToCart = new Cart(cart);
-				addToCart.save().then(() => {
-					res.status(200).send({ cart, product });
+				addToCart.save().then((newCart) => {
+					res.status(200).send({ cart: newCart, product });
 				});
 			})
 			.catch((error) => {
