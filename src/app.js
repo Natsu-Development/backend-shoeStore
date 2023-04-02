@@ -36,7 +36,7 @@ app.use(
 app.use(cors());
 
 // database
-const db = require("./config/");
+const db = require("./config");
 db.connect();
 
 // express handlebars
