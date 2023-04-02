@@ -269,7 +269,7 @@ class orderHelp {
 			await Promise.all(
 				orders.map(async (order) => {
 					account = await Account.findById(order.customerId);
-					order.customerName = account.fullname;
+					order.customerName = account?.fullname;
 					order.createdAt = this.formatDate(order.createdAt);
 				})
 			);

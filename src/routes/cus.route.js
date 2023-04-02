@@ -2,12 +2,19 @@ const express = require("express");
 const router = express.Router();
 const orderController = require("../app/controllers/orderController");
 const cartController = require("../app/controllers/cartController");
+const promotionalController = require("../app/controllers/promotionalController");
 
 router.get("/cart", cartController.getCart);
 router.post("/cart/add", cartController.create);
 router.put("/cart/update/:id", cartController.update);
 router.delete("/cart/delete/:cartId", cartController.delete);
 
+// get all and apply promotional
+router.get("/promotion", promotionalController.availablePromotion);
+router.put(
+	"/applyPromo",
+	promotionalController.applyPromo.bind(promotionalController)
+);
 // check out
 router.post("/checkout", orderController.checkout);
 

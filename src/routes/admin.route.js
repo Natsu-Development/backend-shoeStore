@@ -5,6 +5,7 @@ const cateTypeController = require("../app/controllers/cateTypeController");
 const shoeController = require("../app/controllers/shoeController");
 const accountController = require("../app/controllers/accountController");
 const orderController = require("../app/controllers/orderController");
+const promotionalController = require("../app/controllers/promotionalController");
 
 // ACCOUNT INTERFACE
 router.get("/accounts/add", accountController.renderCreate);
@@ -48,6 +49,20 @@ router.get("/product/update/:id", shoeController.renderUpdate);
 router.put("/product/saveUpdate/:id", shoeController.update);
 router.delete("/product/delete/:id", shoeController.delete);
 // router.get('/category/:slug', shoeController.findShoeByName);
+
+//PROMOTIONAL
+router.get("/promotional", promotionalController.manager);
+router.get("/promotional/add", promotionalController.renderCreate);
+router.post(
+	"/promotional/save",
+	promotionalController.create.bind(promotionalController)
+);
+router.get("/promotional/update/:id", promotionalController.renderUpdate);
+router.put(
+	"/promotional/saveUpdate/:id",
+	promotionalController.update.bind(promotionalController)
+);
+router.delete("/promotional/delete/:id", promotionalController.delete);
 
 //ORDER AND ORDERDETAILS
 router.get("/order", orderController.manager);

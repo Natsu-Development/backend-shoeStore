@@ -9,7 +9,9 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
+const mailService = require("../../utils/mailService");
 const orderHelp = require("../../utils/orderHelp");
+const promoController = require("../controllers/promotionalController");
 const jwt = require("jsonwebtoken");
 const { Mongoose } = require("mongoose");
 
@@ -199,7 +201,7 @@ class order {
 	 *             properties:
 	 *                  fullname:
 	 *                    type: string
-	 *                    example: Zion Le.
+	 *                    example: storage Byme.
 	 *                  address:
 	 *                    type: string
 	 *                    example: Ho Chi Minh City
@@ -208,7 +210,10 @@ class order {
 	 *                    example: 0924714552
 	 *                  email:
 	 *                    type: string
-	 *                    example: zion.l@itcgroup.io
+	 *                    example: storage1520@gmail.com
+	 *                  listPromoCode:
+	 *                    type: array
+	 *                    example: ['EVENT', 'NEWORDER']
 	 *     responses:
 	 *       201:
 	 *         description: Checkout success
@@ -220,47 +225,65 @@ class order {
 			const userId = jwtHelp.decodeTokenGetUserId(
 				req.headers.authorization.split(" ")[1]
 			);
-			await Account.updateOne({ _id: userId }, req.body);
+			// update info of user such as update number phone and address
+			const userAccount = await Account.findOneAndUpdate(
+				{ _id: userId },
+				req.body,
+				{ new: true }
+			);
+			console.log(userAccount);
 			const carts = await cartHelp.getCartByUserId(userId);
-			if (carts.total === 0 || carts.results.length === 0) {
+			if (carts.totalCart === 0 || carts.results.length === 0) {
 				return res.status(400).send({
 					message: "Cart empty",
 					status_code: 400,
 				});
 			}
 			const arrCartId = [];
-			//create new order
-			const newOrder = new Order({
-				customerId: userId,
-				total: carts.totalCart,
-				status: 0,
-			});
-
-			const newOrderCreated = await newOrder.save();
-
-			// create new order details
-			await Promise.all(
-				carts.results.map(async (cart) => {
-					const newOrderDetail = new OrderDetail({
-						orderDetailId: newOrderCreated._id,
-						shoeId: cart.productId,
-						size: cart.size,
-						quantity: cart.quantity,
-						price: cart.productPrice,
-					});
-					arrCartId.push(cart._id);
-					await newOrderDetail.save();
-				})
+			const discount = await promoController.handlePromo(
+				req.body.listPromoCode,
+				carts.totalCart,
+				"checkout"
 			);
-
-			//delete cart
-			const deletedCart = cartHelp.deleteCart(arrCartId);
-			if (deletedCart) {
-				res.status(200).send({
-					message: "Checkout success",
-					status_code: 200,
+			if (discount?.invalid) {
+				return res.status(200).send({
+					message: discount.message,
 				});
 			}
+
+			//create new order
+			// const newOrder = new Order({
+			// 	customerId: userId,
+			// 	total: discount.totalMoney,
+			// 	status: 0,
+			// });
+
+			// const newOrderCreated = await newOrder.save();
+
+			// // create new order details
+			// await Promise.all(
+			// 	carts.results.map(async (cart) => {
+			// 		const newOrderDetail = new OrderDetail({
+			// 			orderDetailId: newOrderCreated._id,
+			// 			shoeId: cart.productId,
+			// 			size: cart.size,
+			// 			quantity: cart.quantity,
+			// 			price: cart.productPrice,
+			// 		});
+			// 		arrCartId.push(cart._id);
+			// 		await newOrderDetail.save();
+			// 	})
+			// );
+
+			mailService.sendMailAfterCheckout(userAccount.email);
+
+			//delete cart
+			// const deletedCart = cartHelp.deleteCart(arrCartId);
+			// if (deletedCart) {
+			// 	res.status(200).send({
+			// 		message: "Checkout success",
+			// 	});
+			// }
 		} catch (err) {
 			console.log(err);
 			res.status(400);

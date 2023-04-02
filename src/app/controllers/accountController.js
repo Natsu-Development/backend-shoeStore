@@ -7,6 +7,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
+const mailService = require("../../utils/mailService.js");
 const accountHelp = require("../../utils/accountHelp");
 require("dotenv").config();
 
@@ -161,15 +162,24 @@ class accountController {
 	async handleCustomerRegister(req, res) {
 		req.body.permission = "2";
 		req.body.userId = new mongoose.Types.ObjectId().toString();
-		const existedAccount = await Account.find({
+		const existedAccount = await Account.findOne({
 			accountName: req.body.accountName,
 		});
-		if (existedAccount.length > 0) {
+		if (existedAccount) {
 			return res
 				.status(400)
 				.send({ message: "Account Name already existed. Please try again." });
 		}
 		const newAccount = new Account(req.body);
+
+		// send email to new account
+		const existedEmail = await Account.findOne({
+			email: req.body.email,
+		});
+		if (!existedEmail) {
+			mailService.sendMailForFirstLogin(req.body.email);
+		}
+
 		newAccount
 			.save()
 			.then(() => {
@@ -197,15 +207,19 @@ class accountController {
 	 *                userId:
 	 *                  type: string
 	 *                  description: The user's id.
+	 *                  example: 111296478107459073277
 	 *                fullname:
 	 *                  type: string
 	 *                  description: Full name of user.
+	 *                  example: storage Byme
 	 *                email:
 	 *                  type: string
 	 *                  description: Email's account.
+	 *                  example: storage1520@gmail.com
 	 *                picture:
 	 *                  type: string
 	 *                  description: Account's avatar.
+	 *                  example: https://lh3.googleusercontent.com/a/AGNmyxYnpqJEjGcwvQCVTN0_utC29d7zN6xWpNvpblxy=s96-c
 	 *     responses:
 	 *       201:
 	 *         content:

@@ -49,6 +49,9 @@ class cartController {
 		);
 		// get Cart from userId
 		const results = await cartHelp.getCartByUserId(userId);
+		if (!results) {
+			return res.send({ message: "Cart empty" });
+		}
 		res.json(results);
 	}
 

@@ -4,8 +4,10 @@ const Schema = mongoose.Schema;
 const Promotional = new Schema(
 	{
 		code: { type: String, maxLength: 255 },
-		percent: { type: Number, maxLength: 10 },
-		expiredAt: { type: Date },
+		discount: { type: String, maxLength: 10 },
+		description: { type: String, maxLength: 255 },
+		startDate: { type: Date },
+		endDate: { type: Date },
 		userId: { type: String, maxLength: 255 },
 		amount: { type: Number },
 	},
