@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "shoeStore by NodeJS",
   "main": "app.js",
+  "engines": {
+    "node": "16.x",
+    "npm": "7.x"
+  },
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "node src/app.js"
