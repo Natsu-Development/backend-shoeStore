@@ -2,17 +2,19 @@ const { senderEmail, pass } = require("../constants/mail");
 const nodemailer = require("nodemailer");
 
 class mailService {
-	sendMailAfterCheckout(emailReceiver) {
+	sendMailAfterCheckout(emailReceiver, promoCode) {
 		const subject = "Thanks for your order";
-		const html =
-			"<h1>Check out success and here is your promotion for next order. Thanks</h1>";
+		const html = `
+			<span>Check out success and here is your promotion for next order. Thanks for your order</span>
+			<h1>${promoCode}</h1>
+		`;
 		this.sendMail(emailReceiver, html, subject);
 	}
-	sendMailForFirstLogin(emailReceiver) {
+	sendMailForFirstLogin(emailReceiver, promoCode) {
 		const subject = "Discount for first order";
 		const html = `
 			<span>Hi, here are your discount for first order. Please check it !</span>
-			<h1>NEWORDER</h1>
+			<h1>${promoCode}</h1>
 		`;
 		this.sendMail(emailReceiver, html, subject);
 	}

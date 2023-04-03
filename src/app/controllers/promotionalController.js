@@ -3,6 +3,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
+const jwtHelp = require("../../utils/jwtHelp");
 
 class promotionalController {
 	// [GET] /promotional
@@ -119,12 +120,15 @@ class promotionalController {
 	 *         message: Error
 	 */
 	async availablePromotion(req, res) {
+		const userId = jwtHelp.decodeTokenGetUserId(
+			req.headers.authorization.split(" ")[1]
+		);
 		const currentDate = new Date();
 		const listPromotion = await Promotional.find({
 			$and: [
 				{ startDate: { $lte: currentDate } },
 				{ endDate: { $gte: currentDate } },
-				{ amount: { $gt: 0 } },
+				{ $or: [{ amount: { $gt: 0 } }, { userId: userId }] },
 			],
 		});
 		res.status(200).send({ listPromotion });
@@ -168,6 +172,9 @@ class promotionalController {
 	// apply promotional in cart
 	async applyPromo(req, res) {
 		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
 			let totalCart = req.body.cartTotal;
 
 			const listPromoCode = req.body.listPromoCode;
@@ -175,7 +182,8 @@ class promotionalController {
 			const resultHandle = await this.handlePromo(
 				listPromoCode,
 				totalCart,
-				"checkPromo"
+				"checkPromo",
+				userId
 			);
 
 			if (resultHandle?.invalid) {
@@ -192,13 +200,22 @@ class promotionalController {
 		}
 	}
 
-	async handlePromo(listPromoCode, totalMoney, action) {
+	async handlePromo(listPromoCode, totalMoney, action, userId) {
 		let promo,
 			totalDiscount = 0,
 			invalidPromo,
 			listPromoApplied = [];
 
 		const currentDate = new Date();
+
+		// check duplicate promotion
+		const listUniquePromoCode = new Set(listPromoCode);
+		if (listUniquePromoCode.size !== listPromoCode.length) {
+			return {
+				invalid: true,
+				message: "Duplicate promotion code. Please try again.",
+			};
+		}
 		// TODO: Can fix return map function
 		// find promo and check promo is valid
 		await Promise.all(
@@ -208,7 +225,7 @@ class promotionalController {
 						{ code: promoCode },
 						{ startDate: { $lte: currentDate } },
 						{ endDate: { $gte: currentDate } },
-						{ amount: { $gt: 0 } },
+						{ $or: [{ amount: { $gt: 0 } }, { userId: userId }] },
 					],
 				});
 
@@ -217,10 +234,9 @@ class promotionalController {
 					invalidPromo = promoCode;
 					return;
 				}
-				totalMoney = totalMoney * (Number(promo?.discount) / 100);
 				totalDiscount += Number(promo.discount);
 				if (action == "checkout") {
-					listPromoApplied.push({ id: promo._id, amount: promo.amount });
+					listPromoApplied.push({ id: promo._id, amount: promo?.amount });
 				}
 			})
 		);
@@ -234,14 +250,51 @@ class promotionalController {
 
 		await Promise.all(
 			listPromoApplied.map(async (promoApplied) => {
-				await Promotional.updateOne(
-					{ _id: promoApplied.id },
-					{ amount: promoApplied.amount - 1 }
-				);
+				if (promoApplied?.amount) {
+					await Promotional.updateOne(
+						{ _id: promoApplied.id },
+						{ amount: promoApplied.amount - 1 }
+					);
+				} else {
+					// await Promotional.deleteOne({ _id: promoApplied.id });
+				}
 			})
 		);
 
+		totalMoney = totalMoney - totalMoney * (totalDiscount / 100);
+		if (totalMoney < 0) {
+			totalMoney = 0;
+		}
+
 		return { totalMoney, totalDiscount };
+	}
+
+	async promoFirstLogin(userId) {
+		const newPromo = new Promotional({
+			code: `NEWORDER${userId}`,
+			description: "Promotion for first order",
+			discount: 20,
+			startDate: new Date(),
+			endDate: new Date().setDate(new Date().getDate() + 15),
+			userId: userId,
+		});
+
+		const promo = await newPromo.save();
+		return promo.code;
+	}
+
+	async promoCheckoutSuccess(userId) {
+		const newPromo = new Promotional({
+			code: `NEXTORDER${userId}`,
+			description: "Promotion for next order",
+			discount: 20,
+			startDate: new Date(),
+			endDate: new Date().setDate(new Date().getDate() + 15),
+			userId: userId,
+		});
+
+		const promo = await newPromo.save();
+		return promo.code;
 	}
 
 	async isExitedPromo(promoCode) {

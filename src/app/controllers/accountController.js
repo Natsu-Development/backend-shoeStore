@@ -441,7 +441,6 @@ class accountController {
 				"This account name already existed. Please try again.";
 			return res.redirect(backUrl + "?warning");
 		}
-		console.log("req", req.body);
 		const newAccount = new Account(req.body);
 		newAccount
 			.save()

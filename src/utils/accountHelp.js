@@ -1,6 +1,7 @@
 const Account = require("../app/models/account.model");
 const jwtHelp = require("./jwtHelp");
 const mailService = require("./mailService");
+const promotionalController = require("../app/controllers/promotionalController");
 
 module.exports = {
 	hasExistAccountName: (req, res, next) => {
@@ -30,7 +31,6 @@ module.exports = {
 			//User exist
 			const existUser = await Account.findOne({ userId: req.body.userId });
 			const existEmail = await Account.findOne({ email: req.body?.email });
-			console.log(existEmail);
 			const expired_at = new Date().setDate(new Date().getDate() + 3);
 
 			// create new account and send email include promotion
@@ -38,18 +38,20 @@ module.exports = {
 				const newUser = new Account({
 					fullname: req.body.fullname,
 					userId: req.body.userId,
-					email: req.body.email,
+					email: req.body?.email,
 					address: "",
 					numberPhone: "",
 					permission: "2",
 					authType: authType,
 					picture: req.body.picture,
 				});
-				console.log(newUser);
-				if (!existEmail) {
-					mailService.sendMailForFirstLogin(req.body.email);
-				}
 				await newUser.save();
+				if (!existEmail) {
+					const promoCode = await promotionalController.promoFirstLogin(
+						newUser._id
+					);
+					mailService.sendMailForFirstLogin(req.body?.email, promoCode);
+				}
 				const token = jwtHelp.createAccessToken(
 					newUser._id,
 					newUser.permission,

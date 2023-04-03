@@ -3,6 +3,8 @@ const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Account = require("../models/account.model");
 const Product = require("../models/product.model");
+const Category = require("../models/category.model");
+const CatePro = require("../models/cateProduct.model");
 const cartHelp = require("../../utils/cartHelp");
 const jwtHelp = require("../../utils/jwtHelp");
 const {
@@ -231,19 +233,18 @@ class order {
 				req.body,
 				{ new: true }
 			);
-			console.log(userAccount);
 			const carts = await cartHelp.getCartByUserId(userId);
-			if (carts.totalCart === 0 || carts.results.length === 0) {
-				return res.status(400).send({
+			if (!carts?.totalCart || carts.results.length === 0) {
+				return res.status(200).send({
 					message: "Cart empty",
-					status_code: 400,
 				});
 			}
 			const arrCartId = [];
 			const discount = await promoController.handlePromo(
 				req.body.listPromoCode,
 				carts.totalCart,
-				"checkout"
+				"checkout",
+				userId
 			);
 			if (discount?.invalid) {
 				return res.status(200).send({
@@ -252,38 +253,55 @@ class order {
 			}
 
 			//create new order
-			// const newOrder = new Order({
-			// 	customerId: userId,
-			// 	total: discount.totalMoney,
-			// 	status: 0,
-			// });
+			const newOrder = new Order({
+				customerId: userId,
+				total: discount.totalMoney,
+				status: 0,
+			});
 
-			// const newOrderCreated = await newOrder.save();
+			const newOrderCreated = await newOrder.save();
 
-			// // create new order details
-			// await Promise.all(
-			// 	carts.results.map(async (cart) => {
-			// 		const newOrderDetail = new OrderDetail({
-			// 			orderDetailId: newOrderCreated._id,
-			// 			shoeId: cart.productId,
-			// 			size: cart.size,
-			// 			quantity: cart.quantity,
-			// 			price: cart.productPrice,
-			// 		});
-			// 		arrCartId.push(cart._id);
-			// 		await newOrderDetail.save();
-			// 	})
-			// );
+			// create new order details and handle amount of product
+			await Promise.all(
+				carts.results.map(async (cart) => {
+					const newOrderDetail = new OrderDetail({
+						orderDetailId: newOrderCreated._id,
+						shoeId: cart.productId,
+						size: cart.size,
+						quantity: cart.quantity,
+						price: cart.productPrice,
+					});
+					arrCartId.push(cart._id);
+					await newOrderDetail.save();
 
-			mailService.sendMailAfterCheckout(userAccount.email);
+					const cateSize = await Category.findOne({ name: cart.size });
+					const catePro = await CatePro.findOne({
+						cateId: cateSize?._id,
+						proId: cart.productId,
+					});
+
+					if (catePro) {
+						await CatePro.updateOne(
+							{
+								cateId: cateSize?._id,
+								proId: cart.productId,
+							},
+							{ amount: catePro?.amount - cart.quantity }
+						);
+					}
+				})
+			);
+
+			const promoCode = await promoController.promoCheckoutSuccess(userId);
+			mailService.sendMailAfterCheckout(userAccount.email, promoCode);
 
 			//delete cart
-			// const deletedCart = cartHelp.deleteCart(arrCartId);
-			// if (deletedCart) {
-			// 	res.status(200).send({
-			// 		message: "Checkout success",
-			// 	});
-			// }
+			const deletedCart = cartHelp.deleteCart(arrCartId);
+			if (deletedCart) {
+				res.status(200).send({
+					message: "Checkout success",
+				});
+			}
 		} catch (err) {
 			console.log(err);
 			res.status(400);
