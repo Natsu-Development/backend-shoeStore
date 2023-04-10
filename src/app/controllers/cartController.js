@@ -1,5 +1,6 @@
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
+const Notification = require("../models/notification.model")
 const jwtHelp = require("../../utils/jwtHelp");
 const cartHelp = require("../../utils/cartHelp");
 const mongoose = require("mongoose");
@@ -42,17 +43,28 @@ class cartController {
 	 *       400:
 	 *         description: Get list failed
 	 */
-	async getCart(req, res, flag) {
-		// get userId from token
-		const userId = jwtHelp.decodeTokenGetUserId(
-			req.headers.authorization.split(" ")[1]
-		);
-		// get Cart from userId
-		const results = await cartHelp.getCartByUserId(userId);
-		if (!results) {
-			return res.send({ message: "Cart empty" });
+	async getCart(req, res) {
+		try {
+			// get userId from token
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
+			// get Cart from userId
+			const results = await cartHelp.getCartByUserId(userId);
+			if (!results) {
+				return res.send({ message: "Cart empty" });
+			}
+			const notification = new Notification({
+				type: "getOrder",
+				data: results,
+			});
+			// await notification.save();
+			req.io.sockets.emit("cart", results.results);
+			res.json(results);
 		}
-		res.json(results);
+		catch(err) {
+			console.log(err);
+		}
 	}
 
 	/**

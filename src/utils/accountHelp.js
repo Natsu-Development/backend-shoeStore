@@ -57,6 +57,7 @@ module.exports = {
 					newUser.permission,
 					newUser.fullname
 				);
+				
 				return res.json({ token, newUser, expired_at });
 			}
 

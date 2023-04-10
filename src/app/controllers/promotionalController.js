@@ -297,6 +297,7 @@ class promotionalController {
 		return promo.code;
 	}
 
+	// TODO: Check in here
 	async isExitedPromo(promoCode) {
 		const isExited = Promotional.findOne({ code: promoCode });
 		if (isExited) return true;

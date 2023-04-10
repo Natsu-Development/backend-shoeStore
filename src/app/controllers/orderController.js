@@ -367,6 +367,7 @@ class order {
 			let orderDetails = await OrderDetail.find({
 				orderDetailId: req.params.orderDetailId,
 			});
+			let order = await Order.findById(req.params.orderDetailId);
 			orderDetails = mutipleMongooseToObject(orderDetails);
 
 			// get info of product
@@ -376,15 +377,14 @@ class order {
 					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
 						orderDetail.image = product.arrayImage[0].filename;
 						orderDetail.productName = product.name;
-						console.log(orderDetail);
 						results.push(orderDetail);
 					});
 				})
 			);
-			res.status(200).send(results);
+			res.status(200).send({results, total: order?.total});
 		} catch (err) {
 			console.log(err);
-			res.status(400).send({ message: "Invalid input" });
+			res.status(200).send({ message: "Invalid input" });
 		}
 	}
 

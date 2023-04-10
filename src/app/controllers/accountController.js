@@ -31,6 +31,7 @@ class accountController {
 
 	// [POST] /account/handleAdminLogin
 	handleAdminLogin(req, res) {
+		req.io.sockets.emit("login", {newUser: "newUser"});
 		Account.findOne({ email: req.body.email }).then(async (account) => {
 			//check account
 			account = mongooseToObject(account);

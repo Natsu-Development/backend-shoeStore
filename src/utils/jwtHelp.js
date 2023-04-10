@@ -133,7 +133,7 @@ class jwtHelp {
 			if (err.name === "TokenExpiredError") {
 				res.send("Token expired");
 			} else {
-				res.send(401).send("Invalid token");
+				res.send(400).send("Invalid token");
 			}
 		}
 	}

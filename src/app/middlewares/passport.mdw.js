@@ -148,7 +148,7 @@ module.exports = {
 			if (req.originalUrl.endsWith("/admin/", 7) && decode.permission !== 0) {
 				return res.redirect("/");
 			}
-
+			
 			next();
 		} catch (err) {
 			if (err.name === "TokenExpiredError") {

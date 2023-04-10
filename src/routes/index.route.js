@@ -20,16 +20,9 @@ const Account = require("../app/models/account.model");
 const passportConfig = require("../app/middlewares/passport.mdw");
 
 // const verify = require('../app/middlewares/auth.mdw');
-function route(app) {
+function route(app, io) {
 	// locals, why session not access in handlebars?
 	app.use(async (req, res, next) => {
-		// await Category.find({}).then((cates) => {
-		// 	cates = mutipleMongooseToObject(cates);
-		// 	var resultFilter = categoryHelp.filterCategory(cates);
-		// 	res.locals.listBrand = resultFilter.listBrand;
-		// 	res.locals.listStyle = resultFilter.listStyle;
-		// 	res.locals.listSize = categoryHelp.sortSize(resultFilter.listSize);
-		// });
 		const categoryList = await CategoryType.aggregate([
 			{ $addFields: { cateTypeId: { $toString: "$_id" } } },
 			{
@@ -47,7 +40,6 @@ function route(app) {
 				},
 			},
 		]);
-		// console.log("List", categoryList);
 
 		let result = categoryList.reduce((c, v) => {
 			c[v.cateTypeId] = c[v.cateTypeId] || [];
@@ -64,10 +56,6 @@ function route(app) {
 		var resultFilter = categoryHelp.getCateSize(result, res);
 		res.locals.listSizeAdded = resultFilter.listSize;
 		res.locals.listAnotherCateAdded = result;
-		// console.log(
-		// 	"🚀 ~ file: index.route.js:67 ~ app.use ~ res.locals.listAnotherCateAdded:",
-		// 	res.locals.listAnotherCateAdded
-		// );
 		res.locals.listCateType = listCateType;
 
 		await Shoe.find({}).then((shoes) => {
@@ -85,11 +73,17 @@ function route(app) {
 		res.locals.errText = req.session.errText;
 		res.locals.registerErr = req.session.registerErr;
 		res.locals.loginErr = req.session.loginErr;
+
 		next();
 	});
-	// admin routes api
-	// app.use("/api/v1/admin", passportConfig.authAdmin, adminRouter);
-	// admin routes handlebars
+
+	// use io socket for all app
+	app.use((req, res, next) => {
+		req.io = io;
+		next();
+	});
+
+	// admin routes handle
 	app.use("/admin", passportConfig.authAdmin, adminRouter);
 
 	// shoe

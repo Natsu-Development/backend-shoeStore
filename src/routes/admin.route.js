@@ -8,10 +8,10 @@ const orderController = require("../app/controllers/orderController");
 const promotionalController = require("../app/controllers/promotionalController");
 
 // ACCOUNT INTERFACE
+router.get("/accounts", accountController.manager);
 router.get("/accounts/add", accountController.renderCreate);
 router.get("/accounts/update/:id", accountController.renderUpdate);
 //ACCOUNT HANDLE
-router.get("/accounts", accountController.manager);
 router.post("/accounts/save", accountController.create);
 router.put("/accounts/update/:id", accountController.update);
 router.delete("/accounts/delete/:id", accountController.delete);
@@ -85,5 +85,6 @@ router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 
 //dashboard
 router.get("/", cateTypeController.manager);
+
 
 module.exports = router;

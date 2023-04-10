@@ -42,18 +42,17 @@ class cateTypeController {
 	 *         description: Get list failed
 	 */
 	async manager(req, res, next) {
-		// Can use lean() as a callback to change mongoooseList to Object
-		CategoryType.find()
-			.then((cateTypes) => {
-				res.render("adminPages/categoryType/manager", {
-					cateTypes: mutipleMongooseToObject(cateTypes),
-					layout: "adminLayout",
-				});
-				// res.json(cateTypes);
-			})
-			.catch((err) => {
-				next(err);
+		try {
+			const cateTypes = await CategoryType.find();
+			req.io.sockets.emit("testDisplay", {listCateType: cateTypes});
+			res.render("adminPages/categoryType/manager", {
+				cateTypes: mutipleMongooseToObject(cateTypes),
+				layout: "adminLayout",
 			});
+		}
+		catch(err) {
+			console.error(err);
+		}
 	}
 
 	// [GET] /categoryType/renderCreate
@@ -114,6 +113,7 @@ class cateTypeController {
 	// [POST] /categoryType/add
 	create(req, res) {
 		// req.body.type = req.query.type;
+		req.io.sockets.emit("cateTypeAdd", {message: "1111"});
 		const newCategory = req.body;
 		const cate = new CategoryType(newCategory);
 		cate
