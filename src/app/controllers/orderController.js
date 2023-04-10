@@ -292,7 +292,7 @@ class order {
 				})
 			);
 
-			const promoCode = await promoController.promoCheckoutSuccess(userId);
+			const promoCode = await promoController.promoCheckoutSuccess(userId, newOrderCreated._id);
 			mailService.sendMailAfterCheckout(userAccount.email, promoCode);
 
 			//delete cart

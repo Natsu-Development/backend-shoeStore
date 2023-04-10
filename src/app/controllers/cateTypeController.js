@@ -113,7 +113,6 @@ class cateTypeController {
 	// [POST] /categoryType/add
 	create(req, res) {
 		// req.body.type = req.query.type;
-		req.io.sockets.emit("cateTypeAdd", {message: "1111"});
 		const newCategory = req.body;
 		const cate = new CategoryType(newCategory);
 		cate

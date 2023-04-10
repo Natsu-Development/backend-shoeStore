@@ -50,11 +50,11 @@ class promotionalController {
 	}
 
 	// [POST] /promotional/add
-	create(req, res) {
+	async create(req, res) {
 		// req.body.type = req.query.type;
 		const newPromo = req.body;
 		const promo = new Promotional(newPromo);
-		if (this.isExitedPromo(promo.code)) {
+		if (await this.isExitedPromo(promo.code)) {
 			const backUrl = req.header("Referer") || "/";
 			//throw error for the view...
 			req.session.errText = "This promotion already existed. Please try again.";
@@ -71,8 +71,8 @@ class promotionalController {
 	}
 
 	//[PUT] /promotional/saveUpdate/:id
-	update(req, res) {
-		if (this.isExitedPromo(req.body.code)) {
+	async update(req, res) {
+		if (await this.isExitedPromo(req.body.code)) {
 			const backUrl = req.header("Referer") || "/";
 			//throw error for the view...
 			req.session.errText = "This promotion already existed. Please try again.";
@@ -256,12 +256,13 @@ class promotionalController {
 						{ amount: promoApplied.amount - 1 }
 					);
 				} else {
-					// await Promotional.deleteOne({ _id: promoApplied.id });
+					//delete promotion when use
+					await Promotional.deleteOne({ _id: promoApplied.id });
 				}
 			})
 		);
 
-		totalMoney = totalMoney - totalMoney * (totalDiscount / 100);
+		totalMoney = totalMoney - totalDiscount;
 		if (totalMoney < 0) {
 			totalMoney = 0;
 		}
@@ -283,9 +284,9 @@ class promotionalController {
 		return promo.code;
 	}
 
-	async promoCheckoutSuccess(userId) {
+	async promoCheckoutSuccess(userId, orderId) {
 		const newPromo = new Promotional({
-			code: `NEXTORDER${userId}`,
+			code: `NEXTORDER${orderId}`,
 			description: "Promotion for next order",
 			discount: 20,
 			startDate: new Date(),
@@ -299,9 +300,9 @@ class promotionalController {
 
 	// TODO: Check in here
 	async isExitedPromo(promoCode) {
-		const isExited = Promotional.findOne({ code: promoCode });
-		if (isExited) return true;
-		return false;
+		const isExited = await Promotional.findOne({ code: promoCode });
+		if (!isExited) return false;
+		return true;
 	}
 }
 
