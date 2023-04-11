@@ -9,6 +9,7 @@ const {
 } = require("../../utils/mongoose");
 const mailService = require("../../utils/mailService.js");
 const accountHelp = require("../../utils/accountHelp");
+const promotionalController = require("./promotionalController");
 require("dotenv").config();
 
 class accountController {
@@ -177,7 +178,10 @@ class accountController {
 			email: req.body.email,
 		});
 		if (!existedEmail) {
-			mailService.sendMailForFirstLogin(req.body.email);
+			const promoCode = await promotionalController.promoFirstLogin(
+				req.body.userId
+			);
+			mailService.sendMailForFirstLogin(req.body.email, promoCode);
 		}
 
 		newAccount
