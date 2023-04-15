@@ -1,0 +1,57 @@
+{
+    "_id": "6380e790ad8a239b8c5166a2",
+    "name": "Nike Air Force 1",
+    "introduce": "Nike air force 1 ",
+    "description": "Nike air force 1 ",
+    "color": [
+        {
+            "id": "colorRedId",
+            "images": [
+                "img1",
+                "img2"
+            ],
+            "sizes": [
+                {
+                    "size": 5,
+                    "price": 123,
+                    "amount": 10
+                },
+                {
+                    "size": 6,
+                    "price": 124,
+                    "amount": 10
+                }
+            ]
+        },
+        {
+            "id":"colorBlueId",
+            "images": [
+                "img1",
+                "img2"
+            ],
+            "sizes": [
+                {
+                    "size": 5,
+                    "price": 123,
+                    "amount": 10
+                },
+                {
+                    "size": 6,
+                    "price": 124,
+                    "amount": 10
+                }
+            ]
+        }
+    ],
+    "slug": "nike-air-force-1",
+    "__v": 0,
+    "listAnotherCate": [
+      "Sneaker",
+      "Nike"
+    ],
+    "listColorCate": [
+        "Blue",
+        "Red"
+    ],
+    "totalAmount": 40
+}

@@ -5,7 +5,7 @@ module.exports = function (fileName) {
 	const storage = multer.diskStorage({
 		destination: function (req, file, cb) {
 			// edit storage to save
-			cb(null, "./src/public/upload/");
+			cb(null, "./src/public/uploadWithRefactorDB/");
 		},
 		filename: function (req, file, cb) {
 			// edit file name to save (duplicate)

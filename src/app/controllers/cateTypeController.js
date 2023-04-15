@@ -180,7 +180,6 @@ class cateTypeController {
 	 */
 	//[PUT] /categoryType/update/:id
 	update(req, res) {
-		console.log(req.body);
 		CategoryType.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
 				res.redirect(`/admin/categoryType`);

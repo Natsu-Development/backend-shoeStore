@@ -150,32 +150,95 @@ class shoeController {
 					console.log("error", err);
 					return res.redirect(backUrl + "?warning");
 				}
+				// console.log("Req Body", req.body);
 				const formData = req.body;
 				formData.arrayCategoryId = productHelp.setArrayCategory(req.body);
+				formData.listImgWithColor = [
+					{
+						colorId: "640d625ff2776e58f0ab4e28",
+						listImg: [
+							{
+								position: 1,
+								filename: "air-force-1-07-shoe-NMmm1B (1).png",
+							},
+							{
+								position: 2,
+								filename: "air-force-1-07-shoe-NMmm1B (2).png",
+							},
+						],
+						listSize: [
+							{
+								size: "637f3bae9c2b3199458fe823", // 6
+								amount: 10,
+								price: 89,
+							},
+							{
+								size: "637f3bc39c2b3199458fe843", // 7
+								amount: 10,
+								price: 80,
+							},
+							{
+								size: "632c302fedc8f3c521113457", // 9
+								amount: 10,
+								price: 93,
+							},
+						],
+					},
+					{
+						colorId: "643a5eb8783226aca7829987",
+						listImg: [
+							{
+								position: 1,
+								filename: "air-force-1-shadow-shoe-jcctFq (1).png",
+							},
+							{
+								position: 2,
+								filename: "air-force-1-shadow-shoe-jcctFq (2).png",
+							},
+						],
+						listSize: [
+							{
+								size: "637f3bca9c2b3199458fe853", // 7.5
+								amount: 10,
+								price: 89,
+							},
+							{
+								size: "637f3d272012561b75b522f5", // 10
+								amount: 10,
+								price: 89,
+							},
+							{
+								size: "632c302fedc8f3c521113457", // 9
+								amount: 10,
+								price: 93,
+							},
+						],
+					},
+				];
 				formData.arrayImage = imageHelp.createArrayImage(req.files);
 				formData.size = productHelp.setAmountForSize(
 					req.body.size,
 					req.body.amountOfSize
 				);
+				formData.cateIds = formData.cateIds.filter((cate) => cate.length > 0);
 				const product = new Product(formData);
 				const newProduct = await product.save();
 				await Promise.all([
-					formData.arrayCategoryId.map(async (cateId) => {
+					formData.cateIds.map(async (cateId) => {
 						const cateProduct = new CategoryProduct({
 							cateId: cateId,
 							proId: newProduct._id,
 						});
-						const result = await cateProduct.save();
+						await cateProduct.save();
 					}),
-					formData.size.map(async (size) => {
-						if (size.amount > 0) {
-							const sizeProduct = new CategoryProduct({
-								cateId: size.size,
-								proId: newProduct._id,
-								amount: size.amount,
-							});
-							const resultSize = await sizeProduct.save();
-						}
+					formData.listImgWithColor.map(async (color) => {
+						const colorProduct = new CategoryProduct({
+							proId: newProduct._id,
+							cateId: color.colorId,
+							listImgByColor: color.listImg,
+							listSizeByColor: color.listSize,
+						});
+						await colorProduct.save();
 					}),
 				]);
 				res.redirect("/admin/product");
@@ -277,7 +340,6 @@ class shoeController {
 	// [PUT] /product/saveUpdate/:id
 	update(req, res, next) {
 		upload("image")(req, res, async function (err) {
-			console.log("test", req.body);
 			if (err) {
 				// url for redirect back
 				const backUrl = req.header("Referer") || "/";
@@ -520,34 +582,34 @@ class shoeController {
 		const listCatePro = await CategoryProduct.find({ proId: req.params.id });
 		let listCateId = [],
 			listAnotherCate = [],
-			listCateSize = [],
+			listInfoByColor = [],
 			totalAmount = 0;
 
 		listCatePro.forEach((catePro) => {
-			if (catePro?.amount) {
-				totalAmount += catePro.amount;
+			if (catePro?.listImgByColor || catePro.listSizeByColor) {
+				listInfoByColor.push({
+					id: catePro._id,
+					images: catePro.listImgByColor,
+					sizes: catePro.listSizeByColor,
+				});
+			} else {
+				listCateId.push(catePro.cateId);
 			}
-			listCateId.push(catePro.cateId);
 		});
 
 		const listCate = await Category.find({ _id: { $in: listCateId } });
 		listCate.forEach((cate) => {
-			if (Number(cate.name)) {
-				listCateSize.push(cate.name);
-			} else {
-				listAnotherCate.push(cate.name);
-			}
+			listAnotherCate.push(cate.name);
 		});
+		console.log("color", listInfoByColor);
+		console.log("another cate", listAnotherCate);
 
 		Product.findOne({ _id: req.params.id })
 			.then((shoe) => {
 				shoe = mongooseToObject(shoe);
-				res.json({
-					shoeDetail: shoe,
-					listCateSize,
-					listAnotherCate,
-					totalAmount,
-				});
+				shoe.color = listInfoByColor;
+				shoe.listAnotherCate = listAnotherCate;
+				res.json(shoe);
 			})
 			.catch((err) => {
 				console.log(err);
