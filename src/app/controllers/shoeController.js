@@ -168,17 +168,17 @@ class shoeController {
 						],
 						listSize: [
 							{
-								size: "637f3bae9c2b3199458fe823", // 6
+								sizeId: "637f3bae9c2b3199458fe823",
 								amount: 10,
 								price: 89,
 							},
 							{
-								size: "637f3bc39c2b3199458fe843", // 7
+								sizeId: "637f3bc39c2b3199458fe843",
 								amount: 10,
 								price: 80,
 							},
 							{
-								size: "632c302fedc8f3c521113457", // 9
+								sizeId: "632c302fedc8f3c521113457",
 								amount: 10,
 								price: 93,
 							},
@@ -198,17 +198,17 @@ class shoeController {
 						],
 						listSize: [
 							{
-								size: "637f3bca9c2b3199458fe853", // 7.5
+								sizeId: "637f3bca9c2b3199458fe853",
 								amount: 10,
 								price: 89,
 							},
 							{
-								size: "637f3d272012561b75b522f5", // 10
+								sizeId: "637f3d272012561b75b522f5",
 								amount: 10,
 								price: 89,
 							},
 							{
-								size: "632c302fedc8f3c521113457", // 9
+								sizeId: "632c302fedc8f3c521113457",
 								amount: 10,
 								price: 93,
 							},
@@ -582,8 +582,7 @@ class shoeController {
 		const listCatePro = await CategoryProduct.find({ proId: req.params.id });
 		let listCateId = [],
 			listAnotherCate = [],
-			listInfoByColor = [],
-			totalAmount = 0;
+			listInfoByColor = [];
 
 		listCatePro.forEach((catePro) => {
 			if (catePro?.listImgByColor || catePro.listSizeByColor) {
@@ -601,13 +600,22 @@ class shoeController {
 		listCate.forEach((cate) => {
 			listAnotherCate.push(cate.name);
 		});
-		console.log("color", listInfoByColor);
-		console.log("another cate", listAnotherCate);
+
+		let sizeName;
+		// get size of color
+		await Promise.all(
+			listInfoByColor.map((color) => {
+				color.sizes.map(async (size) => {
+					sizeName = await Category.findOne({ _id: size.sizeId });
+					size.sizeName = sizeName.name;
+				});
+			})
+		);
 
 		Product.findOne({ _id: req.params.id })
 			.then((shoe) => {
 				shoe = mongooseToObject(shoe);
-				shoe.color = listInfoByColor;
+				shoe.color = listInfoByColor; // TODO: Have a bugs in here
 				shoe.listAnotherCate = listAnotherCate;
 				res.json(shoe);
 			})

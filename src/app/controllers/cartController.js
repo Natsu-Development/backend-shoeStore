@@ -1,6 +1,8 @@
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
-const Notification = require("../models/notification.model")
+const CatePro = require("../models/cateProduct.model");
+const Category = require("../models/category.model");
+const Notification = require("../models/notification.model");
 const jwtHelp = require("../../utils/jwtHelp");
 const cartHelp = require("../../utils/cartHelp");
 const mongoose = require("mongoose");
@@ -61,8 +63,7 @@ class cartController {
 			// await notification.save();
 			req.io.sockets.emit("cart", results.results);
 			res.json(results);
-		}
-		catch(err) {
+		} catch (err) {
 			console.log(err);
 		}
 	}
@@ -85,15 +86,19 @@ class cartController {
 	 *                productId:
 	 *                  type: string
 	 *                  description: Id of product.
-	 *                  example: 6380e790ad8a239b8c5166a2
+	 *                  example: 643bfd77d9b156fc7880676f
 	 *                quantity:
 	 *                  type: number
 	 *                  description: Quantity of product want to add to cart.
 	 *                  example: 1
-	 *                size:
-	 *                  type: number
-	 *                  description: Size of product
-	 *                  example: 7
+	 *                sizeId:
+	 *                  type: string
+	 *                  description: Size id of product
+	 *                  example: 637f3bae9c2b3199458fe823
+	 *                colorId:
+	 *                  type: string
+	 *                  description: Color id
+	 *                  example: 640d625ff2776e58f0ab4e28
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -107,40 +112,46 @@ class cartController {
 	 *         description: Error
 	 */
 	async create(req, res) {
-		const userId = jwtHelp.decodeTokenGetUserId(
-			req.headers.authorization.split(" ")[1]
-		);
-		// check this product and this size have existed
-		const isDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
-		if (isDuplicateCart.cartUpdated) {
-			return res.status(200).send({
-				cart: isDuplicateCart.cartUpdated,
-				product: isDuplicateCart.product,
+		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
+			// check this product and this size have existed
+			const isDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
+			if (isDuplicateCart.cartUpdated) {
+				return res.status(200).send({
+					cart: isDuplicateCart.cartUpdated,
+					product: isDuplicateCart.product,
+				});
+			}
+
+			// not existed duplicate cart
+			const shoeInfo = await CatePro.findOne({
+				proId: req.body.productId,
+				cateId: req.body.colorId,
+			});
+			const infoBySizeId = shoeInfo.listSizeByColor.find(
+				(size) => size.sizeId === req.body.sizeId
+			);
+			const size = await Category.findOne({ _id: infoBySizeId.sizeId });
+
+			const cart = {
+				userId: userId,
+				productId: req.body.productId,
+				quantity: req.body.quantity,
+				size: size.name,
+				total: infoBySizeId.price * req.body.quantity,
+			};
+			const addToCart = new Cart(cart);
+			addToCart.save().then((newCart) => {
+				res.status(200).send({ cart: newCart, product });
+			});
+		} catch (error) {
+			console.log(error);
+			res.status(200).send({
+				message: "Invalid input",
 			});
 		}
-
-		// not existed duplicate cart
-		Product.findOne({ _id: req.body.productId })
-			.then((product) => {
-				const cart = {
-					userId: userId,
-					productId: req.body.productId,
-					quantity: req.body.quantity,
-					size: req.body.size,
-					total: product.price * req.body.quantity,
-				};
-				const addToCart = new Cart(cart);
-				addToCart.save().then((newCart) => {
-					res.status(200).send({ cart: newCart, product });
-				});
-			})
-			.catch((error) => {
-				console.log(error);
-				res.status(400).send({
-					message: "Invalid input",
-					status: 400,
-				});
-			});
 	}
 
 	/**
