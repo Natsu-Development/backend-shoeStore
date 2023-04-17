@@ -1,6 +1,6 @@
 const Account = require("../app/models/account.model");
 const jwtHelp = require("./jwtHelp");
-const mailService = require("./mailService");
+const mailService = require("../services/mailService");
 const promotionalController = require("../app/controllers/promotionalController");
 
 module.exports = {
@@ -57,7 +57,7 @@ module.exports = {
 					newUser.permission,
 					newUser.fullname
 				);
-				
+
 				return res.json({ token, newUser, expired_at });
 			}
 

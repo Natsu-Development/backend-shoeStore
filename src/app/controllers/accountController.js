@@ -7,7 +7,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
-const mailService = require("../../utils/mailService.js");
+const mailService = require("../../services/mailService.js");
 const accountHelp = require("../../utils/accountHelp");
 const promotionalController = require("./promotionalController");
 require("dotenv").config();

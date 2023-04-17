@@ -3,6 +3,7 @@ const _ = require("lodash");
 const Product = require("../models/product.model");
 const Category = require("../models/category.model");
 const CategoryProduct = require("../models/cateProduct.model");
+const CateType = require("../models/categoryType.model");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
@@ -11,6 +12,7 @@ const categoryHelp = require("../../utils/categoryHelp");
 const productHelp = require("../../utils/productHelp");
 const imageHelp = require("../../utils/imageHelp");
 const upload = require("../middlewares/upload.mdw");
+const algoliaService = require("../../services/algoliaService");
 
 class shoeController {
 	/**
@@ -155,32 +157,67 @@ class shoeController {
 				formData.arrayCategoryId = productHelp.setArrayCategory(req.body);
 				formData.listImgWithColor = [
 					{
-						colorId: "640d625ff2776e58f0ab4e28",
+						colorId: "643cff14fdad41ed8392fa62",
 						listImg: [
 							{
 								position: 1,
-								filename: "air-force-1-07-shoe-NMmm1B (1).png",
+								filename: "Giay_UltraBoost_21_trang_FY0377_01_standard.jpg",
 							},
 							{
 								position: 2,
-								filename: "air-force-1-07-shoe-NMmm1B (2).png",
+								filename: "Giay_UltraBoost_21_trang_FY0377_02_standard.jpg",
 							},
 						],
 						listSize: [
 							{
-								sizeId: "637f3bae9c2b3199458fe823",
+								sizeId: "632c269a71e4353b5869f560",
 								amount: 10,
-								price: 89,
-							},
-							{
-								sizeId: "637f3bc39c2b3199458fe843",
-								amount: 10,
-								price: 80,
+								price: 99,
 							},
 							{
 								sizeId: "632c302fedc8f3c521113457",
-								amount: 10,
-								price: 93,
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3b959c2b3199458fe803",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3ba49c2b3199458fe813",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bae9c2b3199458fe823",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bb69c2b3199458fe833",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bc39c2b3199458fe843",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bca9c2b3199458fe853",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3d272012561b75b522f5",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "64168ac0ec6287ac213baedb",
+								amount: 0,
+								price: 0,
 							},
 						],
 					},
@@ -189,28 +226,65 @@ class shoeController {
 						listImg: [
 							{
 								position: 1,
-								filename: "air-force-1-shadow-shoe-jcctFq (1).png",
+								filename:
+									"Giay_Primeblue_UltraBoost_20_trang_EG0768_01_standard.jpg",
 							},
 							{
 								position: 2,
-								filename: "air-force-1-shadow-shoe-jcctFq (2).png",
+								filename:
+									"Giay_Primeblue_UltraBoost_20_trang_EG0768_02_standard.jpg",
 							},
 						],
 						listSize: [
 							{
-								sizeId: "637f3bca9c2b3199458fe853",
+								sizeId: "632c269a71e4353b5869f560",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3b959c2b3199458fe803",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3b959c2b3199458fe8037",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3ba49c2b3199458fe813",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bae9c2b3199458fe823",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bb69c2b3199458fe833",
+								amount: 0,
+								price: 0,
+							},
+							{
+								sizeId: "637f3bc39c2b3199458fe843",
 								amount: 10,
-								price: 89,
+								price: 80,
+							},
+							{
+								sizeId: "637f3bca9c2b3199458fe853",
+								amount: 0,
+								price: 0,
 							},
 							{
 								sizeId: "637f3d272012561b75b522f5",
-								amount: 10,
-								price: 89,
+								amount: 0,
+								price: 0,
 							},
 							{
-								sizeId: "632c302fedc8f3c521113457",
-								amount: 10,
-								price: 93,
+								sizeId: "64168ac0ec6287ac213baedb",
+								amount: 0,
+								price: 0,
 							},
 						],
 					},
@@ -512,24 +586,69 @@ class shoeController {
 	 */
 	// display product in home
 	async displayAllProduct(req, res) {
-		// if have request search Product
-		if (req.query.search) {
-			let object = productHelp.setCondition(req.query, "search");
-			let products = await Product.find(object);
-			products = mutipleMongooseToObject(products);
-			return res.status(200).send(products);
+		try {
+			// if have request search Product
+			if (req.query.search) {
+				let object = productHelp.setCondition(req.query, "search");
+				let products = await Product.find(object);
+				products = mutipleMongooseToObject(products);
+				return res.status(200).send(products);
+			}
+			// display all product
+			const listProduct = await Product.find({}).lean();
+
+			await Promise.all(
+				listProduct.map(async (product) => {
+					// objectID for algolia
+					product.objectID = product._id;
+
+					let listCateId = [],
+						listCatePro = [],
+						maxPrice = 100000,
+						flag = 0;
+
+					listCatePro = await CategoryProduct.find({ proId: product._id });
+					listCatePro.forEach((catePro) => {
+						if (catePro.listImgByColor || catePro.listSizeByColor) {
+							if (flag == 0) {
+								product.image = catePro.listImgByColor[0].filename;
+								flag = 1;
+							}
+							catePro.listSizeByColor.forEach((size) => {
+								if (size.amount > 0 && size.price > 0) {
+									if (size.price < maxPrice) {
+										maxPrice = size.price;
+									}
+									listCateId.push(size.sizeId);
+								}
+							});
+						}
+						listCateId.push(catePro.cateId);
+					});
+
+					product.price = maxPrice;
+
+					// eliminate size id duplicate
+					listCateId = [...new Set(listCateId)];
+
+					const listCate = await Category.find({ _id: { $in: listCateId } });
+					const groupByTypeId = _.groupBy(listCate, "typeId");
+					for (let typeId in groupByTypeId) {
+						const typeName = await CateType.findOne({ _id: typeId });
+
+						groupByTypeId[typeId].forEach((cate) => {
+							product[typeName.type] = product[typeName.type] || [];
+							product[typeName.type].push(cate.name);
+						});
+					}
+				})
+			);
+			algoliaService.updateData(listProduct);
+			res.json(listProduct);
+		} catch (err) {
+			console.error(err);
+			res.status(200).send(err.message);
 		}
-		// display all product
-		Product.find({})
-			.then((shoes) => {
-				shoes = mutipleMongooseToObject(shoes);
-				// res.render("home", { shoes });
-				res.json(shoes);
-			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400);
-			});
 	}
 
 	/**

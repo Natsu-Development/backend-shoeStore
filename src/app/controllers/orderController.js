@@ -11,7 +11,7 @@ const {
 	mutipleMongooseToObject,
 	mongooseToObject,
 } = require("../../utils/mongoose");
-const mailService = require("../../utils/mailService");
+const mailService = require("../../services/mailService");
 const orderHelp = require("../../utils/orderHelp");
 const promoController = require("../controllers/promotionalController");
 const jwt = require("jsonwebtoken");
@@ -292,7 +292,10 @@ class order {
 				})
 			);
 
-			const promoCode = await promoController.promoCheckoutSuccess(userId, newOrderCreated._id);
+			const promoCode = await promoController.promoCheckoutSuccess(
+				userId,
+				newOrderCreated._id
+			);
 			mailService.sendMailAfterCheckout(userAccount.email, promoCode);
 
 			//delete cart
@@ -381,7 +384,7 @@ class order {
 					});
 				})
 			);
-			res.status(200).send({results, total: order?.total});
+			res.status(200).send({ results, total: order?.total });
 		} catch (err) {
 			console.log(err);
 			res.status(200).send({ message: "Invalid input" });

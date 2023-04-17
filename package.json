@@ -10,6 +10,7 @@
   "author": "Sand Lee",
   "license": "ISC",
   "dependencies": {
+    "algoliasearch": "^4.17.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",
     "cookie-parser": "^1.4.5",
