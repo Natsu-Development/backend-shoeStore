@@ -1,9 +1,11 @@
 const Cart = require("../app/models/cart.model");
 const Product = require("../app/models/product.model");
+const CatePro = require("../app/models/cateProduct.model");
+const Category = require("../app/models/category.model");
 const { mutipleMongooseToObject, mongooseToObject } = require("./mongoose");
 
 class cartHelp {
-	async updateDuplicateCart(req, userId) {
+	async updateDuplicateCart(req, userId, shoeInfo, priceOfShoe, sizeName) {
 		let flag = 0,
 			product,
 			cartUpdated;
@@ -13,15 +15,22 @@ class cartHelp {
 			carts.map(async (cart) => {
 				if (
 					cart.productId == req.body.productId &&
-					cart.size == req.body.size
+					cart.sizeId == req.body.sizeId &&
+					cart.colorId == req.body.colorId
 				) {
 					cart.quantity += req.body.quantity;
-					product = await Product.findOne({ _id: req.body.productId });
+					product = await Product.findOne({ _id: req.body.productId }).lean();
+					product.price = priceOfShoe;
+					product.image = shoeInfo.listImgByColor[0].filename;
 					cartUpdated = await Cart.findOneAndUpdate(
 						{ _id: cart._id },
-						{ quantity: cart.quantity, total: product.price * cart.quantity },
+						{
+							quantity: cart.quantity,
+							total: priceOfShoe * cart.quantity,
+						},
 						{ returnDocument: "after" }
-					);
+					).lean();
+					cartUpdated.sizeName = sizeName;
 					flag = 1;
 				}
 			})
@@ -34,18 +43,26 @@ class cartHelp {
 		let carts = await Cart.find({ userId: userId });
 		carts = mutipleMongooseToObject(carts);
 		let totalCart = 0;
+
 		// get info of product
 		const results = [];
 		if (carts?.length) {
 			await Promise.all(
 				carts.map(async (cart) => {
-					await Product.findOne({ _id: cart.productId }).then((product) => {
-						cart.image = product.arrayImage[0].filename;
-						cart.productName = product.name;
-						cart.productPrice = product.price;
-						totalCart += cart.quantity * product.price;
-						results.push(cart);
-					});
+					const { shoeInfo, infoBySizeId, size } = await this.getShoeInfo(
+						cart.productId,
+						cart.colorId,
+						cart.sizeId
+					);
+
+					const product = await Product.findOne({ _id: cart.productId });
+
+					cart.image = shoeInfo.listImgByColor[0].filename;
+					cart.productName = product.name;
+					cart.productPrice = infoBySizeId.price;
+					cart.sizeName = size.name;
+					totalCart += cart.quantity * infoBySizeId.price;
+					results.push(cart);
 				})
 			);
 			return { results, totalCart };
@@ -57,6 +74,25 @@ class cartHelp {
 		if (deletedCart.modifiedCount > 0) {
 			return true;
 		} else return false;
+	}
+
+	async getShoeInfo(proId, colorId, sizeId) {
+		const shoeInfo = await CatePro.findOne({
+			proId: proId,
+			cateId: colorId,
+		});
+
+		const infoBySizeId = shoeInfo?.listSizeByColor?.find(
+			(size) => size.sizeId === sizeId
+		);
+
+		const size = await Category.findOne({ _id: infoBySizeId?.sizeId });
+
+		if (!shoeInfo || !infoBySizeId) {
+			throw new Error("Invalid Input");
+		}
+
+		return { shoeInfo, infoBySizeId, size };
 	}
 }
 

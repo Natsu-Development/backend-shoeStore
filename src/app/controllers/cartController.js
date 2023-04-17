@@ -56,12 +56,6 @@ class cartController {
 			if (!results) {
 				return res.send({ message: "Cart empty" });
 			}
-			const notification = new Notification({
-				type: "getOrder",
-				data: results,
-			});
-			// await notification.save();
-			req.io.sockets.emit("cart", results.results);
 			res.json(results);
 		} catch (err) {
 			console.log(err);
@@ -116,8 +110,21 @@ class cartController {
 			const userId = jwtHelp.decodeTokenGetUserId(
 				req.headers.authorization.split(" ")[1]
 			);
-			// check this product and this size have existed
-			const isDuplicateCart = await cartHelp.updateDuplicateCart(req, userId);
+
+			const { shoeInfo, infoBySizeId, size } = await cartHelp.getShoeInfo(
+				req.body.productId,
+				req.body.colorId,
+				req.body.sizeId
+			);
+
+			// check this product and this size have existed (cart existed)
+			const isDuplicateCart = await cartHelp.updateDuplicateCart(
+				req,
+				userId,
+				shoeInfo,
+				infoBySizeId.price,
+				size.name
+			);
 			if (isDuplicateCart.cartUpdated) {
 				return res.status(200).send({
 					cart: isDuplicateCart.cartUpdated,
@@ -125,27 +132,24 @@ class cartController {
 				});
 			}
 
-			// not existed duplicate cart
-			const shoeInfo = await CatePro.findOne({
-				proId: req.body.productId,
-				cateId: req.body.colorId,
-			});
-			const infoBySizeId = shoeInfo.listSizeByColor.find(
-				(size) => size.sizeId === req.body.sizeId
-			);
-			const size = await Category.findOne({ _id: infoBySizeId.sizeId });
+			// not existed
+			const product = await Product.findOne({ _id: req.body.productId }).lean();
+			product.image = shoeInfo.listImgByColor[0].filename;
+			product.price = infoBySizeId.price;
 
-			const cart = {
+			const addToCart = new Cart({
 				userId: userId,
 				productId: req.body.productId,
 				quantity: req.body.quantity,
-				size: size.name,
+				sizeId: size._id,
+				colorId: req.body.colorId,
 				total: infoBySizeId.price * req.body.quantity,
-			};
-			const addToCart = new Cart(cart);
-			addToCart.save().then((newCart) => {
-				res.status(200).send({ cart: newCart, product });
 			});
+			let newCart = await addToCart.save();
+			newCart = mongooseToObject(newCart);
+			newCart.sizeName = size.name;
+
+			res.status(200).send({ cart: newCart, product });
 		} catch (error) {
 			console.log(error);
 			res.status(200).send({
@@ -179,15 +183,19 @@ class cartController {
 	 *                productId:
 	 *                  type: string
 	 *                  description: id of cart's product want to update.
-	 *                  example: 617e9cb57b1ddb194ce46922
+	 *                  example: 643bfd77d9b156fc7880676f
 	 *                quantity:
 	 *                  type: number
 	 *                  description: quantity of cart want to update.
 	 *                  example: 2
-	 *                size:
-	 *                  type: number
-	 *                  description: size of cart want to update.
-	 *                  example: 7.5
+	 *                sizeId:
+	 *                  type: string
+	 *                  description: Size id of product
+	 *                  example: 637f3bae9c2b3199458fe823
+	 *                colorId:
+	 *                  type: string
+	 *                  description: Color id
+	 *                  example: 640d625ff2776e58f0ab4e28
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -206,13 +214,15 @@ class cartController {
 				req.headers.authorization.split(" ")[1]
 			);
 
-			const product = await Product.findById({
-				_id: req.body.productId,
-			});
+			const { infoBySizeId } = await cartHelp.getShoeInfo(
+				req.body.productId,
+				req.body.colorId,
+				req.body.sizeId
+			);
 
 			const updated = await Cart.updateOne(
 				{ $and: [{ _id: req.params.id }, { userId: userId }] },
-				{ ...req.body, total: req.body.quantity * product.price }
+				{ ...req.body, total: req.body.quantity * infoBySizeId.price }
 			);
 
 			if (updated.modifiedCount > 0) {
@@ -266,25 +276,6 @@ class cartController {
 			.catch((err) => {
 				console.log(err);
 				res.status(400).send({ message: "Invalid input" });
-			});
-	}
-
-	// FIND Category
-	// [GET] /category/:slug
-	async findCategoryByName(req, res, next) {
-		let object = {};
-		// string don't have upperCase
-		object.name = new RegExp(req.params.slug, "i");
-		await Category.find(object)
-			.then((cates) => {
-				res.render("adminPages/category/manager", {
-					cates: mutipleMongooseToObject(cates),
-					labels: categoryHelp.setUpLabels(req.query.type),
-					layout: "adminLayout",
-				});
-			})
-			.catch((err) => {
-				next(err);
 			});
 	}
 }

@@ -604,11 +604,14 @@ class shoeController {
 		let sizeName;
 		// get size of color
 		await Promise.all(
-			listInfoByColor.map((color) => {
-				color.sizes.map(async (size) => {
-					sizeName = await Category.findOne({ _id: size.sizeId });
-					size.sizeName = sizeName.name;
-				});
+			listInfoByColor.map(async (color) => {
+				await Promise.all(
+					color.sizes.map(async (size) => {
+						sizeName = await Category.findOne({ _id: size.sizeId });
+						console.log(sizeName.name);
+						size.sizeName = sizeName.name;
+					})
+				);
 			})
 		);
 

@@ -7,7 +7,8 @@ const Cart = new Schema(
 	{
 		userId: { type: String, maxLength: 50, required: true },
 		productId: { type: String, maxLength: 50, required: true },
-		size: { type: String, maxLength: 255, required: true },
+		sizeId: { type: String, maxLength: 255, required: true },
+		colorId: { type: String, maxLength: 255, required: true },
 		quantity: { type: Number },
 		total: { type: Number },
 	},
