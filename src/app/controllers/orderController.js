@@ -267,31 +267,39 @@ class order {
 					const newOrderDetail = new OrderDetail({
 						orderDetailId: newOrderCreated._id,
 						shoeId: cart.productId,
-						size: cart.size,
+						sizeId: cart.sizeId,
+						colorId: cart.colorId,
 						quantity: cart.quantity,
 						price: cart.productPrice,
 					});
 					arrCartId.push(cart._id);
 					await newOrderDetail.save();
 
-					const cateSize = await Category.findOne({ name: cart.size });
 					const catePro = await CatePro.findOne({
-						cateId: cateSize?._id,
+						cateId: cart.colorId,
 						proId: cart.productId,
 					});
 
 					if (catePro) {
+						// get the size of shoe and eliminate amount of it
+						catePro.listSizeByColor.forEach((size) => {
+							if (size.sizeId === cart.sizeId) {
+								size.amount -= cart.quantity;
+							}
+						});
+						// update
 						await CatePro.updateOne(
 							{
-								cateId: cateSize?._id,
+								cateId: cart.colorId,
 								proId: cart.productId,
 							},
-							{ amount: catePro?.amount - cart.quantity }
+							{ listSizeByColor: catePro.listSizeByColor }
 						);
 					}
 				})
 			);
 
+			//send mail and coupon code for next order to customer
 			const promoCode = await promoController.promoCheckoutSuccess(
 				userId,
 				newOrderCreated._id

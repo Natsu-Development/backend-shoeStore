@@ -706,7 +706,7 @@ class shoeController {
 		listCatePro.forEach((catePro) => {
 			if (catePro?.listImgByColor || catePro.listSizeByColor) {
 				listInfoByColor.push({
-					id: catePro._id,
+					id: catePro.cateId,
 					images: catePro.listImgByColor,
 					sizes: catePro.listSizeByColor,
 				});
@@ -727,7 +727,6 @@ class shoeController {
 				await Promise.all(
 					color.sizes.map(async (size) => {
 						sizeName = await Category.findOne({ _id: size.sizeId });
-						console.log(sizeName.name);
 						size.sizeName = sizeName.name;
 					})
 				);

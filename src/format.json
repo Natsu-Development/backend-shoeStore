@@ -55,3 +55,16 @@
     ],
     "totalAmount": 40
 }
+
+{
+    "_id": "643bfd77d9b156fc7880676f",
+    "name": "Nike Air Force 1",
+    "introduce": "Nike air force 1 ",
+    "description": "Nike air force 1 with different color",
+    "slug": "nike-air-force-1",
+    "__v": 0,
+    "size": ["6", "7", "8", "9", "10"],
+    "color": ["Red", "Blue"],
+    "style": "Sneaker",
+    "brand": "Nike"
+}

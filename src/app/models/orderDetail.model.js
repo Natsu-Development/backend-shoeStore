@@ -5,7 +5,8 @@ const OrderDetail = new Schema(
 	{
 		orderDetailId: { type: Number },
 		shoeId: { type: String, maxLength: 255 },
-		size: { type: String, maxLength: 255 },
+		sizeId: { type: String, maxLength: 255 },
+		colorId: { type: String, maxLength: 255 },
 		quantity: { type: Number, maxLength: 255 },
 		price: { type: Number },
 	},
