@@ -702,7 +702,7 @@ class shoeController {
 		let listCateId = [],
 			listAnotherCate = [],
 			listInfoByColor = [];
-
+		console.log("test");
 		listCatePro.forEach((catePro) => {
 			if (catePro?.listImgByColor || catePro.listSizeByColor) {
 				listInfoByColor.push({
