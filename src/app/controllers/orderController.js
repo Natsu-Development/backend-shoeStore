@@ -380,16 +380,25 @@ class order {
 			});
 			let order = await Order.findById(req.params.orderDetailId);
 			orderDetails = mutipleMongooseToObject(orderDetails);
+			console.log(orderDetails);
 
 			// get info of product
 			const results = [];
 			await Promise.all(
 				orderDetails.map(async (orderDetail) => {
-					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
-						orderDetail.image = product.arrayImage[0].filename;
-						orderDetail.productName = product.name;
-						results.push(orderDetail);
-					});
+					const { shoeInfo, infoBySizeId, size } = await cartHelp.getShoeInfo(
+						orderDetail.shoeId,
+						orderDetail.colorId,
+						orderDetail.sizeId
+					);
+					const product = await Product.findOne({ _id: orderDetail.shoeId });
+
+					orderDetail.image = shoeInfo.listImgByColor[0].filename;
+					orderDetail.productName = product.name;
+					orderDetail.productPrice = infoBySizeId.price;
+					orderDetail.sizeName = size.name;
+
+					results.push(orderDetail);
 				})
 			);
 			res.status(200).send({ results, total: order?.total });

@@ -55,13 +55,16 @@ class shoeController {
 	 *         description: Get list failed
 	 */
 	// [GET] /product
-	manager(req, res) {
-		Product.find({}).then((shoes) => {
-			shoes = mutipleMongooseToObject(shoes);
-			res.render("adminPages/product/manager", {
-				shoes,
-				layout: "adminLayout",
-			});
+	async manager(req, res) {
+		let listProduct = await Product.find({}).lean();
+
+		// format data and sync data with algolia
+		listProduct = await this.formatData(listProduct);
+		algoliaService.updateData(listProduct);
+
+		res.render("adminPages/product/manager", {
+			shoes: listProduct,
+			layout: "adminLayout",
 		});
 	}
 
@@ -152,149 +155,10 @@ class shoeController {
 					console.log("error", err);
 					return res.redirect(backUrl + "?warning");
 				}
-				// console.log("Req Body", req.body);
 				const formData = req.body;
-				formData.arrayCategoryId = productHelp.setArrayCategory(req.body);
-				formData.listImgWithColor = [
-					{
-						colorId: "643cff14fdad41ed8392fa62",
-						listImg: [
-							{
-								position: 1,
-								filename: "Giay_UltraBoost_21_trang_FY0377_01_standard.jpg",
-							},
-							{
-								position: 2,
-								filename: "Giay_UltraBoost_21_trang_FY0377_02_standard.jpg",
-							},
-						],
-						listSize: [
-							{
-								sizeId: "632c269a71e4353b5869f560",
-								amount: 10,
-								price: 99,
-							},
-							{
-								sizeId: "632c302fedc8f3c521113457",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3b959c2b3199458fe803",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3ba49c2b3199458fe813",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bae9c2b3199458fe823",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bb69c2b3199458fe833",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bc39c2b3199458fe843",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bca9c2b3199458fe853",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3d272012561b75b522f5",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "64168ac0ec6287ac213baedb",
-								amount: 0,
-								price: 0,
-							},
-						],
-					},
-					{
-						colorId: "643a5eb8783226aca7829987",
-						listImg: [
-							{
-								position: 1,
-								filename:
-									"Giay_Primeblue_UltraBoost_20_trang_EG0768_01_standard.jpg",
-							},
-							{
-								position: 2,
-								filename:
-									"Giay_Primeblue_UltraBoost_20_trang_EG0768_02_standard.jpg",
-							},
-						],
-						listSize: [
-							{
-								sizeId: "632c269a71e4353b5869f560",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3b959c2b3199458fe803",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3b959c2b3199458fe8037",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3ba49c2b3199458fe813",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bae9c2b3199458fe823",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bb69c2b3199458fe833",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3bc39c2b3199458fe843",
-								amount: 10,
-								price: 80,
-							},
-							{
-								sizeId: "637f3bca9c2b3199458fe853",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "637f3d272012561b75b522f5",
-								amount: 0,
-								price: 0,
-							},
-							{
-								sizeId: "64168ac0ec6287ac213baedb",
-								amount: 0,
-								price: 0,
-							},
-						],
-					},
-				];
-				formData.arrayImage = imageHelp.createArrayImage(req.files);
-				formData.size = productHelp.setAmountForSize(
-					req.body.size,
-					req.body.amountOfSize
-				);
 				formData.cateIds = formData.cateIds.filter((cate) => cate.length > 0);
+				formData.listImgWithColor = JSON.parse(formData.listImgWithColor);
+
 				const product = new Product(formData);
 				const newProduct = await product.save();
 				await Promise.all([
@@ -306,13 +170,15 @@ class shoeController {
 						await cateProduct.save();
 					}),
 					formData.listImgWithColor.map(async (color) => {
-						const colorProduct = new CategoryProduct({
-							proId: newProduct._id,
-							cateId: color.colorId,
-							listImgByColor: color.listImg,
-							listSizeByColor: color.listSize,
-						});
-						await colorProduct.save();
+						if (color.listSize.length > 0) {
+							const colorProduct = new CategoryProduct({
+								proId: newProduct._id,
+								cateId: color.colorId,
+								listImgByColor: color.listImg,
+								listSizeByColor: color.listSize,
+							});
+							await colorProduct.save();
+						}
 					}),
 				]);
 				res.redirect("/admin/product");
@@ -532,11 +398,11 @@ class shoeController {
 	}
 
 	// [DELETE] /product/delete/:id
-	delete(req, res) {
+	async delete(req, res) {
+		await Product.deleteOne({ _id: req.params.id });
+		algoliaService.deleteData([req.params.id]);
 		//also delete category of product check in here
-		Product.deleteOne({ _id: req.params.id })
-			.then(() => res.redirect("/admin/product"))
-			.catch((err) => console.log(err));
+		res.redirect("/admin/product");
 	}
 
 	// CLIENT
@@ -595,55 +461,13 @@ class shoeController {
 				return res.status(200).send(products);
 			}
 			// display all product
-			const listProduct = await Product.find({}).lean();
+			let listProduct = await Product.find({}).lean();
 
-			await Promise.all(
-				listProduct.map(async (product) => {
-					// objectID for algolia
-					product.objectID = product._id;
+			listProduct = await this.formatData(listProduct);
 
-					let listCateId = [],
-						listCatePro = [],
-						maxPrice = 100000,
-						flag = 0;
-
-					listCatePro = await CategoryProduct.find({ proId: product._id });
-					listCatePro.forEach((catePro) => {
-						if (catePro.listImgByColor || catePro.listSizeByColor) {
-							if (flag == 0) {
-								product.image = catePro.listImgByColor[0].filename;
-								flag = 1;
-							}
-							catePro.listSizeByColor.forEach((size) => {
-								if (size.amount > 0 && size.price > 0) {
-									if (size.price < maxPrice) {
-										maxPrice = size.price;
-									}
-									listCateId.push(size.sizeId);
-								}
-							});
-						}
-						listCateId.push(catePro.cateId);
-					});
-
-					product.price = maxPrice;
-
-					// eliminate size id duplicate
-					listCateId = [...new Set(listCateId)];
-
-					const listCate = await Category.find({ _id: { $in: listCateId } });
-					const groupByTypeId = _.groupBy(listCate, "typeId");
-					for (let typeId in groupByTypeId) {
-						const typeName = await CateType.findOne({ _id: typeId });
-
-						groupByTypeId[typeId].forEach((cate) => {
-							product[typeName.type] = product[typeName.type] || [];
-							product[typeName.type].push(cate.name);
-						});
-					}
-				})
-			);
+			// syncData with algolia
 			algoliaService.updateData(listProduct);
+
 			res.json(listProduct);
 		} catch (err) {
 			console.error(err);
@@ -702,7 +526,6 @@ class shoeController {
 		let listCateId = [],
 			listAnotherCate = [],
 			listInfoByColor = [];
-		console.log("test");
 		listCatePro.forEach((catePro) => {
 			if (catePro?.listImgByColor || catePro.listSizeByColor) {
 				listInfoByColor.push({
@@ -775,6 +598,58 @@ class shoeController {
 				res.render("shoeByGender", { shoes });
 			});
 		}
+	}
+
+	// format data product for sync and display
+	async formatData(listProduct) {
+		await Promise.all(
+			listProduct.map(async (product) => {
+				// objectID for algolia
+				product.objectID = product._id;
+
+				let listCateId = [],
+					listCatePro = [],
+					maxPrice = 100000,
+					flag = 0;
+
+				listCatePro = await CategoryProduct.find({ proId: product._id });
+				listCatePro.forEach((catePro) => {
+					if (catePro.listImgByColor || catePro.listSizeByColor) {
+						if (flag == 0) {
+							product.image = catePro.listImgByColor[0].filename;
+							flag = 1;
+						}
+						catePro.listSizeByColor.forEach((size) => {
+							if (size.amount > 0 && size.price > 0) {
+								if (size.price < maxPrice) {
+									maxPrice = size.price;
+								}
+								listCateId.push(size.sizeId);
+							}
+						});
+					}
+					listCateId.push(catePro.cateId);
+				});
+
+				product.price = maxPrice;
+
+				// eliminate size id duplicate
+				listCateId = [...new Set(listCateId)];
+
+				const listCate = await Category.find({ _id: { $in: listCateId } });
+				const groupByTypeId = _.groupBy(listCate, "typeId");
+				for (let typeId in groupByTypeId) {
+					const typeName = await CateType.findOne({ _id: typeId });
+
+					groupByTypeId[typeId].forEach((cate) => {
+						product[typeName.type] = product[typeName.type] || [];
+						product[typeName.type].push(cate.name);
+					});
+				}
+			})
+		);
+
+		return listProduct;
 	}
 }
 

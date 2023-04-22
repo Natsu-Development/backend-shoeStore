@@ -41,20 +41,21 @@ function route(app, io) {
 			},
 		]);
 
-		let result = categoryList.reduce((c, v) => {
+		let result = await categoryList.reduce((c, v) => {
 			c[v.cateTypeId] = c[v.cateTypeId] || [];
 			c[v.cateTypeId].push({ cateId: v.result._id, cateName: v.result.name });
 			return c;
 		}, {});
 
-		let listCateType = categoryList.reduce((c, v) => {
+		let listCateType = await categoryList.reduce((c, v) => {
 			c[v.cateTypeId] = c[v.cateTypeId] || [];
 			c[v.cateTypeId].push({ typeName: v.type });
 			return c;
 		}, {});
 
-		var resultFilter = categoryHelp.getCateSize(result, res);
+		var resultFilter = await categoryHelp.getCateSizeAndColor(result);
 		res.locals.listSizeAdded = resultFilter.listSize;
+		res.locals.listColor = resultFilter.listColor;
 		res.locals.listAnotherCateAdded = result;
 		res.locals.listCateType = listCateType;
 

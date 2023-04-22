@@ -1,3 +1,5 @@
+const CateType = require("../app/models/categoryType.model");
+
 module.exports = {
 	setUpLabels: (reqQuery) => {
 		switch (reqQuery) {
@@ -10,17 +12,26 @@ module.exports = {
 		}
 	},
 
-	getCateSize: (arrayCategory) => {
-		let listSize = [];
+	getCateSizeAndColor: async (arrayCategory) => {
+		let listSize = [],
+			listColor = [],
+			cateType;
 
-		for (category in arrayCategory) {
-			if (Number(arrayCategory[category][0].cateName)) {
-				listSize = arrayCategory[category];
-				delete arrayCategory[category];
+		for (typeId in arrayCategory) {
+			if (Number(arrayCategory[typeId][0].cateName)) {
+				listSize = arrayCategory[typeId];
+				delete arrayCategory[typeId];
+			}
+
+			cateType = await CateType.findOne({ _id: typeId });
+
+			if (cateType.type === "color") {
+				listColor = arrayCategory[typeId];
+				delete arrayCategory[typeId];
 			}
 		}
 
-		return { listSize };
+		return { listSize, listColor };
 	},
 
 	sortSize: (listSize) => {

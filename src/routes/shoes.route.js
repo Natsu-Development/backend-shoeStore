@@ -6,7 +6,10 @@ const shoeController = require("../app/controllers/shoeController");
 router.get("/shoeByGender", shoeController.displayShoeByGender);
 
 // display all shoes
-router.get("/displayAllProducts", shoeController.displayAllProduct);
+router.get(
+	"/displayAllProducts",
+	shoeController.displayAllProduct.bind(shoeController)
+);
 
 // filter product
 router.post("/shoeByGender", shoeController.displayShoeByGender);

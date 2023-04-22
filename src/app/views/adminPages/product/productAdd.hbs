@@ -24,73 +24,102 @@
         <div class="content-body">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">Add Product</h4>
-                            <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-                            <div class="heading-elements">
-                                <ul class="list-inline mb-0">
-                                    <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
-                                    <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
-                                    <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
-                                    <li><a data-action="close"><i class="ft-x"></i></a></li>
-                                </ul>
+                    <form action="/admin/product/save" method="POST" enctype="multipart/form-data" id="product-add-form">
+                        {{!-- Common info of shoe --}}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Add Product</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        <li><a data-action="close"><i class="ft-x"></i></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse show">
+                                {{!-- why have enctype and it's not work --}}
+                                <div style="margin: 0 20px;">
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Name</label>
+                                        <input type="text" class="form-control" name="name" placeholder="Enter shoeName">
+                                    </div>
+                                    
+                                    {{!-- Get all CateTyped added and category of this type --}}
+                                    {{getAnotherCateAdded listCateType listAnotherCateAdded}}
+                                    
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Introduce of product</label>
+                                        <input type="text" class="form-control" name="introduce" placeholder="Enter the introduce of this shoe">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Description</label>
+                                        <input type="text" class="form-control" name="description" placeholder="Enter Description">
+                                    </div>
+                                    {{#if errImage}}
+                                        <div class="alert alert-warning" role="alert">
+                                            {{errImage}}
+                                        </div>
+                                    {{/if}}  
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Price</label>
+                                        <input type="text" class="form-control" name="price" placeholder="Enter Description">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-content collapse show">
-                            {{!-- why have enctype and it's not work --}}
-                            <form action="/admin/product/save" method="POST" style="margin: 0 20px;" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Name</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter shoeName">
-                                </div>
-                                
-                                {{!-- Get all CateTyped added and category of this type --}}
-                                {{getAnotherCateAdded listCateType listAnotherCateAdded}}
-                                
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Introduce of product</label>
-                                    <input type="text" class="form-control" name="introduce" placeholder="Enter the introduce of this shoe">
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputPassword1">Description</label>
-                                    <input type="text" class="form-control" name="description" placeholder="Enter Description">
-                                </div>
-                                {{#if errImage}}
-                                    <div class="alert alert-warning" role="alert">
-                                        {{errImage}}
-                                    </div>
-                                {{/if}}
-                                <div id="imageFields">                                    
-                                    <div class="form-group imageField">
-                                        <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="0" name="checkBoxImage" onclick="getArrayImageDelete(0)">
-                                        <label for="exampleInputPassword1">Images</label>
-                                        <input type="file" class="form-control" name="image" placeholder="Select image" accept='image/*' value="0" onclick="displayImg(0)">
-                                        <img class="imgEdit" name="imageChange" src="/upload/{{this.filename}}" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
+
+                        {{!-- Image and Size of Color --}}
+                        {{#each listColor}}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">{{this.cateName}}</h4>
+                                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                    <div class="heading-elements">
+                                        <ul class="list-inline mb-0">
+                                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                            <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                            <li><a data-action="close"><i class="ft-x"></i></a></li>
+                                        </ul>
                                     </div>
                                 </div>
-                                <button class="btn btn-primary" id="btnAddFieldImage" type="button">Add field Image</button>
-                                <button class="btn btn-primary" id="btnDeleteFieldImage" type="button">Delete Image Of Shoe</button>
-                                <div class="form-group">
-                                    <label for="exampleInputPassword1">Sizes in US/UK (Enter the amount of the shoes)</label>
-                                    {{#each listSizeAdded}}
-                                    <div class ="form-check" style="margin-bottom: 14px">
-                                        <input value="{{this.cateId}}" name="size" type="hidden">
-                                        <label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
-                                            {{this.cateName}}
-                                        </label>
-                                        <input type="number" name="amountOfSize" placeholder="Enter amount of this size" value="0" min="0">
-                                    </div>  
-                                    {{/each}}
-                                </div>        
-                                <div class="form-group">
-                                    <label for="exampleInputPassword1">Price</label>
-                                    <input type="text" class="form-control" name="price" placeholder="Enter Description">
+
+                                <div class="card-content collapse show" style="margin: 0 20px;">
+                                    <div id="imageFields{{this.cateName}}">                                    
+                                        <div class="form-group imageField{{this.cateName}}">
+                                            <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="0" name="checkBoxImage{{this.cateName}}" onclick="getArrayImageDelete{{this.cateName}}(0)">
+                                            <label for="exampleInputPassword1">Images</label>
+                                            <input type="file" class="form-control imageWithColor{{this.cateName}}" name="image" placeholder="Select image" accept='image/*' value="0" onclick="displayImg{{this.cateName}}(0)">
+                                            <input type="hidden" name="imageName{{this.cateName}}">
+                                            <img class="imgEdit" name="imageChange{{this.cateName}}" src="/upload/{{this.filename}}" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" id="btnAddFieldImage{{this.cateName}}" type="button">Add field Image</button>
+                                    <button class="btn btn-primary" id="btnDeleteFieldImage{{this.cateName}}" type="button">Delete Image Of Shoe</button>
+                                    {{!-- Size and price of each size and color --}}
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Sizes in US/UK (Enter the amount of the shoes)</label>
+                                        {{#each ../listSizeAdded}}
+                                            <div class ="form-check" style="margin-bottom: 14px">
+                                                <input value="{{this.cateId}}" name="size{{../this.cateId}}" type="hidden">
+                                                <label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
+                                                    {{this.cateName}}
+                                                </label>
+                                                <input type="number" name="amountOfSize{{../this.cateId}}" placeholder="Enter amount of this size" value="0" min="0">
+                                                <label class="form-check-label" for="flexCheckDefault" style="margin-right: 10px; margin-left: 20px; min-width: 30px">Price</label>
+                                                <input type="number" name="price{{../this.cateId}}" placeholder="Enter price of this size" value="0" min="0">
+                                            </div> 
+                                        {{/each}}
+                                    </div> 
                                 </div>
-                                <button type="submit" class="btn btn-primary">Submit</button>
-                            </form>
-                        </div>
-                    </div>
+                            </div>
+                        {{/each}}   
+
+                        <button type="submit" class="btn btn-primary" id="btnAdd">Submit</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -98,65 +127,140 @@
 </div>
 
 <script>
-    // delete image of shoes
-    const listCheckBoxImage = document.getElementsByName('checkBoxImage');
-    var arrayImageDelete = [];
+    // list color with image and all elements of it
+    let listColor = {{{json listColor}}};
 
-    function getArrayImageDelete(position) {
-        const listCheckBoxImage = document.getElementsByName('checkBoxImage');
-        listCheckBoxImage[position].addEventListener('change', () => {
-            arrayImageDelete = 
-            Array.from(listCheckBoxImage) // Convert checkboxes to an array to use filter and map.
-            .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-            .map(i => i.value).sort(); // Use Array.map to extract only the checkbox values from the array of objects.
-        console.log(arrayImageDelete);
-        })
-    }
+    listColor.forEach((color) => {
+        // add or delete image field of color
+        var dynamicColor = {};
+        dynamicColor["listFieldImage" + color.cateName] = document.getElementById(`imageFields${color.cateName}`);
+        dynamicColor["btnAddFieldImage" + color.cateName] = document.getElementById(`btnAddFieldImage${color.cateName}`);
+        dynamicColor["btnDeleteFieldImage" + color.cateName] = document.getElementById(`btnDeleteFieldImage${color.cateName}`);
+        dynamicColor["imageField" + color.cateName] = document.getElementsByClassName(`imageField${color.cateName}`);
+        dynamicColor["imageWithColor" + color.cateName] = document.getElementsByClassName(`imageWithColor${color.cateName}`);
 
-    // test
-    var selectedFile = document.getElementsByName("image");
+        // delete image of shoes
+        window["listCheckBoxImage" + color.cateName] = document.getElementsByName(`checkBoxImage${color.cateName}`);
+        window["arrayImageDelete" + color.cateName] = [];
 
-    // button to add field image or delete field image
-    const listFieldImage = document.getElementById('imageFields');
-    const btnAddFieldImage = document.getElementById('btnAddFieldImage');
-    const btnDeleteFieldImage = document.getElementById('btnDeleteFieldImage');
-    const imageField = document.getElementsByClassName('imageField');
+        // selected file
+        window["selectedFile" + color.cateName] = document.getElementsByClassName(`imageWithColor${color.cateName}`);
 
-    // add field imgae
-    btnAddFieldImage.addEventListener('click', () => {
-        const position = selectedFile.length;
-        listFieldImage.insertAdjacentHTML('beforeend', `<div class="form-group imageField">
-                                                            <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="${position}" name="checkBoxImage" onclick="getArrayImageDelete(${position})">
-                                                            <label for="exampleInputPassword1">Images</label>
-                                                            <input type="file" class="form-control" name="image" id="image" value="${position}" onclick="displayImg(${position})">
-                                                            <img class="imgEdit" name="imageChange" src="" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
-                                                        </div>`); 
-    });
+        // display Image and store imageName
+        window["srcImage" + color.cateName] = document.getElementsByName(`imageChange${color.cateName}`);
+        window["imageName" + color.cateName] = document.getElementsByName(`imageName${color.cateName}`);
 
-    // delete field image on interface
-    btnDeleteFieldImage.addEventListener('click', () => {
-        var selectedFile = document.getElementsByName("image");
+        // custom function
+        // function get array image delete
+        const functionName = `getArrayImageDelete${color.cateName}`;
+        window[functionName] = new Function(`
+            return function ${functionName}(position) {
+                window["listCheckBoxImage${color.cateName}"] = document.getElementsByName("checkBoxImage${color.cateName}");
+                //console.log("test", position, window["listCheckBoxImage${color.cateName}"][position]);
+                window["listCheckBoxImage${color.cateName}"][position].addEventListener('change', () => {
+                    window["arrayImageDelete${color.cateName}"] = 
+                        Array.from(window["listCheckBoxImage${color.cateName}"]) // Convert checkboxes to an array to use filter and map.
+                        .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                        .map(i => i.value).sort(); // Use Array.map to extract only the checkbox values from the array of objects.
+                    //console.log(checkbox["arrayImageDelete${color.cateName}"]);
+                })
+            }`)();
 
-        // get array of input type = file
-        for(var i = 0; i < arrayImageDelete.length; i++) { 
-            for(var j = 0; j < selectedFile.length; j++) { 
-                if(arrayImageDelete[i]===selectedFile[j].defaultValue) {
-                    listFieldImage.removeChild(imageField[j]);
+        // function to display image when update or add
+        const displayName = `displayImg${color.cateName}`;
+        window[displayName] = new Function(`
+            return function ${displayName}(position) {
+                window["selectedFile${color.cateName}"] = document.getElementsByClassName("imageWithColor${color.cateName}");
+                window["srcImage${color.cateName}"] = document.getElementsByName("imageChange${color.cateName}");
+                window["imageName${color.cateName}"] = document.getElementsByName("imageName${color.cateName}");
+
+                window["selectedFile${color.cateName}"][position].addEventListener('change', (event) => {
+                    // display new image when have update.
+                    window["srcImage${color.cateName}"][event.target.defaultValue].src = URL.createObjectURL(event.target.files[0]);
+                    // store file name
+                    window["imageName${color.cateName}"][event.target.defaultValue].value = event.target.files[0].name;
+                    window["srcImage${color.cateName}"][event.target.defaultValue].onload = function() {
+                        URL.revokeObjectURL(window["srcImage${color.cateName}"][event.target.defaultValue].src) // free memory
+                    }
+                }); 
+            }`)();
+
+
+        // add field image
+        dynamicColor["btnAddFieldImage" + color.cateName].addEventListener('click', () => {
+            const position = dynamicColor["imageWithColor" + color.cateName].length;
+            dynamicColor["listFieldImage" + color.cateName].insertAdjacentHTML('beforeend', 
+            `<div class="form-group imageField${color.cateName}">
+                <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="${position}" name="checkBoxImage${color.cateName}" onclick="getArrayImageDelete${color.cateName}(${position})">
+                <label for="exampleInputPassword1">Images</label>
+                <input type="hidden" name="imageName${color.cateName}">
+                <input type="file" class="form-control imageWithColor${color.cateName}" name="image" id="image" value="${position}" onclick="displayImg${color.cateName}(${position})">
+                <img class="imgEdit" name="imageChange${color.cateName}" src="" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
+            </div>`
+            );
+        });  
+
+        // delete field image on interface
+        dynamicColor["btnDeleteFieldImage" + color.cateName].addEventListener('click', () => {
+            window["selectedFile" + color.cateName] = document.getElementsByClassName(`imageWithColor${color.cateName}`);
+
+            // get array of input type = file
+            for(var i = 0; i < window["arrayImageDelete" + color.cateName].length; i++) { 
+                for(var j = 0; j < window["selectedFile" + color.cateName].length; j++) { 
+                    if(window["arrayImageDelete" + color.cateName][i]===window["selectedFile" + color.cateName][j].defaultValue) {
+                        dynamicColor["listFieldImage" + color.cateName].removeChild(dynamicColor["imageField" + color.cateName][j]);
+                    }
                 }
             }
-        }
-    }); 
+        }); 
+    });
 
-    // display image when update or add
-    function displayImg(position) {
-        var selectedFile = document.getElementsByName("image");
-        var srcImage = document.getElementsByName("imageChange");
-        selectedFile[position].addEventListener('change', (event) => {
-            // display new image when have update.
-            srcImage[event.target.defaultValue].src = URL.createObjectURL(event.target.files[0]);
-            srcImage[event.target.defaultValue].onload = function() {
-                URL.revokeObjectURL(srcImage[event.target.defaultValue].src) // free memory
+    document.getElementById("btnAdd").addEventListener("click", function(event) {
+        event.preventDefault();
+
+        const form = document.getElementById("product-add-form");
+        const formData = new FormData(form);
+
+        let listInfoWithColor = [];
+
+        listColor.forEach((color) => {
+            const images = document.getElementsByName(`imageName${color.cateName}`);
+            const size = document.getElementsByName(`size${color.cateId}`);
+            const amountOfSize = document.getElementsByName(`amountOfSize${color.cateId}`);
+            const price = document.getElementsByName(`price${color.cateId}`);
+
+            const length = size.length;
+            let listSize = [], listImage = [], position = 1;
+            images.forEach((image) => {
+                listImage.push({
+                    position: position,
+                    filename: image.value,
+                });
+                position++;
+            })
+
+            for(let i = 0; i < length; i++) {
+                if(amountOfSize[i].value > 0 && price[i].value > 0) {
+                    listSize.push({
+                        sizeId: size[i].value,
+                        amount: amountOfSize[i].value,
+                        price: price[i].value,
+                    });
+                }
             }
-        });     
-    }
+
+            listInfoWithColor.push({
+                colorId: color.cateId,
+                listImg: listImage,
+                listSize: listSize
+            });
+        });
+
+        formData.append("listImgWithColor", JSON.stringify(listInfoWithColor));
+
+        fetch("/admin/product/save", {
+            method: "POST",
+            body: formData
+        });
+    });
 </script>

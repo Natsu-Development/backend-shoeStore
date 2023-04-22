@@ -42,7 +42,7 @@ router.delete("/categoryType/delete/:id", cateTypeController.delete);
 router.get("/categoryType/:slug", cateTypeController.findCategoryByName);
 
 //PRODUCT
-router.get("/product", shoeController.manager);
+router.get("/product", shoeController.manager.bind(shoeController));
 router.get("/product/add", shoeController.renderCreate);
 router.post("/product/save", shoeController.create);
 router.get("/product/update/:id", shoeController.renderUpdate);
@@ -85,6 +85,5 @@ router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 
 //dashboard
 router.get("/", cateTypeController.manager);
-
 
 module.exports = router;
