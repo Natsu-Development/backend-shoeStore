@@ -30,6 +30,6 @@ module.exports = function (fileName) {
 				return cb(err, false);
 			}
 		},
-	}).array(`${fileName}`, 10));
+	}).array(`${fileName}`, 1000));
 	// return upload = multer({storage: storage}).single(`${fileName}`);
 };

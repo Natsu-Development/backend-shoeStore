@@ -261,6 +261,10 @@
         fetch("/admin/product/save", {
             method: "POST",
             body: formData
-        });
+        }).then((response) => {
+            window.location.href = "/admin/product";
+        }).catch((error) => {
+
+        })
     });
 </script>

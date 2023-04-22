@@ -181,7 +181,7 @@ class shoeController {
 						}
 					}),
 				]);
-				res.redirect("/admin/product");
+				res.redirect("admin/product");
 			});
 		} catch (err) {
 			console.log(err);
