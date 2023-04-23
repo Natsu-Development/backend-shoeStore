@@ -265,7 +265,6 @@ class shoeController {
 		Product.findOne({ _id: req.params.id })
 			.then((product) => {
 				const result = mongooseToObject(product);
-				console.log;
 				res.render("adminPages/product/productUpdate", {
 					result,
 					// extract key[position] is key of object groupByCateTypeId to get name of this key(typeId)

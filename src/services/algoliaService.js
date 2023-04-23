@@ -6,7 +6,7 @@ class algoliaService {
 			process.env.ALGOLIA_APP_ID,
 			process.env.ALGOLIA_SEARCH_ADMIN_KEY
 		);
-		const index = client.initIndex("new_product");
+		const index = client.initIndex("product");
 		return index;
 	}
 
