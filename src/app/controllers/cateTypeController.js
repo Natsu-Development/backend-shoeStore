@@ -44,13 +44,12 @@ class cateTypeController {
 	async manager(req, res, next) {
 		try {
 			const cateTypes = await CategoryType.find();
-			req.io.sockets.emit("testDisplay", {listCateType: cateTypes});
+			// req.io.sockets.emit("testDisplay", {listCateType: cateTypes});
 			res.render("adminPages/categoryType/manager", {
 				cateTypes: mutipleMongooseToObject(cateTypes),
 				layout: "adminLayout",
 			});
-		}
-		catch(err) {
+		} catch (err) {
 			console.error(err);
 		}
 	}

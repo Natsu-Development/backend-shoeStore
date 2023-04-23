@@ -285,18 +285,20 @@ const PORT = 3010;
 const server = http.createServer(app);
 
 // socket io configure
-const io = require("socket.io")(server);
+// const io = require("socket.io")(server);
 
 // router
 const route = require("./routes/index.route");
-route(app, io);
+route(app);
 
-io.on("connection", (socket) => {
-	// console.log(socket.id);
-});
+// io.on("connection", (socket) => {
+// 	// console.log(socket.id);
+// });
 
-io.on("error", (err) => {
-	console.log("Err from socket.io", err);
-});
+// io.on("error", (err) => {
+// 	console.log("Err from socket.io", err);
+// });
 
-server.listen(PORT, () => console.log(`Secure server has started on port ${PORT}`));
+server.listen(PORT, () =>
+	console.log(`Secure server has started on port ${PORT}`)
+);
