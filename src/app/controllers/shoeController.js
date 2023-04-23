@@ -158,7 +158,6 @@ class shoeController {
 				const formData = req.body;
 				formData.cateIds = formData.cateIds.filter((cate) => cate.length > 0);
 				formData.listImgWithColor = JSON.parse(formData.listImgWithColor);
-
 				const product = new Product(formData);
 				const newProduct = await product.save();
 				await Promise.all([
