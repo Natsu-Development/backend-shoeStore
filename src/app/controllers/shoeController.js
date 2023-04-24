@@ -525,6 +525,7 @@ class shoeController {
 					id: catePro.cateId,
 					images: catePro.listImgByColor,
 					sizes: catePro.listSizeByColor,
+					avatar: catePro.avatar,
 				});
 			} else {
 				listCateId.push(catePro.cateId);
