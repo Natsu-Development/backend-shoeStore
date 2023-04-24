@@ -8,6 +8,11 @@ const Product = new Schema({
 	introduce: { type: String },
 	description: { type: String },
 	slug: { type: String, slug: "name", unique: true },
+	gender: {
+		type: String,
+		enum: ["male", "female"],
+		default: "male",
+	},
 });
 
 module.exports = mongoose.model("Product", Product);

@@ -221,18 +221,12 @@ class shoeController {
 				};
 			})
 			.value();
-		console.log(
-			"🚀 ~ file: shoeController.js:211 ~ shoeController ~ renderUpdate ~ groupByCateTypeId:",
-			groupByCateTypeId
-		);
 
 		// get size of shoe
 		var listSize = [],
 			listSizeAdded = res.locals.listSizeAdded,
 			listAnotherCate = [],
 			amountOfSize;
-
-		console.log("List Size", listSizeAdded);
 
 		await Promise.all(
 			groupByCateTypeId.map((item) => {
@@ -455,8 +449,8 @@ class shoeController {
 			// if have request search Product
 			if (req.query.search) {
 				let object = productHelp.setCondition(req.query, "search");
-				let products = await Product.find(object);
-				products = mutipleMongooseToObject(products);
+				let products = await Product.find(object).lean();
+				products = await this.formatData(products);
 				return res.status(200).send(products);
 			}
 			// display all product
