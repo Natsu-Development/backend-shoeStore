@@ -21,7 +21,7 @@ class cartHelp {
 					cart.quantity += req.body.quantity;
 					product = await Product.findOne({ _id: req.body.productId }).lean();
 					product.price = priceOfShoe;
-					product.image = shoeInfo.listImgByColor[0].filename;
+					product.image = shoeInfo.avatar;
 					cartUpdated = await Cart.findOneAndUpdate(
 						{ _id: cart._id },
 						{
@@ -55,9 +55,11 @@ class cartHelp {
 						cart.sizeId
 					);
 
+					console.log(shoeInfo, infoBySizeId);
+
 					const product = await Product.findOne({ _id: cart.productId });
 
-					cart.image = shoeInfo.listImgByColor[0].filename;
+					cart.image = shoeInfo.avatar;
 					cart.productName = product.name;
 					cart.productPrice = infoBySizeId.price;
 					cart.sizeName = size.name;

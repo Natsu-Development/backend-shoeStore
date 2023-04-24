@@ -51,7 +51,7 @@ class order {
 			await Promise.all(
 				orderDetails.map(async (orderDetail) => {
 					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
-						orderDetail.image = product.arrayImage[0].filename;
+						orderDetail.image = product.arrayImage[0].avatar;
 						orderDetail.productName = product.name;
 						results.push(orderDetail);
 					});
@@ -393,7 +393,7 @@ class order {
 					);
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
 
-					orderDetail.image = shoeInfo.listImgByColor[0].filename;
+					orderDetail.image = shoeInfo.avatar;
 					orderDetail.productName = product.name;
 					orderDetail.productPrice = infoBySizeId.price;
 					orderDetail.sizeName = size.name;

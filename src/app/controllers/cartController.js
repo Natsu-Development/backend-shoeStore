@@ -134,7 +134,7 @@ class cartController {
 
 			// not existed
 			const product = await Product.findOne({ _id: req.body.productId }).lean();
-			product.image = shoeInfo.listImgByColor[0].filename;
+			product.image = shoeInfo.avatar;
 			product.price = infoBySizeId.price;
 
 			const addToCart = new Cart({
