@@ -173,6 +173,7 @@ class shoeController {
 							const colorProduct = new CategoryProduct({
 								proId: newProduct._id,
 								cateId: color.colorId,
+								avatar: color.avatar,
 								listImgByColor: color.listImg,
 								listSizeByColor: color.listSize,
 							});
@@ -614,7 +615,7 @@ class shoeController {
 				listCatePro.forEach((catePro) => {
 					if (catePro.listImgByColor || catePro.listSizeByColor) {
 						if (flag == 0) {
-							product.image = catePro.listImgByColor[0].filename;
+							product.avatar = catePro.avatar;
 							flag = 1;
 						}
 						catePro.listSizeByColor.forEach((size) => {
@@ -629,7 +630,7 @@ class shoeController {
 					listCateId.push(catePro.cateId);
 				});
 
-				product.price = maxPrice;
+				product.price = Number(maxPrice);
 
 				// eliminate size id duplicate
 				listCateId = [...new Set(listCateId)];

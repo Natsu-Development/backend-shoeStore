@@ -5,6 +5,7 @@ const CategoryProduct = new Schema(
 	{
 		cateId: { type: String, maxLength: 255, required: true },
 		proId: { type: String, maxLength: 600, required: true },
+		avatar: { type: String, required: true },
 		listImgByColor: { type: Array, default: undefined },
 		listSizeByColor: { type: Array, default: undefined },
 	},
