@@ -267,9 +267,9 @@ app.use("/swagger.json", (req, res) => {
 	res.send(specs);
 });
 
-// // router
-// const route = require("./routes/index.route");
-// route(app);
+// router
+const route = require("./routes/index.route");
+route(app);
 
 // configure ssl server
 // const sslServer = https.createServer(
@@ -282,14 +282,16 @@ app.use("/swagger.json", (req, res) => {
 // );
 
 const PORT = 3010;
-const server = http.createServer(app);
+http
+	.createServer(app)
+	.listen(PORT, () => console.log(`Secure server has started on port ${PORT}`));
 
 // socket io configure
 // const io = require("socket.io")(server);
 
 // router
-const route = require("./routes/index.route");
-route(app);
+// const route = require("./routes/index.route");
+// route(app);
 
 // io.on("connection", (socket) => {
 // 	// console.log(socket.id);
@@ -299,6 +301,6 @@ route(app);
 // 	console.log("Err from socket.io", err);
 // });
 
-server.listen(PORT, () =>
-	console.log(`Secure server has started on port ${PORT}`)
-);
+// server.listen(PORT, () =>
+// 	console.log(`Secure server has started on port ${PORT}`)
+// );
