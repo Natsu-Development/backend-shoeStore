@@ -169,6 +169,11 @@ class jwtHelp {
 		const decode = jwt.decode(token);
 		return decode.userId;
 	}
+
+	decodeTokenGetPermission(token) {
+		const decode = jwt.decode(token);
+		return decode.permission;
+	}
 }
 
 module.exports = new jwtHelp();

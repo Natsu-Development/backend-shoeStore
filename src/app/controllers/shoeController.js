@@ -10,6 +10,7 @@ const {
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
 const productHelp = require("../../utils/productHelp");
+const jwtHelp = require("../../utils/jwtHelp");
 const imageHelp = require("../../utils/imageHelp");
 const upload = require("../middlewares/upload.mdw");
 const algoliaService = require("../../services/algoliaService");
@@ -60,7 +61,7 @@ class shoeController {
 
 		// format data and sync data with algolia
 		listProduct = await this.formatData(listProduct);
-		algoliaService.updateData(listProduct);
+		// algoliaService.updateData(listProduct);
 
 		res.render("adminPages/product/manager", {
 			shoes: listProduct,
@@ -70,6 +71,9 @@ class shoeController {
 
 	// [GET] /product/add
 	renderCreate(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		if (req.query != "warning") delete req.session.errImage;
 		res.render("adminPages/product/productAdd", { layout: "adminLayout" });
 	}
@@ -146,6 +150,9 @@ class shoeController {
 	// [POST] /admin/product/create
 	async create(req, res) {
 		try {
+			if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+				return res.redirect("back");
+			}
 			upload("image")(req, res, async function (err) {
 				if (err) {
 					// url for redirect back
@@ -192,6 +199,9 @@ class shoeController {
 	// [GET] /product/update/:id
 	// optimize code in here
 	async renderUpdate(req, res, next) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		// have err in process update image
 		if (req.query != "warning") delete req.session.errImage;
 
@@ -272,6 +282,9 @@ class shoeController {
 
 	// [PUT] /product/saveUpdate/:id
 	update(req, res, next) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		upload("image")(req, res, async function (err) {
 			if (err) {
 				// url for redirect back
@@ -392,6 +405,9 @@ class shoeController {
 
 	// [DELETE] /product/delete/:id
 	async delete(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		await Product.deleteOne({ _id: req.params.id });
 		algoliaService.deleteData([req.params.id]);
 		//also delete category of product check in here
@@ -459,7 +475,7 @@ class shoeController {
 			listProduct = await this.formatData(listProduct);
 
 			// syncData with algolia
-			algoliaService.updateData(listProduct);
+			// algoliaService.updateData(listProduct);
 
 			res.json(listProduct);
 		} catch (err) {

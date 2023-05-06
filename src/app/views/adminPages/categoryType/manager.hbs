@@ -28,11 +28,13 @@
                             <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                             <div class="heading-elements" style="top: 10px">
                                 <ul class="list-inline mb-0"> 
-                                    <a href="/admin/categoryType/addType"><button class="btn btn-primary">Add category type</button></a>
-                                    <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
-                                    {{!-- <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li> --}}
-                                    <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
-                                    {{!-- <li><a data-action="close"><i class="ft-x"></i></a></li> --}}
+                                    {{#when permission 'eq' 0}}
+                                        <a href="/admin/categoryType/addType"><button class="btn btn-primary">Add category type</button></a>
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                        {{!-- <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li> --}}
+                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        {{!-- <li><a data-action="close"><i class="ft-x"></i></a></li> --}}
+                                    {{/when}}
                                 </ul>
                             </div>
                         </div>
@@ -56,12 +58,14 @@
                                             <th scope="row">{{inc @index}}</th>
                                             <td>{{this.type}}</td>
                                             <td>{{this.description}}</td>
-                                            <td><a href="/admin/categoryType/update/{{this._id}}"><button class="btn btn-warning">Edit</button></a></td>
-                                            <td>
-                                                <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
-                                                    <button class="btn btn-danger">Delete</button>
-                                                </a>
-                                            </tr>
+                                            {{#when ../permission 'eq' 0}}
+                                                <td><a href="/admin/categoryType/update/{{this._id}}"><button class="btn btn-warning">Edit</button></a></td>
+                                                <td>
+                                                    <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
+                                                        <button class="btn btn-danger">Delete</button>
+                                                    </a>
+                                                </tr>
+                                            {{/when}}
                                         {{/each}}
                                     </tbody>
                                 </table>

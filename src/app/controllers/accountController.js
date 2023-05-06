@@ -398,17 +398,27 @@ class accountController {
 		res.redirect("/");
 	}
 
-	manager(req, res, next) {
-		Account.find()
-			.then((accounts) => {
-				res.render("adminPages/account/manager", {
+	async manager(req, res, next) {
+		try {
+			// employee
+			if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+				const accounts = await Account.find({ permission: 2 });
+				return res.render("adminPages/account/manager", {
 					accounts: mutipleMongooseToObject(accounts),
 					layout: "adminLayout",
+					permission: 1,
 				});
-			})
-			.catch((err) => {
-				next(err);
+			}
+			// admin
+			const accounts = await Account.find();
+			res.render("adminPages/account/manager", {
+				accounts: mutipleMongooseToObject(accounts),
+				layout: "adminLayout",
+				permission: 0,
 			});
+		} catch (err) {
+			console.error(err);
+		}
 	}
 
 	// [GET] /accounts/renderCreate
@@ -470,6 +480,9 @@ class accountController {
 
 	//[DELETE] /accounts/delete/:id
 	delete(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		Account.deleteOne({ _id: req.params.id })
 			.then(() => {
 				res.redirect("back");

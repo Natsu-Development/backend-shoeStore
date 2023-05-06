@@ -5,6 +5,7 @@ const {
 	mongooseToObject,
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
+const jwtHelp = require("../../utils/jwtHelp");
 
 class cateTypeController {
 	// [GET] /category?type='...'
@@ -44,10 +45,10 @@ class cateTypeController {
 	async manager(req, res, next) {
 		try {
 			const cateTypes = await CategoryType.find();
-			// req.io.sockets.emit("testDisplay", {listCateType: cateTypes});
 			res.render("adminPages/categoryType/manager", {
 				cateTypes: mutipleMongooseToObject(cateTypes),
 				layout: "adminLayout",
+				permission: jwtHelp.decodeTokenGetPermission(req.cookies.Authorization),
 			});
 		} catch (err) {
 			console.error(err);
@@ -63,6 +64,9 @@ class cateTypeController {
 
 	// [GET] /categoryType/renderUpdate
 	renderUpdate(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		CategoryType.findById({ _id: req.params.id })
 			.then((cateType) => {
 				res.render("adminPages/categoryType/categoryTypeUpdate", {
@@ -111,6 +115,9 @@ class cateTypeController {
 	 */
 	// [POST] /categoryType/add
 	create(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		// req.body.type = req.query.type;
 		const newCategory = req.body;
 		const cate = new CategoryType(newCategory);
@@ -179,6 +186,9 @@ class cateTypeController {
 	 */
 	//[PUT] /categoryType/update/:id
 	update(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		CategoryType.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
 				res.redirect(`/admin/categoryType`);
@@ -218,6 +228,9 @@ class cateTypeController {
 	 */
 	//[DELETE] /categoryType/delete/:id
 	delete(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		CategoryType.deleteOne({ _id: req.params.id })
 			.then(() => {
 				Category.deleteMany({ typeId: req.params.id }).then(() => {

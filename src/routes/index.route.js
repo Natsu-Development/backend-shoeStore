@@ -78,12 +78,6 @@ function route(app, io) {
 		next();
 	});
 
-	// use io socket for all app
-	// app.use((req, res, next) => {
-	// 	req.io = io;
-	// 	next();
-	// });
-
 	// admin routes handle
 	app.use("/admin", passportConfig.authAdmin, adminRouter);
 

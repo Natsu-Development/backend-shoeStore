@@ -9,6 +9,7 @@ const {
 	mongooseToObject,
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
+const jwtHelp = require("../../utils/jwtHelp");
 
 class cateController {
 	/**
@@ -62,6 +63,7 @@ class cateController {
 				type: mongooseToObject(type),
 				labels: categoryHelp.setUpLabels(type.type),
 				layout: "adminLayout",
+				permission: jwtHelp.decodeTokenGetPermission(req.cookies.Authorization),
 			});
 		} catch (err) {
 			console.log(err);
@@ -120,6 +122,9 @@ class cateController {
 	 */
 	async create(req, res) {
 		try {
+			if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+				return res.redirect("back");
+			}
 			// // check typeId have exist in category type
 			// const typeIdExist = await CategoryType.findOne({
 			// 	_id: req.params.typeId,
@@ -199,6 +204,9 @@ class cateController {
 	 */
 	//[PUT] /category/update/:id
 	update(req, res, next) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		Category.updateOne({ _id: req.params.cateId }, req.body)
 			.then(() => {
 				res.redirect(`/admin/category/${req.params.typeId}`);
@@ -236,6 +244,9 @@ class cateController {
 	 */
 	//[DELETE] /category/delete/:id
 	delete(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		Category.deleteOne({ _id: req.params.id })
 			.then(() => {
 				res.redirect("back");

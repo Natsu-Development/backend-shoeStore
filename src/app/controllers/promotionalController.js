@@ -14,6 +14,9 @@ class promotionalController {
 				res.render("adminPages/promotional/manager", {
 					promotes: mutipleMongooseToObject(promotes),
 					layout: "adminLayout",
+					permission: jwtHelp.decodeTokenGetPermission(
+						req.cookies.Authorization
+					),
 				});
 			})
 			.catch((err) => {
@@ -23,6 +26,9 @@ class promotionalController {
 
 	// [GET] /promotional/renderCreate
 	renderCreate(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		if (req.query != "warning") delete req.session.errImage;
 		res.render("adminPages/promotional/promoAdd", {
 			layout: "adminLayout",
@@ -31,6 +37,9 @@ class promotionalController {
 
 	// [GET] /promotional/renderUpdate
 	renderUpdate(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		Promotional.findById({ _id: req.params.id })
 			.then((promo) => {
 				res.render("adminPages/promotional/promoUpdate", {
@@ -51,6 +60,9 @@ class promotionalController {
 
 	// [POST] /promotional/add
 	async create(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		// req.body.type = req.query.type;
 		const newPromo = req.body;
 		const promo = new Promotional(newPromo);
@@ -72,6 +84,9 @@ class promotionalController {
 
 	//[PUT] /promotional/saveUpdate/:id
 	async update(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		if (await this.isExitedPromo(req.body.code)) {
 			const backUrl = req.header("Referer") || "/";
 			//throw error for the view...
@@ -89,6 +104,9 @@ class promotionalController {
 
 	//[DELETE] /promotional/delete/:id
 	delete(req, res) {
+		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			return res.redirect("back");
+		}
 		Promotional.deleteOne({ _id: req.params.id })
 			.then(() => {
 				res.redirect("/admin/promotional");

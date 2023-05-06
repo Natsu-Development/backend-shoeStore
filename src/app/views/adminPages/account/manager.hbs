@@ -74,11 +74,13 @@
                                                 {{/when}}
                                             </td>
                                             <td><a href="/admin/accounts/update/{{this._id}}"><button class="btn btn-warning">Edit</button></a></td>
-                                            <td>
-                                                <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
-                                                    <button class="btn btn-danger">Delete</button>
-                                                </a>
-                                            </tr>
+                                            {{#when ../permission 'eq' 0}}
+                                                <td>
+                                                    <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
+                                                        <button class="btn btn-danger">Delete</button>
+                                                    </a>
+                                                </tr>
+                                            {{/when}}
                                         {{/each}}
                                     </tbody>
                                 </table>
