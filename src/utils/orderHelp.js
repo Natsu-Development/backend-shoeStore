@@ -165,40 +165,33 @@ class orderHelp {
 
 	// decrease amount of Product (situation: add subOrder)
 	async decreaseAmountProduct(newSubOrder) {
-		const category = await Category.findOne({ name: newSubOrder.size });
-
-		const result = await CategoryProduct.findOne({
+		let isNotEnough = false,
+			message;
+		const catePro = await CategoryProduct.findOne({
+			cateId: newSubOrder.colorId,
 			proId: newSubOrder.shoeId,
-			cateId: category._id,
 		});
-		console.log("result", result);
+
+		catePro?.listSizeByColor?.map((size) => {
+			if (size.sizeId === newSubOrder.sizeId) {
+				// not enough quantity
+				if (Number(newSubOrder.quantity) > Number(size.amount)) {
+					isNotEnough = true;
+					message = `Not Enough Quantity with product ${newSubOrder.shoeId} & size ${newSubOrder.sizeId} & color${newSubOrder.colorId}`;
+					return;
+				}
+				size.amount -= Number(newSubOrder.quantity);
+			}
+		});
+
+		if (isNotEnough) {
+			return { isError: true, message };
+		}
 
 		await CategoryProduct.updateOne(
-			{ _id: result._id },
-			{ amount: result.amount - newSubOrder.quantity }
+			{ cateId: newSubOrder.colorId, proId: newSubOrder.shoeId },
+			catePro
 		);
-
-		// Product.findOne({ _id: newSubOrder.shoeId }).then((product) => {
-		// 	product.size.forEach((objectSize) => {
-		// 		if (objectSize.size === newSubOrder.size) {
-		// 			objectSize.amount = Number(objectSize.amount);
-		// 			objectSize.amount -= Number(newSubOrder.quantity);
-		// 			amount = objectSize.amount;
-		// 			sizeToSave = objectSize;
-
-		// 			console.log(
-		// 				"🚀 ~ file: orderHelp.js ~ line 174 ~ orderHelp ~ .then ~ objectSize.amount",
-		// 				objectSize.amount
-		// 			);
-
-		// 			this.saveChangeAmountOfProduct(
-		// 				newSubOrder.shoeId,
-		// 				sizeToSave,
-		// 				amount
-		// 			);
-		// 		}
-		// 	});
-		// });
 	}
 
 	// save changes amount of product
@@ -260,7 +253,7 @@ class orderHelp {
 	}
 
 	// get order by Status
-	async getOrderByStatus(status, res) {
+	async getOrderByStatus(status, res, messageErr) {
 		try {
 			// must have lean() method to change attribute of object from mongo document
 			// mongo document => js Object
@@ -274,8 +267,9 @@ class orderHelp {
 				})
 			);
 
-			res.render("adminPages/order/orders", {
+			return res.render("adminPages/order/orders", {
 				orders,
+				messageErr: messageErr,
 				layout: "adminLayout",
 			});
 		} catch (err) {

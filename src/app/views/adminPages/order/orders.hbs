@@ -42,6 +42,11 @@
                                 <p class="card-text">Add <code>.table-bordered</code> for borders on all sides of the table and cells.</p>
                             </div> --}}
                             <div class="table-responsive">
+                                {{#if messageErr}}
+                                    <div class="alert alert-warning" role="alert">
+                                        {{messageErr}}
+                                    </div>
+                                {{/if}}
                                 <table class="table table-bordered mb-0" style="text-align: center;">
                                     <thead>
                                         <tr>

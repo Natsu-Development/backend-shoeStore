@@ -50,18 +50,28 @@ class order {
 			const results = [];
 			await Promise.all(
 				orderDetails.map(async (orderDetail) => {
-					await Product.findOne({ _id: orderDetail.shoeId }).then((product) => {
-						orderDetail.image = product.arrayImage[0].avatar;
-						orderDetail.productName = product.name;
-						results.push(orderDetail);
-					});
+					const { shoeInfo, infoBySizeId, size } = await cartHelp.getShoeInfo(
+						orderDetail.shoeId,
+						orderDetail.colorId,
+						orderDetail.sizeId
+					);
+					const product = await Product.findOne({ _id: orderDetail.shoeId });
+
+					orderDetail.image = shoeInfo.avatar;
+					orderDetail.productName = product.name;
+					orderDetail.productPrice = infoBySizeId.price;
+					orderDetail.sizeName = size.name;
+
+					results.push(orderDetail);
 				})
 			);
 			res.render("adminPages/order/orderDetails", {
 				orderDetails: results,
 				layout: "adminLayout",
 			});
-		} catch (error) {}
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	//[GET] /order/orderUpdate/:id
@@ -108,14 +118,24 @@ class order {
 
 	//[PUT] /order/changeStatus
 	async changeOrderStatus(req, res) {
+		let flag = 0,
+			messageErr;
 		// order be confirmed
 		if (req.params.currentStatus == 0) {
 			const orders = await OrderDetail.find({ orderDetailId: req.params.id });
-			orders.forEach((order) => {
-				orderHelp.decreaseAmountProduct(order);
-			});
+			await Promise.all(
+				orders.map(async (order) => {
+					const handle = await orderHelp.decreaseAmountProduct(order);
+					if (handle?.isError) {
+						flag = 1;
+						messageErr = handle?.message;
+					}
+				})
+			);
 		}
-
+		if (flag == 1) {
+			return await orderHelp.getOrderByStatus(0, res, messageErr);
+		}
 		Order.updateOne(
 			{ _id: req.params.id },
 			{ $set: { status: Number(req.params.currentStatus) + 1 } }

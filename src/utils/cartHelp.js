@@ -55,8 +55,6 @@ class cartHelp {
 						cart.sizeId
 					);
 
-					console.log(shoeInfo, infoBySizeId);
-
 					const product = await Product.findOne({ _id: cart.productId });
 
 					cart.image = shoeInfo.avatar;
