@@ -61,7 +61,7 @@ class shoeController {
 
 		// format data and sync data with algolia
 		listProduct = await this.formatData(listProduct);
-		// algoliaService.updateData(listProduct);
+		algoliaService.updateData(listProduct);
 
 		res.render("adminPages/product/manager", {
 			shoes: listProduct,
@@ -475,7 +475,7 @@ class shoeController {
 			listProduct = await this.formatData(listProduct);
 
 			// syncData with algolia
-			// algoliaService.updateData(listProduct);
+			algoliaService.updateData(listProduct);
 
 			res.json(listProduct);
 		} catch (err) {
