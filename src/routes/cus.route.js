@@ -3,6 +3,7 @@ const router = express.Router();
 const orderController = require("../app/controllers/orderController");
 const cartController = require("../app/controllers/cartController");
 const promotionalController = require("../app/controllers/promotionalController");
+const shoeController = require("../app/controllers/shoeController");
 
 router.get("/cart", cartController.getCart);
 router.post("/cart/add", cartController.create);
@@ -38,5 +39,11 @@ router.get("/checkoutComplete", (req, res) => {
 router.get("/wishList", (req, res) => {
 	res.render("wishList");
 });
+
+// comment and rating
+router.post(
+	"/commentAndRate/:shoeId",
+	shoeController.commentAndRate.bind(shoeController)
+);
 
 module.exports = router;

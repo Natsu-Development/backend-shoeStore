@@ -1,3 +1,5 @@
+const Account = require("../app/models/account.model");
+
 module.exports = {
 	// set amount for order
 	setAmountForSize: (size, amountOfSize) => {
@@ -52,5 +54,32 @@ module.exports = {
 				};
 			}
 		}
+	},
+
+	async handleRating(listRate) {
+		if (!listRate || listRate.length === 0) {
+			return 0;
+		}
+
+		let totalRate = 0,
+			account,
+			listUserComment = [];
+
+		await Promise.all(
+			listRate.map(async (rate) => {
+				account = await Account.findOne({ _id: rate.userId });
+				listUserComment.push({
+					picture: account?.picture,
+					name: account.fullname,
+					score: rate.rating,
+					comment: rate.comment,
+				});
+				totalRate += Number(rate.rating);
+			})
+		);
+
+		const averageScore = Number(totalRate / listRate.length);
+
+		return { listUserComment, averageScore };
 	},
 };

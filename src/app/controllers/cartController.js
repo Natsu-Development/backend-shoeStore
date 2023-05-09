@@ -60,6 +60,7 @@ class cartController {
 			res.json(results);
 		} catch (err) {
 			console.log(err);
+			res.status(200).send(err);
 		}
 	}
 

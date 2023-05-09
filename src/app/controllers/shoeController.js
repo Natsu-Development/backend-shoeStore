@@ -1,6 +1,8 @@
 const _ = require("lodash");
 
 const Product = require("../models/product.model");
+const Order = require("../models/order.model");
+const OrderDetail = require("../models/orderDetail.model");
 const Category = require("../models/category.model");
 const CategoryProduct = require("../models/cateProduct.model");
 const CateType = require("../models/categoryType.model");
@@ -490,13 +492,15 @@ class shoeController {
 	 *   get:
 	 *     summary: Details of products.
 	 *     tags: [Products]
+	 *     security:
+	 *        - bearerAuth: []
 	 *     parameters:
 	 *        - in: path
 	 *          name: id
 	 *          type: string
 	 *          required: true
 	 *          description: shoe ID of the shoe to get.
-	 *          example: 6380e790ad8a239b8c5166a2
+	 *          example: 645611d43097195146419e7b
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -531,52 +535,155 @@ class shoeController {
 	 *         description: Get item failed
 	 */
 	async productDetail(req, res) {
-		const listCatePro = await CategoryProduct.find({ proId: req.params.id });
-		let listCateId = [],
-			listAnotherCate = [],
-			listInfoByColor = [];
-		listCatePro.forEach((catePro) => {
-			if (catePro?.listImgByColor || catePro.listSizeByColor) {
-				listInfoByColor.push({
-					id: catePro.cateId,
-					images: catePro.listImgByColor,
-					sizes: catePro.listSizeByColor,
-					avatar: catePro.avatar,
-				});
+		try {
+			const result = await this.isValidRate(req);
+
+			const listCatePro = await CategoryProduct.find({ proId: req.params.id });
+			let listCateId = [],
+				listAnotherCate = [],
+				listInfoByColor = [];
+
+			listCatePro.forEach((catePro) => {
+				if (catePro?.listImgByColor || catePro.listSizeByColor) {
+					listInfoByColor.push({
+						id: catePro.cateId,
+						images: catePro.listImgByColor,
+						sizes: catePro.listSizeByColor,
+						avatar: catePro.avatar,
+					});
+				} else {
+					listCateId.push(catePro.cateId);
+				}
+			});
+
+			const listCate = await Category.find({ _id: { $in: listCateId } });
+			listCate.forEach((cate) => {
+				listAnotherCate.push(cate.name);
+			});
+
+			let sizeName;
+			// get size of color
+			await Promise.all(
+				listInfoByColor.map(async (color) => {
+					await Promise.all(
+						color.sizes.map(async (size) => {
+							sizeName = await Category.findOne({ _id: size.sizeId });
+							size.sizeName = sizeName.name;
+						})
+					);
+				})
+			);
+
+			const product = await Product.findOne({ _id: req.params.id }).lean();
+			product.color = listInfoByColor; // TODO: Have a bugs in here
+			product.listAnotherCate = listAnotherCate;
+
+			const resultRate = await productHelp.handleRating(product.commentAndRate);
+			product.rateScore = resultRate.averageScore;
+			product.listUserComment = resultRate.listUserComment;
+
+			if (result.isValid) {
+				product.isCommentAndRate = true;
 			} else {
-				listCateId.push(catePro.cateId);
+				product.isCommentAndRate = false;
 			}
-		});
 
-		const listCate = await Category.find({ _id: { $in: listCateId } });
-		listCate.forEach((cate) => {
-			listAnotherCate.push(cate.name);
-		});
+			res.status(200).send(product);
+		} catch (err) {
+			console.error(err);
+			res.status(200).send(err);
+		}
+	}
 
-		let sizeName;
-		// get size of color
-		await Promise.all(
-			listInfoByColor.map(async (color) => {
+	/**
+	 * @swagger
+	 * /customer/commentAndRate/{shoeId}:
+	 *   post:
+	 *     summary: Comment for products.
+	 *     tags: [Customer Service]
+	 *     security:
+	 *        - bearerAuth: []
+	 *     parameters:
+	 *        - in: path
+	 *          name: shoeId
+	 *          type: string
+	 *          required: true
+	 *          description: shoe ID to comment.
+	 *          example: 645611d43097195146419e7b
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                rating:
+	 *                  type: Number
+	 *                  description: Rating for product.
+	 *                  example: 5
+	 *                comment:
+	 *                  type: String
+	 *                  description: Comment for product.
+	 *                  example: Good shoe for sport
+	 *     responses:
+	 *       201:
+	 *         content:
+	 *           application/json:
+	 *             schema:
+	 *               type: object
+	 *               properties:
+	 *                  message:
+	 *                    type: string
+	 *                    example: Comment success
+	 *                  status:
+	 *                    type: boolean
+	 *                    example: true
+	 *       400:
+	 *         description: Comment failed
+	 */
+	async commentAndRate(req, res) {
+		try {
+			const result = await this.isValidRate(req);
+			if (!result.isValid) {
+				return res
+					.status(200)
+					.send({ message: "Your order isn't valid to comment and rating" });
+			}
+			let orderDetails, complete;
+
+			result?.orders.some(async (order) => {
+				orderDetails = await OrderDetail.find({
+					orderDetailId: order._id,
+				}).lean();
+
 				await Promise.all(
-					color.sizes.map(async (size) => {
-						sizeName = await Category.findOne({ _id: size.sizeId });
-						size.sizeName = sizeName.name;
+					orderDetails.map(async (orderDetail) => {
+						if (orderDetail.shoeId === req.params.shoeId) {
+							const product = await Product.findOne({
+								_id: req.params.shoeId,
+							});
+							product.commentAndRate.push({
+								userId: result.userId,
+								comment: req.body.comment,
+								rating: req.body.rating,
+							});
+							complete = true;
+							await Product.updateOne({ _id: req.params.shoeId }, product);
+						}
 					})
 				);
-			})
-		);
 
-		Product.findOne({ _id: req.params.id })
-			.then((shoe) => {
-				shoe = mongooseToObject(shoe);
-				shoe.color = listInfoByColor; // TODO: Have a bugs in here
-				shoe.listAnotherCate = listAnotherCate;
-				res.json(shoe);
-			})
-			.catch((err) => {
-				console.log(err);
-				res.status(400);
+				if (complete) {
+					res
+						.status(200)
+						.send({ message: "Comment Saved Success", status: true });
+					return true;
+				}
 			});
+		} catch (err) {
+			console.log(err);
+			res.status(200).send({ message: err });
+		}
 	}
 
 	// display product in shoe By Gender
@@ -660,6 +767,23 @@ class shoeController {
 		);
 
 		return listProduct;
+	}
+
+	async isValidRate(req) {
+		// check user checkout and complete order
+		const userId = jwtHelp.decodeTokenGetUserId(
+			req?.headers?.authorization?.split(" ")[1]
+		);
+
+		const orders = await Order.find({
+			customerId: userId,
+			status: 3,
+		}).lean();
+
+		if (userId && orders.length > 0) {
+			return { orders, userId, isValid: true };
+		}
+		return false;
 	}
 }
 

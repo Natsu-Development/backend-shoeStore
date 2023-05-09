@@ -167,7 +167,7 @@ class jwtHelp {
 
 	decodeTokenGetUserId(token) {
 		const decode = jwt.decode(token);
-		return decode.userId;
+		return decode?.userId;
 	}
 
 	decodeTokenGetPermission(token) {
