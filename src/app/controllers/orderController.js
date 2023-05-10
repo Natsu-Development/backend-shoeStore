@@ -14,6 +14,7 @@ const {
 const mailService = require("../../services/mailService");
 const orderHelp = require("../../utils/orderHelp");
 const promoController = require("../controllers/promotionalController");
+const shoeController = require("../controllers/shoeController");
 const jwt = require("jsonwebtoken");
 const { Mongoose } = require("mongoose");
 
@@ -389,18 +390,22 @@ class order {
 	 *        - bearerAuth: []
 	 *     responses:
 	 *       201:
-	 *         description: Checkout success
+	 *         description: list Order Details
 	 *       400:
 	 *         description: Get list failed
 	 */
 	async getMyOrderDetail(req, res) {
 		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization?.split(" ")[1]
+			);
+
 			let orderDetails = await OrderDetail.find({
 				orderDetailId: req.params.orderDetailId,
 			});
-			let order = await Order.findById(req.params.orderDetailId);
 			orderDetails = mutipleMongooseToObject(orderDetails);
-			console.log(orderDetails);
+
+			let order = await Order.findById(req.params.orderDetailId);
 
 			// get info of product
 			const results = [];
@@ -412,6 +417,9 @@ class order {
 						orderDetail.sizeId
 					);
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
+					if (product.commentAndRate.find((rate) => rate.userId === userId))
+						orderDetail.rated = true;
+					else orderDetail.rated = false;
 
 					orderDetail.image = shoeInfo.avatar;
 					orderDetail.productName = product.name;
@@ -421,6 +429,7 @@ class order {
 					results.push(orderDetail);
 				})
 			);
+
 			res.status(200).send({ results, total: order?.total });
 		} catch (err) {
 			console.log(err);

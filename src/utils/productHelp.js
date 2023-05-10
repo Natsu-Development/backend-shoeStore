@@ -69,7 +69,7 @@ module.exports = {
 			listRate.map(async (rate) => {
 				account = await Account.findOne({ _id: rate.userId });
 				listUserComment.push({
-					picture: account?.picture,
+					picture: account?.picture || "",
 					name: account.fullname,
 					score: rate.rating,
 					comment: rate.comment,

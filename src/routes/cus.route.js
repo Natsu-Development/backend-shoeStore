@@ -41,9 +41,16 @@ router.get("/wishList", (req, res) => {
 });
 
 // comment and rating
+router.get("/getRate/:id", shoeController.getRate.bind(shoeController));
+
 router.post(
-	"/commentAndRate/:shoeId",
+	"/commentAndRate/:id",
 	shoeController.commentAndRate.bind(shoeController)
+);
+
+router.put(
+	"/editComment/:id",
+	shoeController.editCommentAndRate.bind(shoeController)
 );
 
 module.exports = router;
