@@ -86,4 +86,10 @@ router.put("/order/saveUpdate/:id", orderController.saveUpdate);
 //dashboard
 router.get("/", cateTypeController.manager);
 
+router.get("/dashboard", (req, res) => {
+	res.render("adminPages/index", {
+		layout: "adminLayout",
+	});
+});
+
 module.exports = router;
