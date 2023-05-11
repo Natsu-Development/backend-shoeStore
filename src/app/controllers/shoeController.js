@@ -16,6 +16,7 @@ const jwtHelp = require("../../utils/jwtHelp");
 const imageHelp = require("../../utils/imageHelp");
 const upload = require("../middlewares/upload.mdw");
 const algoliaService = require("../../services/algoliaService");
+const commonHelp = require("../../utils/commonHelp");
 
 class shoeController {
 	/**
@@ -671,6 +672,7 @@ class shoeController {
 								userId: result.userId,
 								comment: req.body.comment,
 								rating: req.body.rating,
+								date: commonHelp.formatDateNow(),
 							});
 							complete = true;
 							await Product.updateOne({ _id: req.params.id }, product);
@@ -754,6 +756,7 @@ class shoeController {
 				if (rate.userId === result.userId) {
 					rate.comment = req.body.comment;
 					rate.rating = req.body.rating;
+					rate.date = commonHelp.formatDateNow();
 				}
 			});
 

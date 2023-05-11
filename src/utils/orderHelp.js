@@ -4,7 +4,7 @@ const Product = require("../app/models/product.model");
 const Account = require("../app/models/account.model");
 const Category = require("../app/models/category.model");
 const CategoryProduct = require("../app/models/cateProduct.model");
-const { mutipleMongooseToObject, mongooseToObject } = require("mongoose");
+const commonHelp = require("./commonHelp");
 
 class orderHelp {
 	// format order when client check out cart
@@ -227,19 +227,7 @@ class orderHelp {
 
 	formatDate(date) {
 		const dateFormat = new Date(date);
-		return (
-			dateFormat.getDate() +
-			"/" +
-			(dateFormat.getMonth() + 1) +
-			"/" +
-			dateFormat.getFullYear() +
-			" " +
-			dateFormat.getHours() +
-			":" +
-			dateFormat.getMinutes() +
-			":" +
-			dateFormat.getSeconds()
-		);
+		return dateFormat.toLocaleString();
 	}
 
 	// get next orderId
@@ -257,13 +245,15 @@ class orderHelp {
 		try {
 			// must have lean() method to change attribute of object from mongo document
 			// mongo document => js Object
-			var orders = await Order.find({ status: status }).lean();
+			var orders = await Order.find({ status: status })
+				.sort({ createdAt: -1 })
+				.lean();
 			var account;
 			await Promise.all(
 				orders.map(async (order) => {
 					account = await Account.findById(order.customerId);
 					order.customerName = account?.fullname;
-					order.createdAt = this.formatDate(order.createdAt);
+					order.createdAt = commonHelp.formatDateTime(order.createdAt);
 				})
 			);
 

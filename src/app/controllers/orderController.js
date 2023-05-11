@@ -17,6 +17,7 @@ const promoController = require("../controllers/promotionalController");
 const shoeController = require("../controllers/shoeController");
 const jwt = require("jsonwebtoken");
 const { Mongoose } = require("mongoose");
+const commonHelp = require("../../utils/commonHelp");
 
 class order {
 	// [GET] /order
@@ -360,11 +361,14 @@ class order {
 				req.headers.authorization.split(" ")[1]
 			);
 
-			let myOrders = await Order.find({ customerId: userId });
+			let myOrders = await Order.find({
+				customerId: userId,
+			}).sort({ createdAt: -1 });
+
 			myOrders = mutipleMongooseToObject(myOrders);
 
 			myOrders.forEach((myOrder) => {
-				myOrder.createdAt = orderHelp.formatDate(myOrder.createdAt);
+				myOrder.createdAt = commonHelp.formatDateTime(myOrder.createdAt);
 			});
 
 			res.status(200).send(myOrders);
@@ -400,12 +404,19 @@ class order {
 				req.headers.authorization?.split(" ")[1]
 			);
 
+			let order = await Order.findOne({
+				_id: req.params.orderDetailId,
+				customerId: userId,
+			});
+
+			if (!order) {
+				return res.status(200).send({ message: "Order not found" });
+			}
+
 			let orderDetails = await OrderDetail.find({
 				orderDetailId: req.params.orderDetailId,
 			});
 			orderDetails = mutipleMongooseToObject(orderDetails);
-
-			let order = await Order.findById(req.params.orderDetailId);
 
 			// get info of product
 			const results = [];
@@ -417,9 +428,14 @@ class order {
 						orderDetail.sizeId
 					);
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
+
+					// flag to rate
 					if (product.commentAndRate.find((rate) => rate.userId === userId))
 						orderDetail.rated = true;
 					else orderDetail.rated = false;
+
+					if (order.status === 3) orderDetail.allowRate = true;
+					else orderDetail.allowRate = false;
 
 					orderDetail.image = shoeInfo.avatar;
 					orderDetail.productName = product.name;
