@@ -58,7 +58,7 @@ module.exports = {
 
 	async handleRating(listRate) {
 		if (!listRate || listRate.length === 0) {
-			return 0;
+			return { listUserComment: [], averageScore: 0 };
 		}
 
 		let totalRate = 0,
@@ -73,6 +73,7 @@ module.exports = {
 					name: account.fullname,
 					score: rate.rating,
 					comment: rate.comment,
+					date: rate.date,
 				});
 				totalRate += Number(rate.rating);
 			})

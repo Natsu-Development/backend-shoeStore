@@ -361,15 +361,37 @@ class order {
 				req.headers.authorization.split(" ")[1]
 			);
 
-			let myOrders = await Order.find({
+			const myOrders = await Order.find({
 				customerId: userId,
-			}).sort({ createdAt: -1 });
+			})
+				.sort({ createdAt: -1 })
+				.lean();
 
-			myOrders = mutipleMongooseToObject(myOrders);
+			let orderDetails, product;
+			await Promise.all(
+				myOrders.map(async (myOrder) => {
+					myOrder.createdAt = commonHelp.formatDateTime(myOrder.createdAt);
+					if (myOrder.status === 3) {
+						orderDetails = await OrderDetail.find({
+							orderDetailId: myOrder._id,
+						}).lean();
 
-			myOrders.forEach((myOrder) => {
-				myOrder.createdAt = commonHelp.formatDateTime(myOrder.createdAt);
-			});
+						await Promise.all(
+							orderDetails.map(async (orderDetail) => {
+								product = await Product.findOne({ _id: orderDetail.shoeId });
+
+								if (
+									product.commentAndRate.find(
+										(rated) => rated.userId === myOrder.customerId
+									)
+								) {
+									myOrder.isRated = true;
+								}
+							})
+						);
+					}
+				})
+			);
 
 			res.status(200).send(myOrders);
 		} catch (err) {
@@ -428,14 +450,6 @@ class order {
 						orderDetail.sizeId
 					);
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
-
-					// flag to rate
-					if (product.commentAndRate.find((rate) => rate.userId === userId))
-						orderDetail.rated = true;
-					else orderDetail.rated = false;
-
-					if (order.status === 3) orderDetail.allowRate = true;
-					else orderDetail.allowRate = false;
 
 					orderDetail.image = shoeInfo.avatar;
 					orderDetail.productName = product.name;

@@ -44,7 +44,7 @@ router.get("/wishList", (req, res) => {
 router.get("/getRate/:id", shoeController.getRate.bind(shoeController));
 
 router.post(
-	"/commentAndRate/:id",
+	"/commentAndRate/:orderId",
 	shoeController.commentAndRate.bind(shoeController)
 );
 

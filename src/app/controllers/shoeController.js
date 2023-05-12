@@ -599,7 +599,7 @@ class shoeController {
 
 	/**
 	 * @swagger
-	 * /customer/commentAndRate/{id}:
+	 * /customer/commentAndRate/{orderId}:
 	 *   post:
 	 *     summary: Comment for products.
 	 *     tags: [Customer Service]
@@ -607,11 +607,11 @@ class shoeController {
 	 *        - bearerAuth: []
 	 *     parameters:
 	 *        - in: path
-	 *          name: id
-	 *          type: string
+	 *          name: orderId
+	 *          type: String
 	 *          required: true
-	 *          description: shoe ID to comment.
-	 *          example: 645611d43097195146419e7b
+	 *          description: Order ID to rate.
+	 *          example: 18
 	 *     requestBody:
 	 *       required: true
 	 *       content:
@@ -619,14 +619,10 @@ class shoeController {
 	 *           schema:
 	 *             type: object
 	 *             properties:
-	 *                rating:
-	 *                  type: Number
+	 *                listRate:
+	 *                  type: array
 	 *                  description: Rating for product.
-	 *                  example: 5
-	 *                comment:
-	 *                  type: String
-	 *                  description: Comment for product.
-	 *                  example: Good shoe for sport
+	 *                  example: [{"comment": "Good shoe for running", "rating": "5", "shoeId": "645611d43097195146419e7b"}, {"comment": "Good shoe for freestyle", "rating": "5", "shoeId": "64560f4b3097195146419e23"}]
 	 *     responses:
 	 *       201:
 	 *         content:
@@ -645,50 +641,65 @@ class shoeController {
 	 */
 	async commentAndRate(req, res) {
 		try {
-			const result = await this.isValidRate(req);
-			const isExist = await this.isValidEdit(req);
+			const listRate = req.body.listRate;
 
-			if (!result.isValid || isExist.isValid) {
+			const result = await this.isValidRate(req);
+
+			if (!result.isValid) {
 				return res
 					.status(200)
 					.send({ message: "Your order isn't valid to rate or you rated" });
 			}
 
-			let orderDetails,
-				complete = false;
+			const orderDetails = await OrderDetail.find({
+				orderDetailId: result.order._id,
+			}).lean();
 
-			for (const order of result.orders) {
-				orderDetails = await OrderDetail.find({
-					orderDetailId: order._id,
-				}).lean();
+			let existComment,
+				shoeIdValid = false;
+			await Promise.all(
+				orderDetails.map(async (orderDetail) => {
+					await Promise.all(
+						listRate.map(async (rate) => {
+							if (rate.shoeId === orderDetail.shoeId) {
+								const product = await Product.findOne({
+									_id: rate.shoeId,
+								});
 
-				await Promise.all(
-					orderDetails.map(async (orderDetail) => {
-						if (orderDetail.shoeId === req.params.id) {
-							const product = await Product.findOne({
-								_id: req.params.id,
-							});
-							product.commentAndRate.push({
-								userId: result.userId,
-								comment: req.body.comment,
-								rating: req.body.rating,
-								date: commonHelp.formatDateNow(),
-							});
-							complete = true;
-							await Product.updateOne({ _id: req.params.id }, product);
-						}
-					})
-				);
+								existComment = product.commentAndRate.find(
+									(item) => item.userId === result.userId
+								);
+								if (existComment) {
+									product.commentAndRate.forEach((item) => {
+										if (item.userId === result.userId) {
+											item.comment = rate.comment;
+											item.rating = rate.rating;
+											item.date = commonHelp.formatDateNow();
+										}
+									});
+								} else {
+									product.commentAndRate.push({
+										userId: result.userId,
+										comment: rate.comment,
+										rating: rate.rating,
+										date: commonHelp.formatDateNow(),
+									});
+								}
+								shoeIdValid = true;
 
-				if (complete) {
-					break;
-				}
+								await Product.updateOne(
+									{ _id: rate.shoeId },
+									{ commentAndRate: product.commentAndRate }
+								);
+							}
+						})
+					);
+				})
+			);
+
+			if (!shoeIdValid) {
+				return res.status(200).send({ message: "Invalid shoe Id to rate" });
 			}
-
-			if (!complete) {
-				return res.status(200).send({ message: "Invalid order" });
-			}
-
 			return res
 				.status(200)
 				.send({ message: "Comment Saved Success", status: true });
@@ -907,14 +918,44 @@ class shoeController {
 			req?.headers?.authorization?.split(" ")[1]
 		);
 
-		const orders = await Order.find({
-			customerId: userId,
-			status: 3,
-		}).lean();
-
-		if (userId && orders.length > 0) {
-			return { orders, userId, isValid: true };
+		let order,
+			isEditComment = false;
+		if (req.params.orderId) {
+			order = await Order.findOne({
+				customerId: userId,
+				status: 3,
+				_id: Number(req.params.orderId),
+			});
 		}
+
+		// product detail check permission add comment
+		if (req.params.id) {
+			const orders = await Order.find({
+				customerId: userId,
+				status: 3,
+			});
+
+			await Promise.all(
+				orders.map(async (item) => {
+					const orderDetails = await OrderDetail.find({
+						orderDetailId: item._id,
+					}).lean();
+
+					if (orderDetails.find((detail) => detail.shoeId === req.params.id)) {
+						isEditComment = true;
+					}
+				})
+			);
+		}
+
+		if (isEditComment) {
+			return { isValid: true };
+		}
+
+		if (userId && order) {
+			return { order, userId, isValid: true };
+		}
+
 		return { isValid: false };
 	}
 
