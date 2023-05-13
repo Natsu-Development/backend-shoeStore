@@ -8,6 +8,7 @@ const Order = new Schema(
 		customerId: { type: String, maxLength: 255, required: true },
 		total: { type: Number, maxLength: 255 },
 		status: { type: Number },
+		isRated: {type: Boolean, default: false}
 	},
 	{
 		_id: false,

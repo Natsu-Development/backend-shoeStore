@@ -367,32 +367,6 @@ class order {
 				.sort({ createdAt: -1 })
 				.lean();
 
-			let orderDetails, product;
-			await Promise.all(
-				myOrders.map(async (myOrder) => {
-					myOrder.createdAt = commonHelp.formatDateTime(myOrder.createdAt);
-					if (myOrder.status === 3) {
-						orderDetails = await OrderDetail.find({
-							orderDetailId: myOrder._id,
-						}).lean();
-
-						await Promise.all(
-							orderDetails.map(async (orderDetail) => {
-								product = await Product.findOne({ _id: orderDetail.shoeId });
-
-								if (
-									product.commentAndRate.find(
-										(rated) => rated.userId === myOrder.customerId
-									)
-								) {
-									myOrder.isRated = true;
-								}
-							})
-						);
-					}
-				})
-			);
-
 			res.status(200).send(myOrders);
 		} catch (err) {
 			console.log(err);

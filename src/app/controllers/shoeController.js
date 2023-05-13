@@ -700,6 +700,9 @@ class shoeController {
 			if (!shoeIdValid) {
 				return res.status(200).send({ message: "Invalid shoe Id to rate" });
 			}
+
+			await Order.updateOne({_id: result.order._id}, {isRated: true});
+
 			return res
 				.status(200)
 				.send({ message: "Comment Saved Success", status: true });
