@@ -673,7 +673,7 @@ class shoeController {
 									product.commentAndRate.forEach((item) => {
 										if (item.userId === result.userId) {
 											item.comment = rate.comment;
-											item.rating = rate.rating;
+											item.rating = Number(rate.rating);
 											item.date = commonHelp.formatDateNow();
 										}
 									});
@@ -681,7 +681,7 @@ class shoeController {
 									product.commentAndRate.push({
 										userId: result.userId,
 										comment: rate.comment,
-										rating: rate.rating,
+										rating: Number(rate.rating),
 										date: commonHelp.formatDateNow(),
 									});
 								}
@@ -766,7 +766,7 @@ class shoeController {
 			result.product.commentAndRate.forEach((rate) => {
 				if (rate.userId === result.userId) {
 					rate.comment = req.body.comment;
-					rate.rating = req.body.rating;
+					rate.rating = Number(req.body.rating);
 					rate.date = commonHelp.formatDateNow();
 				}
 			});
