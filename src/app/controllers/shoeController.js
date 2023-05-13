@@ -834,6 +834,7 @@ class shoeController {
 
 	// display product in shoe By Gender
 	displayShoeByGender(req, res) {
+		console.log("test");
 		// if have query search in another page throw it to shoeByGender
 		if (req.query.search) {
 			let object = productHelp.setCondition(req.body, "search");
