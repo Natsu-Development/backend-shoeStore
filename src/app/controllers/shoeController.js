@@ -583,7 +583,7 @@ class shoeController {
 			product.color = listInfoByColor; // TODO: Have a bugs in here
 			product.listAnotherCate = listAnotherCate;
 
-			const resultRate = await productHelp.handleRating(product.commentAndRate);
+			const resultRate = await productHelp.handleRating(product.commentAndRate, isRate?.userId);
 			product.rateScore = resultRate.averageScore;
 			product.listUserComment = resultRate.listUserComment;
 
@@ -953,7 +953,7 @@ class shoeController {
 		}
 
 		if (isEditComment) {
-			return { isValid: true };
+			return { isValid: true, userId };
 		}
 
 		if (userId && order) {

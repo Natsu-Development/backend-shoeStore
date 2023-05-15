@@ -423,7 +423,13 @@ class order {
 						orderDetail.colorId,
 						orderDetail.sizeId
 					);
+					
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
+					const existComment = product.commentAndRate.find((rate) => rate.userId === userId);
+					if(existComment) {
+						orderDetail.comment = existComment.comment;
+						orderDetail.rateScore = existComment.rating;
+					}
 
 					orderDetail.image = shoeInfo.avatar;
 					orderDetail.productName = product.name;
