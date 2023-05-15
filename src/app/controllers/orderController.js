@@ -12,6 +12,7 @@ const {
 	mongooseToObject,
 } = require("../../utils/mongoose");
 const mailService = require("../../services/mailService");
+const paypalService = require("../../services/paypalService");
 const orderHelp = require("../../utils/orderHelp");
 const promoController = require("../controllers/promotionalController");
 const shoeController = require("../controllers/shoeController");
@@ -343,6 +344,142 @@ class order {
 
 	/**
 	 * @swagger
+	 * /customer/checkout-paypal:
+	 *   post:
+	 *     summary: Checkout cart with Paypal method.
+	 *     tags: [Customer Service]
+	 *     security:
+	 *        - bearerAuth: []
+	 *     requestBody:
+	 *       required: true
+	 *       content:
+	 *         application/json:
+	 *           schema:
+	 *             type: object
+	 *             properties:
+	 *                  fullname:
+	 *                    type: string
+	 *                    example: storage Byme.
+	 *                  address:
+	 *                    type: string
+	 *                    example: Ho Chi Minh City
+	 *                  numberPhone:
+	 *                    type: string
+	 *                    example: 0924714552
+	 *                  email:
+	 *                    type: string
+	 *                    example: storage1520@gmail.com
+	 *                  listPromoCode:
+	 *                    type: array
+	 *                    example: ['EVENT', 'NEWORDER']
+	 *     responses:
+	 *       201:
+	 *         description: Checkout success
+	 *       400:
+	 *         description: Get list failed
+	 */
+	async checkoutPaypal(req, res) {
+		try {
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
+			const carts = await cartHelp.getCartByUserId(userId);
+
+			if (!carts?.totalCart || carts.results.length === 0) {
+				return res.status(200).send({
+					message: "Cart empty",
+				});
+			}
+
+			const payment = paypalService.setUpPayment(carts, userId);
+
+			paypalService.paypal.payment.create(payment, function (error, payment) {
+				if (error) {
+					throw error;
+				} else {
+					for (let i = 0; i < payment.links.length; i++) {
+						if (payment.links[i].rel === "approval_url") {
+							return res.status(200).send({ url: payment.links[i].href });
+						}
+					}
+				}
+			});
+		} catch (err) {
+			console.error(err);
+			res.status(200).send(err);
+		}
+	}
+
+	async handleResultPaypal(req, res) {
+		try {
+			const payerId = req.query.PayerID;
+			const paymentId = req.query.paymentId;
+
+			paypalService.paypal.payment.get(paymentId, function (error, payment) {
+				if (error) {
+					// Handle the error
+					throw new Error(error);
+				}
+				console.log(payment.transactions);
+				const transaction = payment.transactions[0];
+				const userId = payment.transactions[0].custom;
+				const execute_payment_json = {
+					payer_id: payerId,
+					transactions: [
+						{
+							amount: {
+								currency: transaction.amount.currency,
+								total: transaction.amount.total,
+							},
+						},
+					],
+				};
+
+				paypalService.paypal.payment.execute(
+					paymentId,
+					execute_payment_json,
+					async (error, payment) => {
+						if (error) {
+							console.log(error.response);
+							throw new Error(error.response);
+						}
+						console.log(payment);
+
+						const account = await Account.findOne({ _id: userId });
+
+						if (
+							!account.payments.find((item) => item.paymentId === payment.id)
+						) {
+							account.payments.push({
+								paymentId: payment.id,
+								status: payment.status,
+								method: payment.payer.payment_method,
+								payerInfo:
+									payment.payer.payer_info.first_name +
+									payment.payer.payer_info.last_name,
+								total: payment.transactions[0].amount.total,
+								description: payment.transactions[0].description,
+								time: payment.create_time,
+							});
+
+							await Account.updateOne(
+								{ _id: userId },
+								{ payments: account.payments }
+							);
+						}
+
+						res.status(200).send({ message: "Checkout With Paypal Success" });
+					}
+				);
+			});
+		} catch (err) {
+			console.error(err);
+			res.status(200).send(err);
+		}
+	}
+
+	/**
+	 * @swagger
 	 * /customer/myOrder:
 	 *   get:
 	 *     summary: Get my Order.
@@ -423,10 +560,12 @@ class order {
 						orderDetail.colorId,
 						orderDetail.sizeId
 					);
-					
+
 					const product = await Product.findOne({ _id: orderDetail.shoeId });
-					const existComment = product.commentAndRate.find((rate) => rate.userId === userId);
-					if(existComment) {
+					const existComment = product.commentAndRate.find(
+						(rate) => rate.userId === userId
+					);
+					if (existComment) {
 						orderDetail.comment = existComment.comment;
 						orderDetail.rateScore = existComment.rating;
 					}

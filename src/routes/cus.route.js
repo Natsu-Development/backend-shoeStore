@@ -19,6 +19,9 @@ router.put(
 // check out
 router.post("/checkout", orderController.checkout);
 
+// checkout with paypal
+router.post("/checkout-payPal", orderController.checkoutPaypal);
+
 // get all order
 router.get("/myOrder", orderController.getMyOrder);
 

@@ -93,7 +93,7 @@ function route(app, io) {
 	// site and index
 	app.use("/api/v1", siteRouter);
 
-	//admin login page and handle login
+	//admin login page, handle login, handle result from paypal
 	app.use("/", siteAdminRouter);
 }
 module.exports = route;

@@ -59,6 +59,10 @@ const Account = new Schema(
 		picture: {
 			type: String,
 		},
+		payments: {
+			type: Array,
+			default: [],
+		},
 	},
 	{
 		timestamps: true,
