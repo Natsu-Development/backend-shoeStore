@@ -468,7 +468,7 @@ class order {
 							);
 						}
 
-						res.status(200).send({ message: "Checkout With Paypal Success" });
+						res.redirect("https://localhost:3001/order-complete");
 					}
 				);
 			});
