@@ -56,7 +56,7 @@ module.exports = {
 		}
 	},
 
-	async handleRating(listRate) {
+	async handleRating(listRate, userId) {
 		if (!listRate || listRate.length === 0) {
 			return { listUserComment: [], averageScore: 0 };
 		}
@@ -68,13 +68,27 @@ module.exports = {
 		await Promise.all(
 			listRate.map(async (rate) => {
 				account = await Account.findOne({ _id: rate.userId });
-				listUserComment.push({
-					picture: account?.picture || "",
-					name: account.fullname,
-					score: rate.rating,
-					comment: rate.comment,
-					date: rate.date,
-				});
+				if(rate.userId === userId) {
+					listUserComment.unshift({
+						picture: account?.picture || "",
+						name: account.fullname,
+						score: rate.rating,
+						comment: rate.comment,
+						date: rate.date,
+						userId: rate.userId,
+					})
+				}
+				else {
+					listUserComment.push({
+						picture: account?.picture || "",
+						name: account.fullname,
+						score: rate.rating,
+						comment: rate.comment,
+						date: rate.date,
+						userId: rate.userId
+					});
+				}
+
 				totalRate += Number(rate.rating);
 			})
 		);
