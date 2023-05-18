@@ -19,6 +19,9 @@ const shoeController = require("../controllers/shoeController");
 const jwt = require("jsonwebtoken");
 const { Mongoose } = require("mongoose");
 const commonHelp = require("../../utils/commonHelp");
+const promotionalController = require("../controllers/promotionalController");
+const PAYMENT_METHOD = require("../../constants/paymentMethod");
+const PROMO_ACTIONS = require("../../constants/promoAction");
 
 class order {
 	// [GET] /order
@@ -247,98 +250,41 @@ class order {
 	 */
 	async checkout(req, res) {
 		try {
-			const userId = jwtHelp.decodeTokenGetUserId(
-				req.headers.authorization.split(" ")[1]
-			);
-			// update info of user such as update number phone and address
-			const userAccount = await Account.findOneAndUpdate(
-				{ _id: userId },
-				req.body,
-				{ new: true }
-			);
-			const carts = await cartHelp.getCartByUserId(userId);
-			if (!carts?.totalCart || carts.results.length === 0) {
-				return res.status(200).send({
-					message: "Cart empty",
-				});
+			const { userAccount, carts } = await this.updateInfoAndGetCart(req);
+			if (!userAccount || !carts) {
+				return res.status(200).send({ message: "Empty Cart" });
 			}
-			const arrCartId = [];
-			const discount = await promoController.handlePromo(
-				req.body.listPromoCode,
+
+			const result = await this.handlePromoApplied(
+				req,
 				carts.totalCart,
-				"checkout",
-				userId
+				userAccount._id,
+				PROMO_ACTIONS.checkoutWithPromo
 			);
-			if (discount?.invalid) {
-				return res.status(200).send({
-					message: discount.message,
-				});
+
+			if (result.invalid) {
+				return res.status(200).send({ message: result.message });
 			}
 
-			//create new order
-			const newOrder = new Order({
-				customerId: userId,
-				total: discount.totalMoney,
-				status: 0,
-			});
+			const { listCartId, newOrderCreated } =
+				await this.createOrderAndHandleAmount(
+					result.totalMoney,
+					userAccount._id,
+					carts.results,
+					PAYMENT_METHOD.shipCOD
+				);
 
-			const newOrderCreated = await newOrder.save();
-
-			// create new order details and handle amount of product
-			await Promise.all(
-				carts.results.map(async (cart) => {
-					const newOrderDetail = new OrderDetail({
-						orderDetailId: newOrderCreated._id,
-						shoeId: cart.productId,
-						sizeId: cart.sizeId,
-						colorId: cart.colorId,
-						quantity: cart.quantity,
-						price: cart.productPrice,
-					});
-					arrCartId.push(cart._id);
-					await newOrderDetail.save();
-
-					const catePro = await CatePro.findOne({
-						cateId: cart.colorId,
-						proId: cart.productId,
-					});
-
-					if (catePro) {
-						// get the size of shoe and eliminate amount of it
-						catePro.listSizeByColor.forEach((size) => {
-							if (size.sizeId === cart.sizeId) {
-								size.amount -= cart.quantity;
-							}
-						});
-						// update
-						await CatePro.updateOne(
-							{
-								cateId: cart.colorId,
-								proId: cart.productId,
-							},
-							{ listSizeByColor: catePro.listSizeByColor }
-						);
-					}
-				})
-			);
-
-			//send mail and coupon code for next order to customer
-			const promoCode = await promoController.promoCheckoutSuccess(
-				userId,
-				newOrderCreated._id
-			);
-			mailService.sendMailAfterCheckout(userAccount.email, promoCode);
+			await this.sendMailWithPromo(userAccount, newOrderCreated._id);
 
 			//delete cart
-			const deletedCart = cartHelp.deleteCart(arrCartId);
-			if (deletedCart) {
-				res.status(200).send({
-					message: "Checkout success",
-				});
-			}
+			await cartHelp.deleteCart(listCartId);
+
+			res.status(200).send({
+				message: "Checkout success",
+			});
 		} catch (err) {
 			console.log(err);
-			res.status(400);
+			res.status(200).send(err);
 		}
 	}
 
@@ -380,28 +326,49 @@ class order {
 	 */
 	async checkoutPaypal(req, res) {
 		try {
-			const userId = jwtHelp.decodeTokenGetUserId(
-				req.headers.authorization.split(" ")[1]
-			);
-			const carts = await cartHelp.getCartByUserId(userId);
+			const { userAccount, carts } = await this.updateInfoAndGetCart(req);
+			if (!userAccount || !carts) {
+				return res.status(200).send({ message: "Empty cart" });
+			}
+			const orderId = await orderHelp.getOrderId();
 
-			if (!carts?.totalCart || carts.results.length === 0) {
-				return res.status(200).send({
-					message: "Cart empty",
-				});
+			const result = await this.handlePromoApplied(
+				req,
+				carts.totalCart,
+				userAccount._id,
+				PROMO_ACTIONS.checkPromo
+			);
+
+			if (result?.invalid || result.message) {
+				return res.status(200).send({ message: result.message });
 			}
 
-			const payment = paypalService.setUpPayment(carts, userId);
+			const payment = paypalService.setUpPayment(
+				carts.results,
+				result,
+				userAccount._id,
+				orderId
+			);
 
-			paypalService.paypal.payment.create(payment, function (error, payment) {
+			paypalService.paypal.payment.create(payment, async (error, payment) => {
 				if (error) {
 					throw error;
 				} else {
-					for (let i = 0; i < payment.links.length; i++) {
-						if (payment.links[i].rel === "approval_url") {
-							return res.status(200).send({ url: payment.links[i].href });
+					await Account.updateOne(
+						{ _id: userAccount._id },
+						{
+							transaction: {
+								id: payment.id,
+								listCart: carts.results,
+								listPromo: req.body.listPromoCode,
+							},
 						}
-					}
+					);
+					const link = payment.links.find(
+						(link) => link.rel === "approval_url"
+					);
+
+					return res.status(200).send({ url: link.href });
 				}
 			});
 		} catch (err) {
@@ -415,7 +382,7 @@ class order {
 			const payerId = req.query.PayerID;
 			const paymentId = req.query.paymentId;
 
-			paypalService.paypal.payment.get(paymentId, function (error, payment) {
+			paypalService.paypal.payment.get(paymentId, (error, payment) => {
 				if (error) {
 					// Handle the error
 					throw new Error(error);
@@ -443,12 +410,32 @@ class order {
 							console.log(error.response);
 							throw new Error(error.response);
 						}
+
 						console.log(payment);
 
 						const account = await Account.findOne({ _id: userId });
 
+						await promotionalController.handlePromoUsed(
+							account.transaction.listPromo,
+							PROMO_ACTIONS.checkoutWithPromo,
+							userId
+						);
+
+						const { listCartId, newOrderCreated } =
+							await this.createOrderAndHandleAmount(
+								transaction.amount.total,
+								userId,
+								account.transaction.listCart,
+								PAYMENT_METHOD.paypal
+							);
+
+						await this.sendMailWithPromo(account, newOrderCreated._id);
+						//delete cart
+						await cartHelp.deleteCart(listCartId);
+
 						if (
-							!account.payments.find((item) => item.paymentId === payment.id)
+							!account.payments.find((item) => item.paymentId === payment.id) &&
+							account.transaction.id === payment.id
 						) {
 							account.payments.push({
 								paymentId: payment.id,
@@ -464,7 +451,7 @@ class order {
 
 							await Account.updateOne(
 								{ _id: userId },
-								{ payments: account.payments }
+								{ payments: account.payments, transaction: null }
 							);
 						}
 
@@ -661,6 +648,117 @@ class order {
 		await OrderDetail.deleteMany({ orderDetailId: req.params.orderId });
 		await Order.deleteOne({ _id: req.params.orderId });
 		res.status(200).send({ message: "Success" });
+	}
+
+	async updateInfoAndGetCart(req) {
+		const userId = jwtHelp.decodeTokenGetUserId(
+			req.headers.authorization.split(" ")[1]
+		);
+		// update info of user such as update number phone and address
+		const userAccount = await Account.findOneAndUpdate(
+			{ _id: userId },
+			req.body,
+			{ new: true }
+		);
+		const carts = await cartHelp.getCartByUserId(userId);
+		if (!carts?.totalCart || carts.results.length === 0) {
+			return { message: "Cart empty" };
+		}
+
+		return { userAccount, carts };
+	}
+
+	async handlePromoApplied(req, total, userId, action) {
+		let discount;
+		if (action === PROMO_ACTIONS.checkoutWithPromo) {
+			discount = await promoController.handlePromo(
+				req.body.listPromoCode,
+				total,
+				PROMO_ACTIONS.checkoutWithPromo,
+				userId
+			);
+		} else {
+			discount = await promoController.handlePromo(
+				req.body.listPromoCode,
+				total,
+				PROMO_ACTIONS.checkPromo,
+				userId
+			);
+		}
+
+		if (discount?.invalid) {
+			return { message: discount.message };
+		}
+
+		return discount;
+	}
+
+	async createOrderAndHandleAmount(
+		totalMoney,
+		userId,
+		listCart,
+		paymentMethod
+	) {
+		const listCartId = []; // list Cart Id to delete cart
+
+		//create new order
+		const newOrder = new Order({
+			customerId: userId,
+			total: totalMoney,
+			status: 0,
+			paymentMethod: paymentMethod,
+		});
+		const newOrderCreated = await newOrder.save();
+
+		// create new order details and handle amount of product
+		await Promise.all(
+			listCart.map(async (cart) => {
+				const newOrderDetail = new OrderDetail({
+					orderDetailId: newOrderCreated._id,
+					shoeId: cart.productId,
+					sizeId: cart.sizeId,
+					colorId: cart.colorId,
+					quantity: cart.quantity,
+					price: cart.productPrice,
+				});
+				listCartId.push(cart._id);
+				await newOrderDetail.save();
+
+				const catePro = await CatePro.findOne({
+					cateId: cart.colorId,
+					proId: cart.productId,
+				});
+
+				if (catePro) {
+					// get the size of shoe and eliminate amount of it
+					catePro.listSizeByColor.forEach((size) => {
+						if (size.sizeId === cart.sizeId) {
+							size.amount -= cart.quantity;
+						}
+					});
+					// update
+					await CatePro.updateOne(
+						{
+							cateId: cart.colorId,
+							proId: cart.productId,
+						},
+						{ listSizeByColor: catePro.listSizeByColor }
+					);
+				}
+			})
+		);
+
+		return { listCartId, newOrderCreated };
+	}
+
+	async sendMailWithPromo(userAccount, orderId) {
+		//send mail and coupon code for next order to customer
+		const promoCode = await promoController.promoCheckoutSuccess(
+			userAccount._id,
+			orderId
+		);
+
+		mailService.sendMailAfterCheckout(userAccount.email, promoCode);
 	}
 }
 

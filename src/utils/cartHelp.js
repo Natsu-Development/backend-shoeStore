@@ -71,9 +71,9 @@ class cartHelp {
 
 	async deleteCart(arrCartId) {
 		const deletedCart = await Cart.deleteMany({ _id: { $in: arrCartId } });
-		if (deletedCart.modifiedCount > 0) {
-			return true;
-		} else return false;
+
+		if (deletedCart.modifiedCount > 0) return true;
+		return false;
 	}
 
 	async getShoeInfo(proId, colorId, sizeId) {

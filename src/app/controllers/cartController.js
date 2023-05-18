@@ -53,7 +53,6 @@ class cartController {
 			);
 			// get Cart from userId
 			const results = await cartHelp.getCartByUserId(userId);
-			console.log(results);
 			if (!results) {
 				return res.send({ message: "Cart empty" });
 			}

@@ -4,6 +4,7 @@ const {
 	mongooseToObject,
 } = require("../../utils/mongoose");
 const jwtHelp = require("../../utils/jwtHelp");
+const PROMO_ACTIONS = require("../../constants/promoAction");
 
 class promotionalController {
 	// [GET] /promotional
@@ -200,7 +201,7 @@ class promotionalController {
 			const resultHandle = await this.handlePromo(
 				listPromoCode,
 				totalCart,
-				"checkPromo",
+				PROMO_ACTIONS.checkPromo,
 				userId
 			);
 
@@ -219,13 +220,6 @@ class promotionalController {
 	}
 
 	async handlePromo(listPromoCode, totalMoney, action, userId) {
-		let promo,
-			totalDiscount = 0,
-			invalidPromo,
-			listPromoApplied = [];
-
-		const currentDate = new Date();
-
 		// check duplicate promotion
 		const listUniquePromoCode = new Set(listPromoCode);
 		if (listUniquePromoCode.size !== listPromoCode.length) {
@@ -234,52 +228,17 @@ class promotionalController {
 				message: "Duplicate promotion code. Please try again.",
 			};
 		}
-		// TODO: Can fix return map function
-		// find promo and check promo is valid
-		await Promise.all(
-			listPromoCode.map(async (promoCode) => {
-				promo = await Promotional.findOne({
-					$and: [
-						{ code: promoCode },
-						{ startDate: { $lte: currentDate } },
-						{ endDate: { $gte: currentDate } },
-						{ $or: [{ amount: { $gt: 0 } }, { userId: userId }] },
-					],
-				});
 
-				// invalid promoCode
-				if (!promo) {
-					invalidPromo = promoCode;
-					return;
-				}
-				totalDiscount += Number(promo.discount);
-				if (action == "checkout") {
-					listPromoApplied.push({ id: promo._id, amount: promo?.amount });
-				}
-			})
-		);
+		const result = await this.handlePromoUsed(listPromoCode, action, userId);
 
-		if (invalidPromo) {
+		if (result.invalid) {
 			return {
 				invalid: true,
-				message: `Promo ${invalidPromo} is expired or out of stock. Please try again`,
+				message: result.message,
 			};
 		}
 
-		await Promise.all(
-			listPromoApplied.map(async (promoApplied) => {
-				if (promoApplied?.amount) {
-					await Promotional.updateOne(
-						{ _id: promoApplied.id },
-						{ amount: promoApplied.amount - 1 }
-					);
-				} else {
-					//delete promotion when use
-					await Promotional.deleteOne({ _id: promoApplied.id });
-				}
-			})
-		);
-
+		const totalDiscount = result.totalDiscount;
 		totalMoney = totalMoney - totalDiscount;
 		if (totalMoney < 0) {
 			totalMoney = 0;
@@ -314,6 +273,62 @@ class promotionalController {
 
 		const promo = await newPromo.save();
 		return promo.code;
+	}
+
+	async handlePromoUsed(listPromo, action, userId) {
+		let promo,
+			invalidPromo,
+			totalDiscount = 0,
+			listPromoApplied = [];
+
+		const currentDate = new Date().toISOString();
+		// TODO: Can fix return map function
+		// find promo and check promo is valid
+		await Promise.all(
+			listPromo.map(async (promoCode) => {
+				promo = await Promotional.findOne({
+					$and: [
+						{ code: promoCode },
+						{ startDate: { $lte: currentDate } },
+						{ endDate: { $gte: currentDate } },
+						{ $or: [{ amount: { $gt: 0 } }, { userId: userId }] },
+					],
+				});
+
+				// invalid promoCode
+				if (!promo) {
+					invalidPromo = promoCode;
+					return;
+				}
+				totalDiscount += Number(promo.discount);
+				if (action == PROMO_ACTIONS.checkoutWithPromo) {
+					listPromoApplied.push({ id: promo._id, amount: promo?.amount });
+				}
+			})
+		);
+
+		if (invalidPromo) {
+			return {
+				invalid: true,
+				message: `Promo ${invalidPromo} is expired or out of stock. Please try again`,
+			};
+		}
+
+		await Promise.all(
+			listPromoApplied.map(async (promoApplied) => {
+				if (promoApplied?.amount) {
+					await Promotional.updateOne(
+						{ _id: promoApplied.id },
+						{ amount: promoApplied.amount - 1 }
+					);
+				} else {
+					//delete promotion when use
+					await Promotional.deleteOne({ _id: promoApplied.id });
+				}
+			})
+		);
+
+		return { invalid: false, totalDiscount };
 	}
 
 	// TODO: Check in here

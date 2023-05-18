@@ -17,10 +17,13 @@ router.put(
 	promotionalController.applyPromo.bind(promotionalController)
 );
 // check out
-router.post("/checkout", orderController.checkout);
+router.post("/checkout", orderController.checkout.bind(orderController));
 
 // checkout with paypal
-router.post("/checkout-payPal", orderController.checkoutPaypal);
+router.post(
+	"/checkout-payPal",
+	orderController.checkoutPaypal.bind(orderController)
+);
 
 // get all order
 router.get("/myOrder", orderController.getMyOrder);

@@ -7,7 +7,11 @@ router.get("/", (req, res) => {
 	res.render("adminPages/adminLogin", { layout: false });
 });
 
-router.get("/result-paypal", orderController.handleResultPaypal);
+// handle result from paypal when success
+router.get(
+	"/result-paypal",
+	orderController.handleResultPaypal.bind(orderController)
+);
 
 router.get("/logoutAdmin", (req, res) => {
 	res.clearCookie("Authorization");
