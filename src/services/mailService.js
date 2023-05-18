@@ -1,4 +1,8 @@
-const { senderEmail, pass } = require("../constants/mail");
+const {
+	senderEmail,
+	pass,
+	mailReceiveOrderNotification,
+} = require("../constants/mail");
 const nodemailer = require("nodemailer");
 
 class mailService {
@@ -10,6 +14,7 @@ class mailService {
 		`;
 		this.sendMail(emailReceiver, html, subject);
 	}
+
 	sendMailForFirstLogin(emailReceiver, promoCode) {
 		const subject = "Discount for first order";
 		const html = `
@@ -18,6 +23,18 @@ class mailService {
 		`;
 		this.sendMail(emailReceiver, html, subject);
 	}
+
+	sendMailForAdmin(customerName, orderId, dateTime) {
+		const subject = "Have a new Order";
+		const html = `
+			<span>Hi, Shoe Store have a new Order. Please check it !</span>
+			<h1>Order of Customer: ${customerName}</h1>
+			<h1>Order ID: ${orderId}</h1>
+			<h1>Date & Time: ${dateTime}</h1>
+		`;
+		this.sendMail(mailReceiveOrderNotification, html, subject);
+	}
+
 	async sendMail(emailReceiver, content, subject) {
 		let transporter = nodemailer.createTransport({
 			service: "gmail",

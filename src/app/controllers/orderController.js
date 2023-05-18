@@ -275,6 +275,11 @@ class order {
 				);
 
 			await this.sendMailWithPromo(userAccount, newOrderCreated._id);
+			await this.notificationOrderAdmin(
+				userAccount,
+				newOrderCreated._id,
+				commonHelp.formatDateTime(newOrderCreated.createdAt)
+			);
 
 			//delete cart
 			await cartHelp.deleteCart(listCartId);
@@ -430,6 +435,11 @@ class order {
 							);
 
 						await this.sendMailWithPromo(account, newOrderCreated._id);
+						await this.notificationOrderAdmin(
+							account,
+							newOrderCreated._id,
+							commonHelp.formatDateTime(newOrderCreated.createdAt)
+						);
 						//delete cart
 						await cartHelp.deleteCart(listCartId);
 
@@ -759,6 +769,10 @@ class order {
 		);
 
 		mailService.sendMailAfterCheckout(userAccount.email, promoCode);
+	}
+
+	async notificationOrderAdmin(userAccount, orderId, dateTime) {
+		mailService.sendMailForAdmin(userAccount.fullname, orderId, dateTime);
 	}
 }
 

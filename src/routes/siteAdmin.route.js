@@ -4,6 +4,9 @@ const accountController = require("../app/controllers/accountController");
 const orderController = require("../app/controllers/orderController");
 
 router.get("/", (req, res) => {
+	if (req.cookies.Authorization) {
+		return res.redirect("/admin/dashboard");
+	}
 	res.render("adminPages/adminLogin", { layout: false });
 });
 
