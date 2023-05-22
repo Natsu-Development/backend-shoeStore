@@ -782,8 +782,6 @@ class order {
 				return res.status(403).send({ message: "Forbidden request" });
 			}
 
-			console.log("test", order);
-
 			Order.updateOne(
 				{ _id: req.params.orderId },
 				{ $set: { status: order.status + 1 } }

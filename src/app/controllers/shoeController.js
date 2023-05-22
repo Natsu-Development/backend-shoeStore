@@ -583,7 +583,10 @@ class shoeController {
 			product.color = listInfoByColor; // TODO: Have a bugs in here
 			product.listAnotherCate = listAnotherCate;
 
-			const resultRate = await productHelp.handleRating(product.commentAndRate, isRate?.userId);
+			const resultRate = await productHelp.handleRating(
+				product.commentAndRate,
+				isRate?.userId
+			);
 			product.rateScore = resultRate.averageScore;
 			product.listUserComment = resultRate.listUserComment;
 
@@ -701,7 +704,7 @@ class shoeController {
 				return res.status(200).send({ message: "Invalid shoe Id to rate" });
 			}
 
-			await Order.updateOne({_id: result.order._id}, {isRated: true});
+			await Order.updateOne({ _id: result.order._id }, { isRated: true });
 
 			return res
 				.status(200)
@@ -834,7 +837,6 @@ class shoeController {
 
 	// display product in shoe By Gender
 	displayShoeByGender(req, res) {
-		console.log("test");
 		// if have query search in another page throw it to shoeByGender
 		if (req.query.search) {
 			let object = productHelp.setCondition(req.body, "search");
