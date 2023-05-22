@@ -179,7 +179,7 @@ class accountController {
 		});
 		if (!existedEmail) {
 			const promoCode = await promotionalController.promoFirstLogin(
-				req.body.userId
+				newAccount._id
 			);
 			mailService.sendMailForFirstLogin(req.body.email, promoCode);
 		}

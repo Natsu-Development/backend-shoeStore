@@ -266,6 +266,25 @@ class orderHelp {
 			console.log(err);
 		}
 	}
+
+	// get date range to statistic
+	getDateRage(req) {
+		if (!req.query.dateRange) {
+			const currentDate = new Date();
+			const startDate = currentDate.setHours(0, 0, 0, 0);
+			const endDate = currentDate.setHours(23, 59, 59, 999);
+			return { startDate, endDate };
+		}
+
+		const [startDate, endDate] = req.query.dateRange.split("-");
+		if (startDate === endDate) {
+			startDate = currentDate.setHours(0, 0, 0, 0);
+			endDate = currentDate.setHours(23, 59, 59, 999);
+
+			return { startDate, endDate, dateRange: req.query.dateRange };
+		}
+		return { startDate, endDate, dateRange: req.query.dateRange };
+	}
 }
 
 module.exports = new orderHelp();

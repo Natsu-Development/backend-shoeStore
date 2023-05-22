@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
+const _ = require("lodash");
 const Order = require("../models/order.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Account = require("../models/account.model");
 const Product = require("../models/product.model");
 const Category = require("../models/category.model");
 const CatePro = require("../models/cateProduct.model");
+const CateType = require("../models/categoryType.model");
 const cartHelp = require("../../utils/cartHelp");
 const jwtHelp = require("../../utils/jwtHelp");
 const {
@@ -27,6 +29,174 @@ class order {
 	// [GET] /order
 	manager(req, res) {
 		orderHelp.getOrderByStatus(3, res);
+	}
+
+	// [GET] /dashboard
+	async businessStatic(req, res) {
+		try {
+			const { startDate, endDate, dateRange } = orderHelp.getDateRage(req);
+
+			const [orders, orderDetails, newUsers, totalUser] = await Promise.all([
+				Order.find({
+					$and: [
+						{ createdAt: { $gte: startDate } },
+						{ createdAt: { $lte: endDate } },
+					],
+				}).lean(),
+				OrderDetail.find({
+					$and: [
+						{ createdAt: { $gte: startDate } },
+						{ createdAt: { $lte: endDate } },
+					],
+				}).lean(),
+				Account.find({
+					$and: [
+						{ createdAt: { $gte: startDate } },
+						{ createdAt: { $lte: endDate } },
+					],
+				}).lean(),
+				Account.find({ permission: 2 }).lean(),
+			]);
+
+			// order status statistic
+			let orderNotConfirm = 0,
+				orderConfirmed = 0,
+				orderInTransit = 0,
+				orderCompleted = 0;
+
+			orders.forEach((order) => {
+				switch (order.status) {
+					case 0:
+						orderNotConfirm++;
+						break;
+					case 1:
+						orderConfirmed++;
+						break;
+					case 2:
+						orderInTransit++;
+						break;
+					default:
+						orderCompleted++;
+						break;
+				}
+			});
+
+			// group by shoeId
+			const groupByShoeId = _(orderDetails).groupBy("shoeId").value();
+
+			let listSummary = [],
+				remainingAmount,
+				listCateId,
+				brandOfShoe,
+				listInfoByColor,
+				colorBestSeller,
+				sizeBestSeller,
+				calcBestSeller,
+				typeOfCate;
+
+			for (let shoeId in groupByShoeId) {
+				remainingAmount = 0;
+				listCateId = [];
+				brandOfShoe = "";
+				(calcBestSeller = {}), (listInfoByColor = []), (typeOfCate = {});
+
+				// find catePro of shoe with shoeId
+				const listCatePro = await CatePro.find({
+					proId: shoeId,
+				});
+
+				// split catePro with color and catePro with another cate
+				listCatePro.forEach((catePro) => {
+					if (catePro?.listImgByColor || catePro.listSizeByColor) {
+						listInfoByColor.push({
+							id: catePro.cateId,
+							images: catePro.listImgByColor,
+							sizes: catePro.listSizeByColor,
+							avatar: catePro.avatar,
+						});
+						// get remaining amount
+						catePro.listSizeByColor.forEach((size) => {
+							remainingAmount += Number(size.amount);
+						});
+					} else {
+						// list to get Brand of shoe
+						listCateId.push(catePro.cateId);
+					}
+				});
+
+				calcBestSeller = groupByShoeId[shoeId].reduce(
+					(acc, item) => {
+						// calculate sale amount
+						acc.saleAmount += Number(item.quantity);
+						// get sizeId and colorId best seller
+						if (item.quantity > acc.maxQuantity) {
+							acc.maxQuantity = item.quantity;
+							acc.colorIdWithMaxQuantity = item.colorId;
+							acc.sizeIdWithMaxQuantity = item.sizeId;
+						}
+						return acc;
+					},
+					{
+						maxQuantity: 0,
+						colorIdWithMaxQuantity: "",
+						sizeIdWithMaxQuantity: "",
+						saleAmount: 0,
+					}
+				);
+
+				// get Info of color and size best seller
+				colorBestSeller = listInfoByColor.find(
+					(info) => info.id === calcBestSeller.colorIdWithMaxQuantity
+				);
+				sizeBestSeller = colorBestSeller.sizes.find(
+					(size) => size.sizeId === calcBestSeller.sizeIdWithMaxQuantity
+				);
+
+				const [listCate, product, colorInfo, sizeInfo] = await Promise.all([
+					Category.find({
+						_id: { $in: listCateId },
+					}).lean(),
+					Product.findOne({ _id: shoeId }),
+					Category.findOne({ _id: colorBestSeller.id }),
+					Category.findOne({ _id: sizeBestSeller.sizeId }),
+				]);
+
+				await Promise.all(
+					listCate.map(async (cate) => {
+						typeOfCate = await CateType.findOne({ _id: cate.typeId }).lean();
+						if (typeOfCate.type === "brand") {
+							brandOfShoe = cate.name;
+						}
+					})
+				);
+
+				listSummary.push({
+					shoeId: product._id,
+					name: product.name,
+					brand: brandOfShoe,
+					sale: calcBestSeller.saleAmount,
+					amountRemaining: remainingAmount,
+					colorBestSeller: colorInfo.name,
+					sizeBestSeller: sizeInfo.name,
+				});
+			}
+
+			listSummary = _.orderBy(listSummary, ["sale"], ["desc"]);
+
+			res.render("adminPages/index", {
+				orderNotConfirm,
+				orderConfirmed,
+				orderInTransit,
+				orderCompleted,
+				newUsers: newUsers.length,
+				totalUser: totalUser.length,
+				dateRange: dateRange,
+				listSummary,
+				layout: "adminLayout",
+			});
+		} catch (err) {
+			console.log(err);
+		}
 	}
 
 	// [GET] /orderNotConfirm

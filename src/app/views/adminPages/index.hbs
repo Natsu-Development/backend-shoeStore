@@ -11,14 +11,17 @@
                 <div class="form-group">
                     <label>Date Range To Statistics</label>
                     <div class='input-group'>
-                        <input type='text' class="form-control daterange" />
+                        <input type='text' class="form-control daterange" name="dateRange" value="{{dateRange}}"/>
                         <div class="input-group-append">
-                            <span class="input-group-text">
+                            <span class="input-group-text">l
                                 <span class="ft-calendar"></span>
                             </span>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-4 col-lg-4" style="margin-top: 26px; max-height: 40px">
+                <button id="btnStart" class="btn btn-primary">Start Statistics</button>
             </div>
         </div>
         <!-- Order status and amount of customer -->
@@ -26,31 +29,33 @@
             <div class="col-md-12 col-lg-8">
                 <div class="card">
                     <div class="card-header p-1">
-                        <h4 class="card-title float-left">Project X - <span class="blue-grey lighten-2 font-small-3 mb-0">24 DEC 2017 - 09 APR 2019</span></h4>
-                        <span class="badge badge-pill badge-info float-right m-0">Approved</span>
+                        <h4 class="card-title float-left">Total Orders</h4>
+                        <a href="/admin/orderNotConfirm">
+                            <span class="badge badge-pill badge-info float-right m-0">Go to Orders</span>
+                        </a>
                     </div>
                     <div class="card-content collapse show">
                         <div class="card-footer text-center p-1">
                             <div class="row">
                                 <div class="col-md-3 col-12 border-right-blue-grey border-right-lighten-5 text-center">
-                                    <p class="blue-grey lighten-2 mb-0">Tasks</p>
-                                    <p class="font-medium-5 text-bold-400">26</p>
+                                    <p class="blue-grey lighten-2 mb-0">Not Confirm</p>
+                                    <p class="font-medium-5 text-bold-400">{{orderNotConfirm}}</p>
                                 </div>
                                 <div class="col-md-3 col-12 border-right-blue-grey border-right-lighten-5 text-center">
-                                    <p class="blue-grey lighten-2 mb-0">Completed</p>
-                                    <p class="font-medium-5 text-bold-400">58%</p>
+                                    <p class="blue-grey lighten-2 mb-0">Confirmed</p>
+                                    <p class="font-medium-5 text-bold-400">{{orderConfirmed}}</p>
                                 </div>
                                 <div class="col-md-3 col-12 border-right-blue-grey border-right-lighten-5 text-center">
-                                    <p class="blue-grey lighten-2 mb-0">Pending</p>
-                                    <p class="font-medium-5 text-bold-400">42%</p>
+                                    <p class="blue-grey lighten-2 mb-0">In Transit</p>
+                                    <p class="font-medium-5 text-bold-400">{{orderInTransit}}</p>
                                 </div>
                                 <div class="col-md-3 col-12 text-center">
-                                    <p class="blue-grey lighten-2 mb-0">Version</p>
-                                    <p class="font-medium-5 text-bold-400">4.5</p>
+                                    <p class="blue-grey lighten-2 mb-0">Completed</p>
+                                    <p class="font-medium-5 text-bold-400">{{orderCompleted}}</p>
                                 </div>
                             </div>
                             <hr>
-                            <span class="text-muted"><a href="#" class="danger darken-2">Project X</a> Statistics</span>
+                            <span class="text-muted"><a href="#" class="danger darken-2">Orders Status</a> Statistics</span>
                         </div>
                     </div>
                 </div>
@@ -58,14 +63,19 @@
             <div class="col-md-12 col-lg-4">
                 <div class="card pull-up border-top-info border-top-3 rounded-0" style="min-height: 197.73px;">
                     <div class="card-header">
-                        <h4 class="card-title">New Clients <span class="badge badge-pill badge-info float-right m-0">5+</span></h4>
+                        <h4 class="card-title">
+                            Total Clients 
+                            <a href="/admin/accounts">
+                                <span class="badge badge-pill badge-info float-right m-0">Go to Accounts</span>
+                            </a>
+                        </h4>
                     </div>
                     <div class="card-content collapse show">
                         <div class="card-body p-2">
-                            <h4 class="font-large-1 text-bold-400">18.5% <i class="ft-users float-right"></i></h4>
+                            <h4 class="font-large-1 text-bold-400">{{totalUser}}<i class="ft-users float-right"></i></h4>
                         </div>
                         <div class="card-footer p-1">
-                            <span class="text-muted"><i class="la la-arrow-circle-o-up info"></i> 23.67% increase</span>
+                            <span class="text-muted"><i class="la la-arrow-circle-o-up info"></i> Have <strong class="danger darken-2">{{newUsers}}</strong> new customer in this date range</span>
                         </div>
                     </div>
                 </div>
@@ -80,7 +90,7 @@
                     <div class="card-content">
                         <div id="recent-projects" class="media-list position-relative">
                             <div class="table-responsive">
-                                <table class="table table-padded table-xl mb-0" id="recent-project-table">
+                                <table class="table table-padded table-xl mb-0 text-center" id="recent-project-table">
                                     <thead>
                                         <tr>
                                             <th class="border-top-0">Product Name</th>
@@ -92,143 +102,34 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="text-truncate align-middle">
-                                                <a href="#">X Admin</a>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-success round" type="button">Mobile</button>
-                                            </td>
-                                            <td class="text-truncate">
-                                                <ul class="list-unstyled users-list m-0">
-                                                    {{!-- <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="John Doe" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-19.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Katherine Nichols" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-18.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Joseph Weaver" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-17.png" alt="Avatar">
-                                                    </li> --}}
-                                                    <li class="avatar avatar-sm">
-                                                        <span class="badge badge-info">+2 more</span>
-                                                    </li>
-                                                </ul>
-                                            </td>
-                                            <td class="text-truncate pb-0">
-                                                <span>15th July, 2018</span>
-                                                <p class="font-small-2 text-muted"> 1 day left</p>
-                                            </td>
-                                            <td>
-                                                <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
-                                                    <div class="progress-bar bg-gradient-x-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                            <td class="text-truncate mr-1">
-                                                <a href="#">
-                                                    <i class="ft-shopping-cart blue-grey lighten-2 font-medium-5 ml-1"></i>
-                                                </a>
-                                            </td>
-                                        </tr>                                
-                                        <tr>
-                                            <td class="text-truncate align-middle">
-                                                <a href="#">Analytics UI</a>
-                                            </td>
-                                            <td class="text-truncate">
-                                                <ul class="list-unstyled users-list m-0">
-                                                    {{!-- <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="John Doe" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-17.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Katherine Nichols" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-14.png" alt="Avatar">
-                                                    </li> --}}
-                                                </ul>
-                                            </td>
-                                            <td class="text-truncate pb-0">
-                                                <span>26th May, 2018</span>
-                                                <p class="font-small-2 text-muted danger"> behind</p>
-                                            </td>
-                                            <td>
-                                                <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
-                                                    <div class="progress-bar bg-gradient-x-danger" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-truncate align-middle">
-                                                <a href="#">Traveltrip</a>
-                                            </td>
-                                            <td class="text-truncate">
-                                                <ul class="list-unstyled users-list m-0">
-                                                    {{!-- <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="John Doe" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-19.png" alt="Avatar">
-                                                    </li> --}}
-                                                </ul>
-                                            </td>
-                                            <td class="text-truncate pb-0">
-                                                <span>23rd May, 2018</span>
-                                                <p class="font-small-2 text-muted"> in 11 Days</p>
-                                            </td>
-                                            <td>
-                                                <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
-                                                    <div class="progress-bar bg-gradient-x-success" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-truncate align-middle">
-                                                <a href="#">Apex Angular</a>
-                                            </td>
-                                            <td class="text-truncate">
-                                                <ul class="list-unstyled users-list m-0">
-                                                    {{!-- <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="John Doe" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-19.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Katherine Nichols" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-18.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Joseph Weaver" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-17.png" alt="Avatar">
-                                                    </li> --}}
-                                                    <li class="avatar avatar-sm">
-                                                        <span class="badge badge-info">+1 more</span>
-                                                    </li>
-                                                </ul>
-                                            </td>
-                                            <td class="text-truncate pb-0">
-                                                <span>13th May, 2018</span>
-                                                <p class="font-small-2 text-muted"> 1 month</p>
-                                            </td>
-                                            <td>
-                                                <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
-                                                    <div class="progress-bar bg-gradient-x-warning" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-truncate align-middle">
-                                                <a href="#">Chameleon Admin</a>
-                                            </td>
-                                            <td class="text-truncate">
-                                                <ul class="list-unstyled users-list m-0">
-                                                    {{!-- <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="John Doe" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-11.png" alt="Avatar">
-                                                    </li>
-                                                    <li data-toggle="tooltip" data-popup="tooltip-custom" data-original-title="Katherine Nichols" class="avatar avatar-sm pull-up">
-                                                        <img class="media-object rounded-circle" src="../../../app-assets/images/portrait/small/avatar-s-12.png" alt="Avatar">
-                                                    </li> --}}
-                                                </ul>
-                                            </td>
-                                            <td class="text-truncate pb-0">
-                                                <span>18th July, 2018</span>
-                                                <p class="font-small-2 text-muted danger"> behind</p>
-                                            </td>
-                                            <td>
-                                                <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
-                                                    <div class="progress-bar bg-gradient-x-danger" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        {{#each listSummary}}
+                                            <tr>
+                                                <td class="text-truncate align-middle">
+                                                    <a href="#">{{this.name}}</a>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-success round" type="button">{{this.brand}}</button>
+                                                </td>
+                                                <td class="text-truncate">
+                                                    <span>Sales {{this.sale}}</span>
+                                                </td>
+                                                <td class="text-truncate pb-0">
+                                                    <span>{{this.amountRemaining}}</span>
+                                                </td>
+                                                <td>
+                                                    {{!-- <div class="progress progress-sm mt-1 mb-0 box-shadow-2">
+                                                        <div class="progress-bar bg-gradient-x-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div> --}}
+                                                    <button class="btn btn-sm btn-outline-warning round" type="button">{{this.colorBestSeller}}</button>
+                                                    <button class="btn btn-sm btn-outline-danger round" type="button">{{this.sizeBestSeller}}</button>
+                                                </td>
+                                                <td class="text-truncate mr-1">
+                                                    <a href="/product/update/{{this.shoeId}}">
+                                                        <i class="ft-shopping-cart blue-grey lighten-2 font-medium-5 ml-1" style="margin-right: 30px;"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>                                
+                                        {{/each}}
                                     </tbody>
                                 </table>
                             </div>
@@ -480,3 +381,31 @@
     </div>
 </div>
 <!-- END: Content-->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // set value for date range from localStorage
+        const storedDateRange = localStorage.getItem("dateRange");
+        if(storedDateRange) {
+            const dateRange = document.getElementsByName("dateRange")[0]; 
+            dateRange.value = storedDateRange;
+        }
+        
+        // click to start business statistic
+        const btnStart = document.getElementById("btnStart");
+
+        btnStart.addEventListener('click', (e) => {
+            e.preventDefault();
+            btnStart.disabled = true;
+            const dateRange = document.getElementsByName("dateRange")[0].value;
+
+            // set date range for statistic
+            localStorage.setItem("dateRange", dateRange);
+
+            const url=`/admin?dateRange=${encodeURIComponent(dateRange)}`;
+
+            window.location.href=url;
+        })
+    });
+</script>
+

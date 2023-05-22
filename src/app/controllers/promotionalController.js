@@ -320,6 +320,7 @@ class promotionalController {
 		// find promo and check promo is valid
 		await Promise.all(
 			listPromo.map(async (promoCode) => {
+				promoCode = promoCode.toLowerCase();
 				promo = await Promotional.findOne({
 					$and: [
 						{ code: promoCode },
