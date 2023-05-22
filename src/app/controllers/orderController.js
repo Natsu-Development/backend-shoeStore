@@ -24,6 +24,7 @@ const commonHelp = require("../../utils/commonHelp");
 const promotionalController = require("../controllers/promotionalController");
 const PAYMENT_METHOD = require("../../constants/paymentMethod");
 const PROMO_ACTIONS = require("../../constants/promoAction");
+const URL_REDIRECTS = require("../../constants/urlRedirect");
 
 class order {
 	// [GET] /order
@@ -619,7 +620,7 @@ class order {
 						) {
 							account.payments.push({
 								paymentId: payment.id,
-								status: payment.status,
+								status: payment.state,
 								method: payment.payer.payment_method,
 								payerInfo:
 									payment.payer.payer_info.first_name +
@@ -635,7 +636,7 @@ class order {
 							);
 						}
 
-						res.redirect("https://localhost:3001/order-complete");
+						res.redirect(URL_REDIRECTS.redirectSuccess);
 					}
 				);
 			});

@@ -1,4 +1,5 @@
 const paypal = require("paypal-rest-sdk");
+const URL_REDIRECTS = require("../constants/urlRedirect");
 
 // paypal configure
 paypal.configure({
@@ -6,13 +7,6 @@ paypal.configure({
 	client_id: process.env.PAYPAL_CLIENT_ID,
 	client_secret: process.env.PAYPAL_SECRET_KEY,
 });
-
-const urlRedirect = {
-	backendHost: "https://shoestore-backend-tjms.onrender.com/result-paypal",
-	frontendHost: "https://shoe-store-fe.vercel.app/checkout",
-	backendLocal: "http://localhost:3010/result-paypal",
-	frontendLocal: "https://localhost:3001/checkout",
-};
 
 const setUpPayment = (listCart, discount, userId, orderId) => {
 	let isFirstElement = true;
@@ -41,8 +35,8 @@ const setUpPayment = (listCart, discount, userId, orderId) => {
 			payment_method: "paypal",
 		},
 		redirect_urls: {
-			return_url: urlRedirect.backendHost,
-			cancel_url: urlRedirect.frontendHost,
+			return_url: URL_REDIRECTS.backendHost,
+			cancel_url: URL_REDIRECTS.frontendHost,
 		},
 		transactions: [
 			{
