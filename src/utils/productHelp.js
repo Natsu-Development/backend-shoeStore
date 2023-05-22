@@ -68,7 +68,7 @@ module.exports = {
 		await Promise.all(
 			listRate.map(async (rate) => {
 				account = await Account.findOne({ _id: rate.userId });
-				if(rate.userId === userId) {
+				if (rate.userId === userId) {
 					listUserComment.unshift({
 						picture: account?.picture || "",
 						name: account.fullname,
@@ -76,16 +76,15 @@ module.exports = {
 						comment: rate.comment,
 						date: rate.date,
 						userId: rate.userId,
-					})
-				}
-				else {
+					});
+				} else {
 					listUserComment.push({
 						picture: account?.picture || "",
 						name: account.fullname,
 						score: rate.rating,
 						comment: rate.comment,
 						date: rate.date,
-						userId: rate.userId
+						userId: rate.userId,
 					});
 				}
 
@@ -96,5 +95,16 @@ module.exports = {
 		const averageScore = Number(totalRate / listRate.length);
 
 		return { listUserComment, averageScore };
+	},
+
+	sortedBySize(listInfoByColor) {
+		// sort by size asc
+		listInfoByColor.forEach((color) => {
+			color.sizes.sort(
+				(a, b) => parseFloat(a.sizeName) - parseFloat(b.sizeName)
+			);
+		});
+
+		return listInfoByColor;
 	},
 };

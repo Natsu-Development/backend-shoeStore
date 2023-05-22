@@ -37,14 +37,14 @@
                             <p class="card-text">{{this.introduce}}</p>
                             <p class="card-text" style="color: #fa626b">{{this.price}}</p> 
                         </div>
-                        {{#when permission 'eq' 0}}
+                        {{!-- {{#when permission 'eq' 0}} --}}
                             <div class="card-footer border-top-blue-grey border-top-lighten-5 text-muted">
                                 <a href="/admin/product/update/{{this._id}}" style="margin: 18%;"><button class="btn btn-warning">Edit</button></a>
                                 <a data-id="{{this._id}}" data-toggle="modal" data-target="#shoeModal">
                                     <button class="btn btn-danger">Delete</button>
                                 </a>
                             </div>
-                        {{/when}}
+                        {{!-- {{/when}} --}}
                     </div>
                 </div>
                 {{/each}}

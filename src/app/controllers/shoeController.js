@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const fs = require("fs");
 
 const Product = require("../models/product.model");
 const Order = require("../models/order.model");
@@ -411,9 +412,26 @@ class shoeController {
 		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 			return res.redirect("back");
 		}
+
+		const listCatePro = await CategoryProduct.find({
+			proId: req.params.id,
+		}).lean();
+
+		// delete image of this shoe
+		listCatePro.forEach((catePro) => {
+			if (catePro.listImgByColor || catePro.listSizeByColor) {
+				catePro.listImgByColor.forEach((img) => {
+					// console.log(img);
+					fs.unlink("src/public/uploadWithRefactorDB/" + img, (err) =>
+						console.log(err)
+					);
+				});
+			}
+		});
+
+		await CategoryProduct.deleteMany({ proId: req.params.id });
 		await Product.deleteOne({ _id: req.params.id });
 		algoliaService.deleteData([req.params.id]);
-		//also delete category of product check in here
 		res.redirect("/admin/product");
 	}
 
@@ -578,6 +596,9 @@ class shoeController {
 					);
 				})
 			);
+
+			// sorted by size
+			listInfoByColor = productHelp.sortedBySize(listInfoByColor);
 
 			const product = await Product.findOne({ _id: req.params.id }).lean();
 			product.color = listInfoByColor; // TODO: Have a bugs in here
