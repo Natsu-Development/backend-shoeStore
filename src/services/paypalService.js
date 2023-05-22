@@ -9,24 +9,35 @@ paypal.configure({
 });
 
 const setUpPayment = (listCart, discount, userId, orderId) => {
-	let isFirstElement = true;
+	let price = 0;
 	const items = listCart.map((cart) => {
-		if (isFirstElement) {
-			isFirstElement = false;
+		if (!Number(discount.totalDiscount) > 0) {
 			return {
 				name: cart.productName,
-				price: Number(cart.productPrice - discount.totalDiscount).toFixed(2),
+				price: Number(cart.productPrice).toFixed(2),
 				currency: "USD",
 				quantity: cart.quantity,
 			};
 		}
 
-		return {
-			name: cart.productName,
-			price: Number(cart.productPrice).toFixed(2),
-			currency: "USD",
-			quantity: cart.quantity,
-		};
+		if (discount.totalDiscount > cart.productPrice) {
+			discount.totalDiscount -= Number(cart.productPrice);
+			return {
+				name: cart.productName,
+				price: Number(0).toFixed(2),
+				currency: "USD",
+				quantity: cart.quantity,
+			};
+		} else {
+			price = Number(cart.productPrice) - Number(discount.totalDiscount);
+			discount.totalDiscount = 0;
+			return {
+				name: cart.productName,
+				price: Number(price).toFixed(2),
+				currency: "USD",
+				quantity: cart.quantity,
+			};
+		}
 	});
 
 	const create_payment_json = {

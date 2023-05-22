@@ -503,6 +503,7 @@ class order {
 	async checkoutPaypal(req, res) {
 		try {
 			const { userAccount, carts } = await this.updateInfoAndGetCart(req);
+
 			if (!userAccount || !carts) {
 				return res.status(200).send({ message: "Empty cart" });
 			}
@@ -519,12 +520,19 @@ class order {
 				return res.status(200).send({ message: result.message });
 			}
 
+			if (result.totalMoney === 0) {
+				return res
+					.status(200)
+					.send({ message: "TotalMoney is 0. Please checkout with shipCOD" });
+			}
+
 			const payment = paypalService.setUpPayment(
 				carts.results,
 				result,
 				userAccount._id,
 				orderId
 			);
+			console.log(payment);
 
 			paypalService.paypal.payment.create(payment, async (error, payment) => {
 				if (error) {
