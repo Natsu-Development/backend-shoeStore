@@ -60,42 +60,48 @@ app.engine(
 			) => {
 				var output = "",
 					nameOfType,
-					flag = 0;
+					flag = 0,
+					cateAssigned;
+
+				// console.log("listCateAdded", listCateAdded);
+				// console.log("listCateOfShoe", listCateOfShoe);
+				// console.log("listCateTypeAdded", listCateTypeAdded);
+
 				for (typeIdAdded in listCateAdded) {
-					listCateOfShoe.forEach((cate) => {
-						if (cate.typeId === typeIdAdded) {
-							// get cate type added
-							for (cateType in listCateTypeAdded) {
-								if (cateType === cate.typeId) {
-									nameOfType = listCateTypeAdded[cateType][0].typeName;
-									// first letter to upperCase
-									output += `<div class="form-group">
-											<label for="exampleInputEmail1">${
-												nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
-											} of product</label>
-											<select name="cateIds" class="form-control">`;
-									flag = 1;
-									break;
-								}
+					cateAssigned = listCateOfShoe.find(
+						(cate) => cate.typeId === typeIdAdded
+					);
+					if (cateAssigned) {
+						for (cateType in listCateTypeAdded) {
+							if (cateType === cateAssigned.typeId) {
+								nameOfType = listCateTypeAdded[cateType][0].typeName;
+								// first letter to upperCase
+								output += `<div class="form-group">
+										<label for="exampleInputEmail1">${
+											nameOfType.charAt(0).toUpperCase() + nameOfType.slice(1)
+										} of product</label>
+										<select name="cateIds" class="form-control">`;
+								flag = 1;
+								break;
 							}
-
-							// get cate selected of product
-							listCateAdded[typeIdAdded].forEach((cateAdded) => {
-								if (cateAdded.cateId.toString() === cate.cateId) {
-									output += `<option value="${cateAdded.cateId}" selected>${cateAdded.cateName}</option>`;
-								} else {
-									output += `<option value="${cateAdded.cateId}">${cateAdded.cateName}</option>`;
-								}
-							});
-
-							output += `</select>
-								</div>
-							`;
-						} else {
-							// CateType product not assigned
-							flag = 0;
 						}
-					});
+
+						// get cate selected of product
+						listCateAdded[typeIdAdded].forEach((cateAdded) => {
+							if (cateAdded.cateId.toString() === cateAssigned.cateId) {
+								output += `<option value="${cateAdded.cateId}" selected>${cateAdded.cateName}</option>`;
+							} else {
+								output += `<option value="${cateAdded.cateId}">${cateAdded.cateName}</option>`;
+							}
+						});
+
+						output += `</select>
+							</div>
+						`;
+					} else {
+						// CateType product not assigned
+						flag = 0;
+					}
 				}
 
 				// execute by last object
@@ -152,6 +158,58 @@ app.engine(
 						}
 					}
 				}
+				return new Handlebars.SafeString(output);
+			},
+
+			getColorAssigned: (listColorAdded, listColorAssigned) => {
+				let assigned, output;
+				listColorAdded.forEach((color) => {
+					assigned = listColorAssigned.find(
+						(colorInfo) => colorInfo.cateId === color.cateId.toString()
+					);
+
+					if (assigned) {
+						output += `<option value="${color.cateId}" selected>${color.cateName}</option>`;
+					} else {
+						output += `<option value="${color.cateId}">${color.cateName}</option>`;
+					}
+				});
+				return new Handlebars.SafeString(output);
+			},
+
+			getSizeInfo: (listSizeAdded, listSizeOfShoe) => {
+				let isExited, output;
+				listSizeAdded.forEach((size) => {
+					isExited = listSizeOfShoe.find(
+						(info) => info.sizeId === size.cateId.toString()
+					);
+					if (isExited) {
+						output += `
+						<div class ="form-check" style="margin-bottom: 14px">
+							<input value="${size.cateId}" name="size${size.cateId}" type="hidden">
+							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
+								${size.cateName}
+							</label>
+							<input type="number" name="amountOfSize${size.cateId}" placeholder="Enter amount of this size" value="${isExited.amount}" min="0">
+							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 10px; margin-left: 20px; min-width: 30px">Price</label>
+							<input type="number" name="price${size.cateId}" placeholder="Enter price of this size" value="${isExited.price}" min="0"></input>
+						</div>
+						`;
+					} else {
+						output += `
+						<div class ="form-check" style="margin-bottom: 14px">
+							<input value="${size.cateId}" name="size${size.cateId}" type="hidden">
+							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
+								${size.cateName}
+							</label>
+							<input type="number" name="amountOfSize${size.cateId}" placeholder="Enter amount of this size" value="0" min="0">
+							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 10px; margin-left: 20px; min-width: 30px">Price</label>
+							<input type="number" name="price${size.cateId}" placeholder="Enter price of this size" value="0" min="0"></input>
+						</div>
+						`;
+					}
+				});
+
 				return new Handlebars.SafeString(output);
 			},
 

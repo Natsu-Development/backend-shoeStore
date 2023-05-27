@@ -24,41 +24,58 @@
         <div class="content-body">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">Update Product</h4>
-                            <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-                            <div class="heading-elements">
-                                <ul class="list-inline mb-0">
-                                    <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
-                                    <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
-                                    <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
-                                    <li><a data-action="close"><i class="ft-x"></i></a></li>
-                                </ul>
+                    <form method="POST" action="/admin/product/saveUpdate/{{result._id}}?_method=PUT" name="product-update-form" enctype='multipart/form-data'>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Update Product</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        <li><a data-action="close"><i class="ft-x"></i></a></li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card-content collapse show">
-                            {{!-- why have enctype and it's not work --}}
-                            <form method="POST" action="/admin/product/saveUpdate/{{result._id}}?_method=PUT" name="product-update-form" style="margin: 0 20px;" enctype='multipart/form-data'>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Name</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter shoeName" value="{{result.name}}">
+                            <div class="card-content collapse show">
+                                <div style="margin: 0 20px">
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Name</label>
+                                        <input type="text" class="form-control" name="name" placeholder="Enter shoeName" value="{{result.name}}">
+                                    </div>
+
+                                    {{!-- Get Cate Of Product Assigned And All CateType added --}}
+                                    {{#if listAnotherCate}}
+                                        {{getCategoryAssigned listAnotherCateAdded listAnotherCate listCateType}}
+                                    {{/if}}
+
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Introduce of product</label>
+                                        <textarea id="ckeditor-introduce" cols="30" rows="15" class="ckeditor">{{result.introduce}}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Description</label>
+                                        <textarea id="ckeditor-description" cols="30" rows="15" class="ckeditor">{{result.description}}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Gender</label>
+                                        <select name="gender" class="form-control">
+                                            <option value="male"
+                                                {{#when result.gender 'eq' 'male'}}
+                                                    selected
+                                                {{/when}}
+                                            >Male</option>
+                                            <option value="female"
+                                                {{#when result.gender 'eq' 'female'}}
+                                                    selected
+                                                {{/when}}
+                                            >Female</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                {{!-- Get Cate Of Product Assigned And All CateType added --}}
-                                {{#if listAnotherCate}}
-                                    {{getCategoryAssigned listAnotherCateAdded listAnotherCate listCateType}}
-                                {{/if}}
-
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Introduce of product</label>
-                                    <input type="text" class="form-control" name="introduce" placeholder="Enter the introduce of this shoe" value="{{result.introduce}}">
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputPassword1">Description</label>
-                                    <input type="text" class="form-control" name="description" placeholder="Enter Description" value="{{result.description}}">
-                                </div>
-                                <div id="imageFields">
+                                {{!-- <div id="imageFields">
                                 {{#each result.arrayImage}}
                                     <div class="form-group imageField">
                                         <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="{{this.position}}" name="checkBoxImage" onchange="getArrayImageDelete()">
@@ -95,18 +112,88 @@
                                         {{/each}}
                                     {{/else}}
                                 </div> 
-                                {{!-- <div class="form-group">
-                                    <label for="exampleInputPassword1">Total amount</label>
-                                    <input type="text" class="form-control" name="display" placeholder="Enter Description" value="{{result.amount}}" readonly>
-                                </div>    --}}
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">Price</label>
                                     <input type="text" class="form-control" name="price" placeholder="Enter Description" value="{{result.price}}">
-                                </div>
-                                <button type="button" class="btn btn-primary" id="btnUpdate">Update</button>
-                            </form>
+                                </div> --}}
+                            </div>
                         </div>
-                    </div>
+
+                        {{!-- List to choose to render color of product --}}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Choose Color</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        <li><a data-action="close"><i class="ft-x"></i></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {{!-- Selected Color --}}
+                            <div class="card-content collapse show">
+                                <div class="cart-body">
+                                    <div style="margin: 0 20px;">
+                                        <div class="form-group">
+                                            <select class="select2 form-control" id="color-select" multiple style="margin-bottom: 20px">
+                                                {{{getColorAssigned listColor listColorInfo}}}
+                                            </select>
+                                            <button id="btnRenderSelectedColor" class="btn btn-primary">Render Selected Color</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{!-- Image And Size --}}
+                        {{#each listColorInfo}}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">{{this.colorName}}</h4>
+                                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                    <div class="heading-elements">
+                                        <ul class="list-inline mb-0">
+                                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                            <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                            <li><a data-action="close"><i class="ft-x"></i></a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="card-content collapse show" style="margin: 0 20px;">
+                                    <div id="imageFields{{this.colorName}}">                                    
+                                        <div class="form-group imageField{{this.colorName}}">
+                                            {{!-- <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="0" name="checkBoxImage${color.cateName}" onclick="getArrayImageDelete${color.cateName}(0)"> --}}
+                                            <label for="exampleInputPassword1">Image Avatar</label>
+                                            <input type="file" class="form-control imageWithColor{{../this.colorName}}" name="image" placeholder="Select image" accept='image/*' value="{{this.avatar}}">
+                                            <img class="imgEdit" name="imageChange" src="/uploadWithRefactorDB/{{this.avatar}}" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
+                                        </div>
+                                        <div class="form-group imageField{{this.colorName}}">
+                                            {{!-- <input class="form-check-input" type="checkbox" id="flexCheckChecked" value="0" name="checkBoxImage${color.cateName}" onclick="getArrayImageDelete${color.cateName}(0)"> --}}
+                                            <label for="exampleInputPassword1">Image Detail</label>
+                                            {{#each this.listImgByColor}}
+                                                <input type="file" class="form-control imageWithColor{{../this.colorName}}" name="image" placeholder="Select image" accept='image/*' value="{{this}}">
+                                                <img class="imgEdit" name="imageChange" src="/uploadWithRefactorDB/{{this}}" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%;">
+                                            {{/each}}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" id="btnAddFieldImage${color.cateName}" type="button">Add field Image</button>
+                                    <button class="btn btn-primary" id="btnDeleteFieldImage${color.cateName}" type="button">Delete Image Of Shoe</button>
+                                    {{!-- Size and price of each size and color --}}
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Sizes in US/UK (Enter the amount of the shoes)</label>
+                                        {{{getSizeInfo ../listSizeAdded this.listSizeByColor}}}
+                                    </div> 
+                                </div>
+                            </div>
+                        {{/each}}
+                        <button type="button" class="btn btn-primary" id="btnUpdate">Update</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -130,7 +217,7 @@
     const imageField = document.getElementsByClassName('imageField');
 
     // add field image
-    var selectedFile = document.getElementsByName("image");
+    /*var selectedFile = document.getElementsByName("image");
     document.getElementById('btnAddFieldImage').addEventListener('click', () => {
         const position = selectedFile.length;
         listFieldImage.insertAdjacentHTML('beforeend', 
@@ -171,14 +258,22 @@
             URL.revokeObjectURL(srcImage[event.target.defaultValue].src) // free memory
         }
         console.log(arrayImageAddAndUpdate);
-    }
+    }*/
 
     // format position of field input for display Image
     
     // handle update   
     document.getElementById("btnUpdate").onclick = function(e) {
         e.preventDefault();
-        var formToUpdate = document.forms['product-update-form'];
+
+        const editorIntroduce = CKEDITOR.instances['ckeditor-introduce'].getData();
+        const editorDescription = CKEDITOR.instances['ckeditor-description'].getData();
+
+        //var formToUpdate = document.forms['product-update-form'];
+        const form = document.getElementById("product-update-form");
+        const formToUpdate = new FormData(form);
+        formToUpdate.append("introduce", editorIntroduce);
+        formToUpdate.append("description", editorDescription);
         formToUpdate.action += '&image=' + arrayImageAddAndUpdate + '&imageDelete=' + arrayImageDelete;
         formToUpdate.submit();
     }

@@ -400,17 +400,26 @@ class accountController {
 
 	async manager(req, res, next) {
 		try {
-			// employee
-			if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
+			const routerUrl = req.url;
+			// employee (just display account of customer) or admin/accountsByCustomer
+			if (
+				jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1 ||
+				routerUrl === "/accountsByCustomer"
+			) {
 				const accounts = await Account.find({ permission: 2 });
 				return res.render("adminPages/account/manager", {
 					accounts: mutipleMongooseToObject(accounts),
 					layout: "adminLayout",
-					permission: 1,
+					permission: jwtHelp.decodeTokenGetPermission(
+						req.cookies.Authorization
+					),
 				});
 			}
-			// admin
-			const accounts = await Account.find();
+
+			// admin display employee accounts
+			const accounts = await Account.find({
+				$or: [{ permission: 0 }, { permission: 1 }],
+			});
 			res.render("adminPages/account/manager", {
 				accounts: mutipleMongooseToObject(accounts),
 				layout: "adminLayout",
@@ -456,26 +465,25 @@ class accountController {
 			return res.redirect(backUrl + "?warning");
 		}
 		const newAccount = new Account(req.body);
-		newAccount
-			.save()
-			.then(() => {
-				res.redirect("/admin/accounts");
-			})
-			.catch((err) => {
-				console.log(err);
-				res.redirect("/admin/accounts");
-			});
+		await newAccount.save();
+		if (newAccount.permission === 2) {
+			return res.redirect("/admin/accountsByCustomer");
+		}
+		return res.redirect("/admin/accounts");
 	}
 
 	//[PUT] /accounts/update/:id
-	update(req, res, next) {
-		Account.updateOne({ _id: req.params.id }, req.body)
-			.then(() => {
-				res.redirect(`/admin/accounts`);
-			})
-			.catch((err) => {
-				console.log(err);
-			});
+	async update(req, res, next) {
+		const account = await Account.findOneAndUpdate(
+			{ _id: req.params.id },
+			req.body,
+			{ new: true }
+		);
+
+		if (account.permission === 2) {
+			return res.redirect("/admin/accountsByCustomer");
+		}
+		return res.redirect("/admin/accounts");
 	}
 
 	//[DELETE] /accounts/delete/:id

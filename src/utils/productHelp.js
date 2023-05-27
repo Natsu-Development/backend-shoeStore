@@ -107,4 +107,11 @@ module.exports = {
 
 		return listInfoByColor;
 	},
+
+	sortBySize(listSize) {
+		listSize = listSize.sort(
+			(a, b) => parseFloat(a.cateName) - parseFloat(b.cateName)
+		);
+		return listSize;
+	},
 };

@@ -1,6 +1,6 @@
 <!-- BEGIN: Content-->
 <div class="app-content content">
-    <div class="content-wrapper" style="margin-top: 30px;">
+    <div class="content-wrapper" style="margin-top: 22px;">
     <div class="content-wrapper-before"></div>
     <div class="content-header row">
     </div>
@@ -9,7 +9,8 @@
             <div class="col-md-12 col-lg-8">
                 <!-- Time Range -->
                 <div class="form-group">
-                    <label>Date Range To Statistics</label>
+                    <h3 class="content-header-title">Date Range To Statistics</h3>
+                    {{!-- <label style="color: white; ">Date Range To Statistics</label> --}}
                     <div class='input-group'>
                         <input type='text' class="form-control daterange" name="dateRange" value="{{dateRange}}"/>
                         <div class="input-group-append">
@@ -20,14 +21,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-4" style="margin-top: 26px; max-height: 40px">
+            <div class="col-md-4 col-lg-4" style="margin-top: 32px; max-height: 40px">
                 <button id="btnStart" class="btn btn-primary">Start Statistics</button>
             </div>
         </div>
         <!-- Order status and amount of customer -->
         <div class="row">
             <div class="col-md-12 col-lg-8">
-                <div class="card">
+                <div class="card" style="min-height: 200px;">
                     <div class="card-header p-1">
                         <h4 class="card-title float-left">Total Orders</h4>
                         <a href="/admin/orderNotConfirm">

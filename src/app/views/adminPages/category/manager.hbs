@@ -44,13 +44,14 @@
                                 <p class="card-text">Add <code>.table-bordered</code> for borders on all sides of the table and cells.</p>
                             </div> --}}
                             <div class="table-responsive">
-                                <table class="table table-bordered mb-0" style="text-align: center;">
+                                <table id="cateTable" class="table table-striped table-bordered zero-configuration" style="text-align: center;">
                                     <thead>
                                         <tr>
                                             <th>No</th>
                                             <th>{{labels.label1}}</th>
                                             <th>{{labels.label2}}</th>
-                                            <th colspan="2">Action</th>
+                                            <th>Action</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -65,8 +66,9 @@
                                                     <a data-id="{{this._id}}" data-toggle="modal" data-target="#categoryModal">
                                                         <button class="btn btn-danger">Delete</button>
                                                     </a>
-                                                </tr>
+                                                </td>
                                             {{/when}}
+                                        </tr>
                                         {{/each}}
                                     </tbody>
                                 </table>
@@ -105,6 +107,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var cateTable = $('#cateTable').DataTable({
+            columnDefs: [
+                { targets: [0, 1, 2], orderable: true },
+                { targets: [3, 4], orderable: false }
+            ],
+
+            // Set initial sorting column and direction
+            order: [[0, 'asc']]
+        });
+
         var categoryId;
 
         // DELETE

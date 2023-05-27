@@ -158,6 +158,7 @@ class shoeController {
 				return res.redirect("back");
 			}
 			upload("image")(req, res, async function (err) {
+				console.log(req.body);
 				if (err) {
 					// url for redirect back
 					const backUrl = req.header("Referer") || "/";
@@ -210,18 +211,23 @@ class shoeController {
 		if (req.query != "warning") delete req.session.errImage;
 
 		// get all Cate of product
-		const cateIdsProduct = await CategoryProduct.find({ proId: req.params.id });
+		const listCateShoe = await CategoryProduct.find({
+			proId: req.params.id,
+		}).lean();
+
 		var arrCateId = [];
-		cateIdsProduct.forEach((cateId) => {
+		listCateShoe.forEach((cateId) => {
 			arrCateId.push(cateId.cateId);
 		});
 
-		// get category of Product from CateIdsProduct
+		// get category of Product from listCateShoe
 		const resultCate = await Category.find({
 			_id: {
 				$in: arrCateId,
 			},
 		});
+
+		// console.log("resultCate: ", resultCate);
 
 		// group Cate Type Id and extract cate key
 		const groupByCateTypeId = _(resultCate)
@@ -236,38 +242,40 @@ class shoeController {
 			})
 			.value();
 
+		// console.log("groupByCateTypeId: ", groupByCateTypeId);
+
 		// get size of shoe
-		var listSize = [],
-			listSizeAdded = res.locals.listSizeAdded,
+		let listColorInfo = [],
 			listAnotherCate = [],
-			amountOfSize;
+			colorCate;
 
-		await Promise.all(
-			groupByCateTypeId.map((item) => {
-				if (item.cate.length > 1) {
-					listSizeAdded.forEach(async (cateSizeAdded) => {
-						//get amount of size of shoe
-						amountOfSize = await CategoryProduct.findOne({
-							cateId: cateSizeAdded.cateId.toString(),
-							proId: req.params.id,
-						});
+		// get another cate such as style, brand, ...
+		groupByCateTypeId.map((item) => {
+			if (item.cate.length === 1) {
+				item.cate.forEach((anotherCate) => {
+					listAnotherCate.push({
+						typeId: anotherCate.typeId,
+						cateId: anotherCate._id.toString(),
+					});
+				});
+			}
+		});
 
-						listSize.push({
-							sizeId: cateSizeAdded.cateId.toString(),
-							size: cateSizeAdded.cateName,
-							amount: amountOfSize?.amount ? amountOfSize.amount : 0,
-						});
-					});
-				} else {
-					item.cate.forEach((anotherCate) => {
-						listAnotherCate.push({
-							typeId: anotherCate.typeId,
-							cateId: anotherCate._id.toString(),
-						});
-					});
+		// get list info of color of shoe such as listSize and listImg
+		listCateShoe.forEach((catePro) => {
+			if (catePro?.listImgByColor || catePro.listSizeByColor) {
+				colorCate = resultCate.find(
+					(cate) => cate._id.toString() === catePro.cateId
+				);
+				if (colorCate) {
+					catePro.colorName = colorCate.name;
 				}
-			})
-		);
+				listColorInfo.push(catePro);
+			}
+		});
+
+		// console.log("Color", listColorInfo);
+
 		// console.log("List Cate of Product", listAnotherCate);
 		// display product need update to view...
 		Product.findOne({ _id: req.params.id })
@@ -277,7 +285,7 @@ class shoeController {
 					result,
 					// extract key[position] is key of object groupByCateTypeId to get name of this key(typeId)
 					listAnotherCate: listAnotherCate,
-					listSize: listSize,
+					listColorInfo: listColorInfo,
 					layout: "adminLayout",
 				});
 			})

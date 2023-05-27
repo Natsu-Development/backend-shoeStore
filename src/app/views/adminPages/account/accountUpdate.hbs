@@ -40,10 +40,12 @@
                         <div class="card-content collapse show">
                             {{!-- why have enctype and it's not work --}}
                             <form action="/admin/accounts/update/{{account._id}}?_method=PUT" method="POST" style="margin: 0 20px;">
-                               <div class="form-group">
-                                    <label for="exampleInputEmail1">Account Name</label>
-                                    <input type="text" class="form-control" name="accountName" placeholder="Enter account name" value="{{account.accountName}}">
-                                </div>
+                                {{#when account.accountName 'noteq' ''}}
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Account Name</label>
+                                        <input type="text" class="form-control" name="accountName" placeholder="Enter account name" value="{{account.accountName}}">
+                                    </div>
+                                {{/when}}
                                 <div class="form-group">
                                     <label for="exampleInputPassword1">Full Name</label>
                                     <input type="text" class="form-control" name="fullname" placeholder="Enter fullname" value="{{account.fullname}}">

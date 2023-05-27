@@ -9,6 +9,7 @@ const promotionalController = require("../app/controllers/promotionalController"
 
 // ACCOUNT INTERFACE
 router.get("/accounts", accountController.manager);
+router.get("/accountsByCustomer", accountController.manager);
 router.get("/accounts/add", accountController.renderCreate);
 router.get("/accounts/update/:id", accountController.renderUpdate);
 //ACCOUNT HANDLE

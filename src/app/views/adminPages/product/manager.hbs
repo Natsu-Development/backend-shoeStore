@@ -24,12 +24,12 @@
                 {{#each shoes}}
                 <div class="col-lg-4 col-md-12">
                     <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title">
+                        <div class="card-body" style="max-height: 62px; font-weight: 700; letter-spacing: 1px;">
+                            {{!-- <h4 class="card-title">
                                 {{#each listBrand}}
                                     {{{getCategory this._id this.name ../this.brand}}} 
                                 {{/each}}
-                            </h4>
+                            </h4> --}}
                             <h6 class="card-subtitle text-muted">{{this.name}}</h6>
                         </div>
                         <img class="" src="/uploadWithRefactorDB/{{this.avatar}}" alt="Card image cap" style="min-height: 380px">
