@@ -532,11 +532,13 @@ class order {
 				userAccount._id,
 				orderId
 			);
-			console.log(payment);
+
+			console.log(payment.transactions[0].item_list);
+			console.log("test", payment.transactions[0].amount);
 
 			paypalService.paypal.payment.create(payment, async (error, payment) => {
 				if (error) {
-					throw error;
+					return res.status(200).send(error);
 				} else {
 					await Account.updateOne(
 						{ _id: userAccount._id },

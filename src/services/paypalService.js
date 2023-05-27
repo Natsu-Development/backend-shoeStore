@@ -10,32 +10,41 @@ paypal.configure({
 
 const setUpPayment = (listCart, discount, userId, orderId) => {
 	let price = 0;
-	const items = listCart.map((cart) => {
+	const listCartHandle = listCart.flatMap((cart) =>
+		Array.from({ length: cart.quantity }, () => ({
+			name: cart.productName,
+			price: cart.productPrice,
+			currency: "USD",
+			quantity: 1,
+		}))
+	);
+
+	const items = listCartHandle.map((item) => {
 		if (!Number(discount.totalDiscount) > 0) {
 			return {
-				name: cart.productName,
-				price: Number(cart.productPrice).toFixed(2),
+				name: item.name,
+				price: Number(item.price).toFixed(2),
 				currency: "USD",
-				quantity: cart.quantity,
+				quantity: item.quantity,
 			};
 		}
 
-		if (discount.totalDiscount > cart.productPrice) {
-			discount.totalDiscount -= Number(cart.productPrice);
+		if (discount.totalDiscount > item.price) {
+			discount.totalDiscount -= Number(item.price) * Number(item.quantity);
 			return {
-				name: cart.productName,
+				name: item.name,
 				price: Number(0).toFixed(2),
 				currency: "USD",
-				quantity: cart.quantity,
+				quantity: item.quantity,
 			};
 		} else {
-			price = Number(cart.productPrice) - Number(discount.totalDiscount);
+			price = Number(item.price) - Number(discount.totalDiscount);
 			discount.totalDiscount = 0;
 			return {
-				name: cart.productName,
+				name: item.name,
 				price: Number(price).toFixed(2),
 				currency: "USD",
-				quantity: cart.quantity,
+				quantity: item.quantity,
 			};
 		}
 	});
