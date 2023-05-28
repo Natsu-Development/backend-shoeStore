@@ -1,4 +1,5 @@
 const Promotional = require("../models/promotional.model");
+const Account = require("../models/account.model");
 const {
 	mutipleMongooseToObject,
 	mongooseToObject,
@@ -11,7 +12,36 @@ class promotionalController {
 	// [GET] /promotional
 	async manager(req, res, next) {
 		try {
-			const promotions = await Promotional.find().lean();
+			const routerUrl = req.url;
+
+			let promotions, account;
+			if (routerUrl === "/promotionalByCustomer") {
+				promotions = await Promotional.find({
+					userId: { $exists: true },
+				}).lean();
+
+				await Promise.all(
+					promotions.map(async (promo) => {
+						promo.code = promo.code.toUpperCase();
+						promo.description = commonHelp.capitalizeFirstLetter(
+							promo.description
+						);
+						promo.startDate = commonHelp.formatDateForPromo(promo.startDate);
+						promo.endDate = commonHelp.formatDateForPromo(promo.endDate);
+						account = await Account.findOne({ _id: promo.userId });
+						promo.userName = account.fullname;
+					})
+				);
+
+				return res.render("adminPages/promotional/managerPromoByCustomer", {
+					promotes: promotions,
+					layout: "adminLayout",
+					permission: jwtHelp.decodeTokenGetPermission(
+						req.cookies.Authorization
+					),
+				});
+			}
+			promotions = await Promotional.find({ amount: { $exists: true } }).lean();
 
 			promotions.forEach((promo) => {
 				promo.code = promo.code.toUpperCase();

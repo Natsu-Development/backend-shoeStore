@@ -90,8 +90,8 @@
                 <div class="card">            
                     <div class="card-content">
                         <div id="recent-projects" class="media-list position-relative">
-                            <div class="table-responsive">
-                                <table class="table table-padded table-xl mb-0 text-center" id="recent-project-table">
+                            <div class="table-responsive" style="margin-top: 10px;">
+                                <table class="table table-striped table-bordered zero-configuration" style="text-align: center" id="recent-project-table">
                                     <thead>
                                         <tr>
                                             <th class="border-top-0">Product Name</th>
@@ -385,6 +385,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var table = $('#recent-project-table').DataTable({
+            columnDefs: [
+                { targets: [0, 1, 2, 3, 4], orderable: true },
+                { targets: [5], orderable: false }
+            ],
+
+            // Set initial sorting column and direction
+            order: [[2, 'desc']]
+        });
+
         // set value for date range from localStorage
         const storedDateRange = localStorage.getItem("dateRange");
         if(storedDateRange) {

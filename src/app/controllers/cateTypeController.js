@@ -5,6 +5,7 @@ const {
 	mongooseToObject,
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
+const commonHelp = require("../../utils/commonHelp");
 const jwtHelp = require("../../utils/jwtHelp");
 
 class cateTypeController {
@@ -44,9 +45,13 @@ class cateTypeController {
 	 */
 	async manager(req, res, next) {
 		try {
-			const cateTypes = await CategoryType.find();
+			const cateTypes = await CategoryType.find().lean();
+
+			cateTypes.forEach((cateType) => {
+				cateType.type = commonHelp.capitalizeFirstLetter(cateType.type);
+			});
 			res.render("adminPages/categoryType/manager", {
-				cateTypes: mutipleMongooseToObject(cateTypes),
+				cateTypes: cateTypes,
 				layout: "adminLayout",
 				permission: jwtHelp.decodeTokenGetPermission(req.cookies.Authorization),
 			});

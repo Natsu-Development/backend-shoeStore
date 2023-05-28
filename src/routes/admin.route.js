@@ -53,6 +53,7 @@ router.delete("/product/delete/:id", shoeController.delete);
 
 //PROMOTIONAL
 router.get("/promotional", promotionalController.manager);
+router.get("/promotionalByCustomer", promotionalController.manager);
 router.get("/promotional/add", promotionalController.renderCreate);
 router.post(
 	"/promotional/save",
