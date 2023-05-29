@@ -181,16 +181,16 @@ class shoeController {
 						await cateProduct.save();
 					}),
 					formData.listImgWithColor.map(async (color) => {
-						if (color.listSize.length > 0) {
-							const colorProduct = new CategoryProduct({
-								proId: newProduct._id,
-								cateId: color.colorId,
-								avatar: color.avatar,
-								listImgByColor: color.listImg,
-								listSizeByColor: color.listSize,
-							});
-							await colorProduct.save();
-						}
+						// if (color.listSize.length > 0) {
+						const colorProduct = new CategoryProduct({
+							proId: newProduct._id,
+							cateId: color.colorId,
+							avatar: color.avatar,
+							listImgByColor: color.listImg,
+							listSizeByColor: color.listSize,
+						});
+						await colorProduct.save();
+						// }
 					}),
 				]);
 				res.status(200).send("success");
@@ -502,9 +502,6 @@ class shoeController {
 			let listProduct = await Product.find({}).lean();
 
 			listProduct = await this.formatData(listProduct);
-
-			// syncData with algolia
-			algoliaService.updateData(listProduct);
 
 			res.json(listProduct);
 		} catch (err) {
