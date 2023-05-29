@@ -607,7 +607,7 @@ class order {
 						const account = await Account.findOne({ _id: userId });
 
 						await promotionalController.handlePromoUsed(
-							account.transaction.listPromo,
+							account.transaction?.listPromo,
 							PROMO_ACTIONS.checkoutWithPromo,
 							userId
 						);
