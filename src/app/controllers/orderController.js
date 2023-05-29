@@ -108,7 +108,7 @@ class order {
 
 				// split catePro with color and catePro with another cate
 				listCatePro.forEach((catePro) => {
-					if (catePro?.listImgByColor || catePro.listSizeByColor) {
+					if (catePro?.listImgByColor || catePro?.listSizeByColor) {
 						listInfoByColor.push({
 							id: catePro.cateId,
 							images: catePro.listImgByColor,
@@ -149,7 +149,12 @@ class order {
 				colorBestSeller = listInfoByColor.find(
 					(info) => info.id === calcBestSeller.colorIdWithMaxQuantity
 				);
-				sizeBestSeller = colorBestSeller.sizes.find(
+
+				// if info of product is not available
+				if (!colorBestSeller) {
+					continue;
+				}
+				sizeBestSeller = colorBestSeller?.sizes?.find(
 					(size) => size.sizeId === calcBestSeller.sizeIdWithMaxQuantity
 				);
 
@@ -158,8 +163,8 @@ class order {
 						_id: { $in: listCateId },
 					}).lean(),
 					Product.findOne({ _id: shoeId }),
-					Category.findOne({ _id: colorBestSeller.id }),
-					Category.findOne({ _id: sizeBestSeller.sizeId }),
+					Category.findOne({ _id: colorBestSeller?.id }),
+					Category.findOne({ _id: sizeBestSeller?.sizeId }),
 				]);
 
 				await Promise.all(
@@ -172,13 +177,13 @@ class order {
 				);
 
 				listSummary.push({
-					shoeId: product._id,
-					name: product.name,
+					shoeId: product?._id,
+					name: product?.name,
 					brand: brandOfShoe,
 					sale: calcBestSeller.saleAmount,
 					amountRemaining: remainingAmount,
-					colorBestSeller: colorInfo.name,
-					sizeBestSeller: sizeInfo.name,
+					colorBestSeller: colorInfo?.name,
+					sizeBestSeller: sizeInfo?.name,
 				});
 			}
 
