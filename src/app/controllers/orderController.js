@@ -735,7 +735,8 @@ class order {
 			orderDetails = mutipleMongooseToObject(orderDetails);
 
 			// get info of product
-			const results = [];
+			let results = [],
+				totalOrder = 0;
 			await Promise.all(
 				orderDetails.map(async (orderDetail) => {
 					const { shoeInfo, infoBySizeId, size } = await cartHelp.getShoeInfo(
@@ -758,11 +759,16 @@ class order {
 					orderDetail.productPrice = infoBySizeId.price;
 					orderDetail.sizeName = size.name;
 
+					totalOrder +=
+						Number(orderDetail.productPrice) * Number(orderDetail.quantity);
+
 					results.push(orderDetail);
 				})
 			);
 
-			res.status(200).send({ results, total: order?.total });
+			const discount = Number(totalOrder) - Number(order?.total);
+
+			res.status(200).send({ results, total: order?.total, discount });
 		} catch (err) {
 			console.log(err);
 			res.status(200).send({ message: "Invalid input" });
