@@ -158,7 +158,6 @@ class shoeController {
 				return res.redirect("back");
 			}
 			upload("image")(req, res, async function (err) {
-				console.log(req.body);
 				if (err) {
 					// url for redirect back
 					const backUrl = req.header("Referer") || "/";
@@ -170,30 +169,37 @@ class shoeController {
 				const formData = req.body;
 				formData.cateIds = formData.cateIds.filter((cate) => cate.length > 0);
 				formData.listImgWithColor = JSON.parse(formData.listImgWithColor);
-				const product = new Product(formData);
-				const newProduct = await product.save();
-				await Promise.all([
-					formData.cateIds.map(async (cateId) => {
-						const cateProduct = new CategoryProduct({
-							cateId: cateId,
-							proId: newProduct._id,
-						});
-						await cateProduct.save();
-					}),
-					formData.listImgWithColor.map(async (color) => {
-						// if (color.listSize.length > 0) {
-						const colorProduct = new CategoryProduct({
-							proId: newProduct._id,
-							cateId: color.colorId,
-							avatar: color.avatar,
-							listImgByColor: color.listImg,
-							listSizeByColor: color.listSize,
-						});
-						await colorProduct.save();
-						// }
-					}),
-				]);
-				res.status(200).send("success");
+				formData.listDeleteImg = JSON.parse(formData.listDeleteImg);
+				// delete image
+				if (formData.listDeleteImg.length > 0) {
+					imageHelp.deleteImages(formData.listDeleteImg);
+				}
+
+				// create data
+				// const product = new Product(formData);
+				// const newProduct = await product.save();
+				// await Promise.all([
+				// 	formData.cateIds.map(async (cateId) => {
+				// 		const cateProduct = new CategoryProduct({
+				// 			cateId: cateId,
+				// 			proId: newProduct._id,
+				// 		});
+				// 		await cateProduct.save();
+				// 	}),
+				// 	formData.listImgWithColor.map(async (color) => {
+				// 		// if (color.listSize.length > 0) {
+				// 		const colorProduct = new CategoryProduct({
+				// 			proId: newProduct._id,
+				// 			cateId: color.colorId,
+				// 			avatar: color.avatar,
+				// 			listImgByColor: color.listImg,
+				// 			listSizeByColor: color.listSize,
+				// 		});
+				// 		await colorProduct.save();
+				// 		// }
+				// 	}),
+				// ]);
+				// res.status(200).send("success");
 			});
 		} catch (err) {
 			console.log(err);
@@ -428,12 +434,7 @@ class shoeController {
 		// delete image of this shoe
 		listCatePro.forEach((catePro) => {
 			if (catePro.listImgByColor || catePro.listSizeByColor) {
-				catePro.listImgByColor.forEach((img) => {
-					// console.log(img);
-					fs.unlink("src/public/uploadWithRefactorDB/" + img, (err) =>
-						console.log(err)
-					);
-				});
+				imageHelp.deleteImages(catePro.listImgByColor);
 			}
 		});
 
@@ -898,6 +899,14 @@ class shoeController {
 			listProduct.map(async (product) => {
 				// objectID for algolia
 				product.objectID = product._id;
+
+				// rating score
+				const totalScore = product?.commentAndRate?.reduce(
+					(sum, { rating }) => sum + rating,
+					0
+				);
+				product.rateScore =
+					Number(totalScore) / Number(product?.commentAndRate?.length) || 0;
 
 				let listCateId = [],
 					listCatePro = [],
