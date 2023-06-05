@@ -176,30 +176,28 @@ class shoeController {
 				}
 
 				// create data
-				// const product = new Product(formData);
-				// const newProduct = await product.save();
-				// await Promise.all([
-				// 	formData.cateIds.map(async (cateId) => {
-				// 		const cateProduct = new CategoryProduct({
-				// 			cateId: cateId,
-				// 			proId: newProduct._id,
-				// 		});
-				// 		await cateProduct.save();
-				// 	}),
-				// 	formData.listImgWithColor.map(async (color) => {
-				// 		// if (color.listSize.length > 0) {
-				// 		const colorProduct = new CategoryProduct({
-				// 			proId: newProduct._id,
-				// 			cateId: color.colorId,
-				// 			avatar: color.avatar,
-				// 			listImgByColor: color.listImg,
-				// 			listSizeByColor: color.listSize,
-				// 		});
-				// 		await colorProduct.save();
-				// 		// }
-				// 	}),
-				// ]);
-				// res.status(200).send("success");
+				const product = new Product(formData);
+				const newProduct = await product.save();
+				await Promise.all([
+					formData.cateIds.map(async (cateId) => {
+						const cateProduct = new CategoryProduct({
+							cateId: cateId,
+							proId: newProduct._id,
+						});
+						await cateProduct.save();
+					}),
+					formData.listImgWithColor.map(async (color) => {
+						const colorProduct = new CategoryProduct({
+							proId: newProduct._id,
+							cateId: color.colorId,
+							avatar: color.avatar,
+							listImgByColor: color.listImg,
+							listSizeByColor: color.listSize,
+						});
+						await colorProduct.save();
+					}),
+				]);
+				res.status(200).send("success");
 			});
 		} catch (err) {
 			console.log(err);
@@ -717,10 +715,16 @@ class shoeController {
 								}
 								shoeIdValid = true;
 
-								await Product.updateOne(
+								let updateProduct = await Product.findOneAndUpdate(
 									{ _id: rate.shoeId },
-									{ commentAndRate: product.commentAndRate }
-								);
+									{ commentAndRate: product.commentAndRate },
+									{ new: true }
+								).lean();
+
+								updateProduct = [updateProduct];
+
+								const resultFormat = await this.formatData(updateProduct);
+								algoliaService.updateData(resultFormat);
 							}
 						})
 					);
