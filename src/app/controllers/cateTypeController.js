@@ -84,11 +84,12 @@ class cateTypeController {
 	}
 
 	// [GET] /categoryType/getAll
-	getAll(req, res) {
-		CategoryType.find().then((cateTypes) => {
-			cateTypes = mutipleMongooseToObject(cateTypes);
-			res.send(cateTypes);
+	async getAll(req, res) {
+		const listCateType = await CategoryType.find().lean();
+		listCateType.forEach((type) => {
+			type.type = commonHelp.capitalizeFirstLetter(type.type);
 		});
+		res.send(listCateType);
 	}
 
 	/**

@@ -68,7 +68,7 @@
                                             <td>{{this.total}}</td>
                                             <td>
                                                 {{#when this.status 'noteq' 3}}
-                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})">
+                                                    <button type="button" class="btn btn-primary" id="btnConfirm" onclick="changeStatusOrder({{this._id}}, {{this.status}})" style="{{#when this.status 'eq' 2}} pointer-events: none; opacity: 0.5; cursor: not-allowed;{{/when}}">
                                                         {{#when this.status 'eq' 0}}
                                                             Confirm
                                                         {{/when}}
@@ -127,20 +127,22 @@
             order: [[0, 'asc']]
         });
 
-        function changeStatusOrder(orderId, currentStatus) {
-            // form and button for change order status
-            var changeStatusOrderForm = document.forms['confirm-order-form'];
-            // When click button confirm to change order status
-            changeStatusOrderForm.action = `/admin/order/changeOrderStatus/${orderId}/${currentStatus}?_method=PUT`;
-            changeStatusOrderForm.submit();
-        }
+    });
 
-        function revertStatusOrder(orderId, currentStatus) {
-            // form and button for revert order status
-            var revertStatusOrderForm = document.forms['revert-order-form'];
-            // When click button confirm to revert order status
-            revertStatusOrderForm.action = `/admin/order/revertStatus/${orderId}/${currentStatus}?_method=PUT`;
-            revertStatusOrderForm.submit();
-        }    
+    function changeStatusOrder(orderId, currentStatus) {
+        console.log("test");
+        // form and button for change order status
+        var changeStatusOrderForm = document.forms['confirm-order-form'];
+        // When click button confirm to change order status
+        changeStatusOrderForm.action = `/admin/order/changeOrderStatus/${orderId}/${currentStatus}?_method=PUT`;
+        changeStatusOrderForm.submit();
     }
+
+    function revertStatusOrder(orderId, currentStatus) {
+        // form and button for revert order status
+        var revertStatusOrderForm = document.forms['revert-order-form'];
+        // When click button confirm to revert order status
+        revertStatusOrderForm.action = `/admin/order/revertStatus/${orderId}/${currentStatus}?_method=PUT`;
+        revertStatusOrderForm.submit();
+    }    
 </script>

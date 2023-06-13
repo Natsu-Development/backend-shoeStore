@@ -8,7 +8,7 @@ const commonHelp = require("./commonHelp");
 
 class orderHelp {
 	// format order when client check out cart
-	formatOrder(arrayShoeId, arraySize, arrayQuantity, arrayPrice) {
+	formatOrder(arrayShoeId, arraySize, arrayQuantity, arrayPrice, arrayColor) {
 		var output = [];
 		// if order don't have any suborder
 		if (arrayQuantity === undefined) {
@@ -18,9 +18,10 @@ class orderHelp {
 		if (arrayQuantity.length === 1) {
 			output.push({
 				shoeId: arrayShoeId,
-				size: arraySize,
+				sizeId: arraySize,
 				quantity: arrayQuantity,
 				price: arrayPrice,
+				colorId: arrayColor,
 			});
 			return output;
 		}
@@ -29,9 +30,10 @@ class orderHelp {
 		for (var i = 0; i < arrayQuantity.length; i++) {
 			output.push({
 				shoeId: arrayShoeId[i],
-				size: arraySize[i],
+				sizeId: arraySize[i],
 				quantity: arrayQuantity[i],
 				price: arrayPrice[i],
+				colorId: arrayColor[i],
 			});
 		}
 		return output;
@@ -167,6 +169,7 @@ class orderHelp {
 	async decreaseAmountProduct(newSubOrder) {
 		let isNotEnough = false,
 			message;
+
 		const catePro = await CategoryProduct.findOne({
 			cateId: newSubOrder.colorId,
 			proId: newSubOrder.shoeId,

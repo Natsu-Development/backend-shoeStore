@@ -6,11 +6,21 @@ const {
 const nodemailer = require("nodemailer");
 
 class mailService {
-	sendMailAfterCheckout(emailReceiver, promoCode) {
+	sendMailAfterCheckout(emailReceiver, dateTime) {
 		const subject = "Thanks for your order";
 		const html = `
-			<span>Check out success and here is your promotion for next order. Thanks for your order</span>
-			<h1>${promoCode}</h1>
+			<span>Check out success, please wait for confirmation from admin. Thanks for your order</span>
+			<h1>Date&Time: ${dateTime}</h1>
+		`;
+		this.sendMail(emailReceiver, html, subject);
+	}
+
+	sendMailAfterComplete(emailReceiver, promoCode, dateTime) {
+		const subject = "Order Completed";
+		const html = `
+			<span>Order completed and here is your promotion for next order. Thanks for your order!</span>
+			<h1>Date & Time: ${dateTime}</h1>
+			<h1>Promotional: ${promoCode}</h1>
 		`;
 		this.sendMail(emailReceiver, html, subject);
 	}

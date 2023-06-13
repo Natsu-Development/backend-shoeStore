@@ -36,7 +36,7 @@ router.delete("/cancelOrder/:orderId", orderController.cancelOrder);
 // confirmed delivered
 router.post(
 	"/confirmDelivered/:orderId",
-	orderController.customerConfirmedDelivered
+	orderController.customerConfirmedDelivered.bind(orderController)
 );
 
 router.get("/checkoutComplete", (req, res) => {

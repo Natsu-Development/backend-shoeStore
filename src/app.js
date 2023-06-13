@@ -89,9 +89,15 @@ app.engine(
 						// get cate selected of product
 						listCateAdded[typeIdAdded].forEach((cateAdded) => {
 							if (cateAdded.cateId.toString() === cateAssigned.cateId) {
-								output += `<option value="${cateAdded.cateId}" selected>${cateAdded.cateName}</option>`;
+								output += `<option value="${cateAdded.cateId}" selected>${
+									cateAdded.cateName.charAt(0).toUpperCase() +
+									cateAdded.cateName.slice(1)
+								}</option>`;
 							} else {
-								output += `<option value="${cateAdded.cateId}">${cateAdded.cateName}</option>`;
+								output += `<option value="${cateAdded.cateId}">${
+									cateAdded.cateName.charAt(0).toUpperCase() +
+									cateAdded.cateName.slice(1)
+								}</option>`;
 							}
 						});
 
@@ -150,7 +156,9 @@ app.engine(
 
 							// get all cate of this type
 							listAnotherCate[typeIdOfCate].forEach((cate) => {
-								output += `<option value="${cate.cateId}">${cate.cateName}</option>`;
+								output += `<option value="${cate.cateId}">${
+									cate.cateName.charAt(0).toUpperCase() + cate.cateName.slice(1)
+								}</option>`;
 							});
 							output += `</select>
 								</div>
@@ -163,7 +171,7 @@ app.engine(
 
 			getColorAssigned: (listColorAdded, listColorAssigned) => {
 				let assigned, output;
-				listColorAdded.forEach((color) => {
+				listColorAdded?.forEach((color) => {
 					assigned = listColorAssigned.find(
 						(colorInfo) => colorInfo.cateId === color.cateId.toString()
 					);
@@ -177,34 +185,34 @@ app.engine(
 				return new Handlebars.SafeString(output);
 			},
 
-			getSizeInfo: (listSizeAdded, listSizeOfShoe) => {
+			getSizeInfo: (listSizeAdded, colorInfo) => {
 				let isExited, output;
 				listSizeAdded.forEach((size) => {
-					isExited = listSizeOfShoe.find(
+					isExited = colorInfo.listSizeByColor.find(
 						(info) => info.sizeId === size.cateId.toString()
 					);
 					if (isExited) {
 						output += `
 						<div class ="form-check" style="margin-bottom: 14px">
-							<input value="${size.cateId}" name="size${size.cateId}" type="hidden">
+							<input value="${size.cateId}" name="size${colorInfo.cateId}" type="hidden">
 							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
 								${size.cateName}
 							</label>
-							<input type="number" name="amountOfSize${size.cateId}" placeholder="Enter amount of this size" value="${isExited.amount}" min="0">
+							<input type="number" name="amountOfSize${colorInfo.cateId}" placeholder="Enter amount of this size" value="${isExited.amount}" min="0">
 							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 10px; margin-left: 20px; min-width: 30px">Price</label>
-							<input type="number" name="price${size.cateId}" placeholder="Enter price of this size" value="${isExited.price}" min="0"></input>
+							<input type="number" name="price${colorInfo.cateId}" placeholder="Enter price of this size" value="${isExited.price}" min="0"></input>
 						</div>
 						`;
 					} else {
 						output += `
 						<div class ="form-check" style="margin-bottom: 14px">
-							<input value="${size.cateId}" name="size${size.cateId}" type="hidden">
+							<input value="${size.cateId}" name="size${colorInfo.cateId}" type="hidden">
 							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 50px; min-width: 30px">
 								${size.cateName}
 							</label>
-							<input type="number" name="amountOfSize${size.cateId}" placeholder="Enter amount of this size" value="0" min="0">
+							<input type="number" name="amountOfSize${colorInfo.cateId}" placeholder="Enter amount of this size" value="0" min="0">
 							<label class="form-check-label" for="flexCheckDefault" style="margin-right: 10px; margin-left: 20px; min-width: 30px">Price</label>
-							<input type="number" name="price${size.cateId}" placeholder="Enter price of this size" value="0" min="0"></input>
+							<input type="number" name="price${colorInfo.cateId}" placeholder="Enter price of this size" value="0" min="0"></input>
 						</div>
 						`;
 					}

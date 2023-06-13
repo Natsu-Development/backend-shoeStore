@@ -67,9 +67,35 @@ class shoeController {
 		listProduct = await this.formatData(listProduct);
 		algoliaService.updateData(listProduct);
 
+		const searchQuery = req.query.search || "";
+		const filteredItems = listProduct.filter((item) =>
+			item.name.toLowerCase().includes(searchQuery.toLowerCase())
+		);
+
+		const limit = 6;
+		const page = parseInt(req.query.page) || 1;
+
+		const totalPages = Math.ceil(filteredItems.length / limit);
+
+		const prevPage = page > 1 ? page - 1 : null;
+		const nextPage = page < totalPages ? page + 1 : null;
+
+		const startIndex = (page - 1) * limit;
+		const endIndex = startIndex + limit;
+
+		const pageItems = filteredItems.slice(startIndex, endIndex);
+		const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+
 		res.render("adminPages/product/manager", {
-			shoes: listProduct,
+			shoes: pageItems,
+			hasPrevPage: prevPage !== null,
+			prevPage,
+			pages,
+			currentPage: page,
+			hasNextPage: nextPage !== null,
+			nextPage,
 			layout: "adminLayout",
+			searchQuery,
 		});
 	}
 
@@ -272,7 +298,7 @@ class shoeController {
 					(cate) => cate._id.toString() === catePro.cateId
 				);
 				if (colorCate) {
-					catePro.colorName = colorCate.name;
+					catePro.colorName = commonHelp.capitalizeFirstLetter(colorCate.name);
 				}
 				listColorInfo.push(catePro);
 			}
@@ -309,7 +335,7 @@ class shoeController {
 				req.session.errImage = err;
 				return res.redirect(backUrl + "?warning");
 			}
-
+			console.log(req.body);
 			// update category for Product
 			// get all Cate of product
 			const cateIdsProduct = await CategoryProduct.find({
@@ -340,14 +366,20 @@ class shoeController {
 				})
 				.value();
 
+			console.log(groupByCateTypeId);
+			console.log(res.locals.listAnotherCateAdded);
+
 			const listAnotherCateAdded = res.locals.listAnotherCateAdded;
 			let arrayIdUpdate = req.body.cateIds;
-			let listSizeUpdate = productHelp.setAmountForSize(
-				req.body.sizeId,
-				req.body.amountOfSize
-			);
+			let listInfoColor = JSON.parse(req.body.listImgWithColor),
+				listImgDelete = JSON.parse(req.body.listDeleteImg);
 
-			// update category for Product(create new or update)
+			// delete image
+			if (listImgDelete.length > 0) {
+				imageHelp.deleteImages(listImgDelete);
+			}
+
+			// update category for Product(update)
 			await Promise.all([
 				req.body.cateIds.map((idUpdate) => {
 					// update new cate
@@ -361,8 +393,6 @@ class shoeController {
 									(cate) =>
 										cate.cateId.toString() === oldCate.cate[0]._id.toString()
 								);
-							// Have a one case not have check in here insert a new cate for product ....
-
 							if (existedCate) {
 								arrayIdUpdate = arrayIdUpdate.filter(
 									(newId) => newId !== idUpdate
@@ -379,8 +409,24 @@ class shoeController {
 						});
 					}
 				}),
+
+				// update or create color info for this shoe
+				listInfoColor.map(async (color) => {
+					await CategoryProduct.findOneAndUpdate(
+						{ proId: req.params.id, cateId: color.colorId },
+						{
+							$set: {
+								listImgByColor: color.listImg,
+								listSizeByColor: color.listSize,
+								avatar: color.avatar,
+							},
+						},
+						{ upsert: true }
+					);
+				}),
 			]);
 
+			// add new Cate
 			await Promise.all([
 				arrayIdUpdate.forEach((newCate) => {
 					for (let typeId in listAnotherCateAdded) {
@@ -395,22 +441,14 @@ class shoeController {
 						});
 					}
 				}),
-				listSizeUpdate.forEach(async (size) => {
-					await CategoryProduct.findOneAndUpdate(
-						{ proId: req.params.id, cateId: size.sizeId },
-						{ amount: size.amount }
-					);
-				}),
 			]);
 
 			// get information of product and update product
 			Product.findOne({ _id: req.params.id })
 				.then((product) => {
 					product = mongooseToObject(product);
-					req.body.arrayImage = imageHelp.handleImageUpdate(req, product);
-					// console.log("Req.body", req.body);
 					Product.updateOne({ _id: req.params.id }, req.body).then(() => {
-						res.redirect("/admin/product");
+						res.status(200).send("success update");
 					});
 				})
 				.catch((err) => {
@@ -570,18 +608,23 @@ class shoeController {
 				listAnotherCate = [],
 				listInfoByColor = [];
 
-			listCatePro.forEach((catePro) => {
-				if (catePro?.listImgByColor || catePro.listSizeByColor) {
-					listInfoByColor.push({
-						id: catePro.cateId,
-						images: catePro.listImgByColor,
-						sizes: catePro.listSizeByColor,
-						avatar: catePro.avatar,
-					});
-				} else {
-					listCateId.push(catePro.cateId);
-				}
-			});
+			let colorName;
+			await Promise.all(
+				listCatePro.map(async (catePro) => {
+					if (catePro?.listImgByColor || catePro.listSizeByColor) {
+						colorName = await Category.findOne({ _id: catePro.cateId });
+						listInfoByColor.push({
+							id: catePro.cateId,
+							images: catePro.listImgByColor,
+							sizes: catePro.listSizeByColor,
+							avatar: catePro.avatar,
+							colorName: commonHelp.capitalizeFirstLetter(colorName.name),
+						});
+					} else {
+						listCateId.push(catePro.cateId);
+					}
+				})
+			);
 
 			const listCate = await Category.find({ _id: { $in: listCateId } });
 			listCate.forEach((cate) => {
@@ -948,7 +991,7 @@ class shoeController {
 
 					groupByTypeId[typeId].forEach((cate) => {
 						product[typeName.type] = product[typeName.type] || [];
-						product[typeName.type].push(cate.name);
+						product[typeName.type].push(commonHelp.capitalizeFirstLetter(cate.name));
 					});
 				}
 			})

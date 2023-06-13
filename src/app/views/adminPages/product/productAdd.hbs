@@ -48,13 +48,13 @@
                                     {{!-- Get all CateTyped added and category of this type --}}
                                     {{getAnotherCateAdded listCateType listAnotherCateAdded}}
                                     
-                                    <div class="form-group">
+                                    <div class="form-group" style="display: flex; flex-direction: column"> 
                                         <label for="exampleInputEmail1">Introduce of product</label>
-                                        <textarea id="ckeditor-introduce" cols="30" rows="15" class="ckeditor"></textarea>
+                                        <textarea name="introduce" placeholder="Enter introduce for Shoe"></textarea>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group" style="display: flex; flex-direction: column">
                                         <label for="exampleInputPassword1">Description</label>
-                                        <textarea id="ckeditor-description" cols="30" rows="15" class="ckeditor"></textarea>
+                                        <textarea name="description" placeholder="Enter description for Shoe"></textarea>
                                     </div>
                                     {{#if errImage}}
                                         <div class="alert alert-warning" role="alert">
@@ -139,7 +139,7 @@
                     listRenderSelectedColor.insertAdjacentHTML("beforeend", 
                         `<div class="card" color-id="${color.cateId}">
                             <div class="card-header">
-                                <h4 class="card-title">${color.cateName}</h4>
+                                <h4 class="card-title">${color.cateName.charAt(0).toUpperCase() + color.cateName.slice(1)}</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -315,11 +315,23 @@
         listColorSelected.splice(colorId, 1);
 
         // delete it in list selected Color
-        let selectElement = document.getElementById('color-select');
+        let selectElement = document.getElementsByClassName('select2-selection__choice');
+        let infoColor;
+        for (let i = 0; i < selectElement.length; i++) {
+            infoColor = listColor.find((color) => color.cateName === selectElement[i].title);
 
-        for (let i = 0; i < selectElement.options.length; i++) {
-            if(selectElement.options[i].value === colorId) {
-                selectElement.options[i].remove();
+            if(infoColor.cateId.toString() === colorId) {
+                selectElement[i].remove();
+                break;
+            }
+        }
+        
+        // unselected from select option component
+        let selectOptions = document.getElementById('color-select');
+
+        for (let i = 0; i < selectOptions.options.length; i++) {
+            if(selectOptions.options[i].value === colorId) {
+                selectOptions.options[i].selected = false;
                 break;
             }
         }
@@ -331,9 +343,6 @@
         event.preventDefault();
 
         buttonSubmit.disabled = true;
-
-        const editorIntroduce = CKEDITOR.instances['ckeditor-introduce'].getData();
-        const editorDescription = CKEDITOR.instances['ckeditor-description'].getData();
 
         const form = document.getElementById("product-add-form");
         const formData = new FormData(form);
@@ -378,9 +387,6 @@
             });
         });
 
-        // ck editors
-        formData.append("introduce", editorIntroduce);
-        formData.append("description", editorDescription);
         // image list info and delete Image
         formData.append("listDeleteImg", JSON.stringify(listDeleteImg));
         formData.append("listImgWithColor", JSON.stringify(listInfoWithColor));

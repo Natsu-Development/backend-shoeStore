@@ -10,6 +10,7 @@ const {
 } = require("../../utils/mongoose");
 const categoryHelp = require("../../utils/categoryHelp");
 const jwtHelp = require("../../utils/jwtHelp");
+const commonHelp = require("../../utils/commonHelp");
 
 class cateController {
 	/**
@@ -55,11 +56,14 @@ class cateController {
 		try {
 			const catesByType = await Category.find({
 				typeId: req.params.typeId,
-			});
+			}).lean();
 			const type = await CategoryType.findById(req.params.typeId);
+			catesByType.forEach((cate) => {
+				cate.name = commonHelp.capitalizeFirstLetter(cate.name);
+			});
 
 			res.render("adminPages/category/manager", {
-				catesByType: mutipleMongooseToObject(catesByType),
+				catesByType: catesByType,
 				type: mongooseToObject(type),
 				labels: categoryHelp.setUpLabels(type.type),
 				layout: "adminLayout",

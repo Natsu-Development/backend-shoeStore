@@ -355,37 +355,49 @@ class order {
 	}
 
 	//[GET] /order/add
-	create(req, res) {
-		res.render("adminPages/order/orderAdd", { layout: "adminLayout" });
+	async create(req, res) {
+		res.render("adminPages/order/orderAdd", {
+			layout: "adminLayout",
+		});
 	}
 
 	//[POST] /order/save
 	async saveCreate(req, res) {
-		var order = {
-			customerId: req.body.customerId,
-			total: orderHelp.setTotalForNewOrder(req.body.price, req.body.quantity),
-			status: 1,
-		};
-		var listOrderDetails = orderHelp.formatOrder(
-			req.body.shoeId,
-			req.body.size,
-			req.body.quantity,
-			req.body.price
-		);
-		const nextOrderId = await orderHelp.getOrderId(); // orderId
-		for (var i = 0; i < listOrderDetails.length; i++) {
-			orderHelp.decreaseAmountProduct(listOrderDetails[i]);
-			listOrderDetails[i].orderDetailId = nextOrderId;
-			const newOrderDetail = new OrderDetail(listOrderDetails[i]);
-			await newOrderDetail.save();
+		try{
+			let order = {
+				customerId: req.body.customerId,
+				total: orderHelp.setTotalForNewOrder(req.body.price, req.body.quantity),
+				status: 1,
+				isRate: false,
+				paymentMethod: req.body.payment,
+			};
+			let listOrderDetails = orderHelp.formatOrder(
+				req.body.shoeId,
+				req.body.size,
+				req.body.quantity,
+				req.body.price,
+				req.body.color
+			);
+			const nextOrderId = await orderHelp.getOrderId(); // orderId
+			await Promise.all(
+				listOrderDetails.map(async (item) => {
+					await orderHelp.decreaseAmountProduct(item);
+					item.orderDetailId = nextOrderId;
+					const newOrderDetail = new OrderDetail(item);
+					await newOrderDetail.save();
+				})
+			);
+			const newOrder = new Order(order);
+			newOrder
+				.save()
+				.then(() => {
+					res.redirect("/admin/orderConfirmed");
+				})
+				.catch((err) => console.log(err));
 		}
-		const newOrder = new Order(order);
-		newOrder
-			.save()
-			.then(() => {
-				res.redirect("/admin/orderConfirmed");
-			})
-			.catch((err) => console.log(err));
+		catch(err) {
+			console.log(err);
+		}
 	}
 
 	/**
@@ -442,15 +454,18 @@ class order {
 				return res.status(200).send({ message: result.message });
 			}
 
-			const { listCartId, newOrderCreated } =
-				await this.createOrderAndHandleAmount(
-					result.totalMoney,
-					userAccount._id,
-					carts.results,
-					PAYMENT_METHOD.shipCOD
-				);
+			const { listCartId, newOrderCreated } = await this.createOrder(
+				result.totalMoney,
+				userAccount._id,
+				carts.results,
+				PAYMENT_METHOD.shipCOD
+			);
 
-			await this.sendMailWithPromo(userAccount, newOrderCreated._id);
+			mailService.sendMailAfterCheckout(
+				userAccount.email,
+				commonHelp.formatDateTime(newOrderCreated.createdAt)
+			);
+
 			await this.notificationOrderAdmin(
 				userAccount,
 				newOrderCreated._id,
@@ -612,15 +627,18 @@ class order {
 							userId
 						);
 
-						const { listCartId, newOrderCreated } =
-							await this.createOrderAndHandleAmount(
-								transaction.amount.total,
-								userId,
-								account.transaction.listCart,
-								PAYMENT_METHOD.paypal
-							);
+						const { listCartId, newOrderCreated } = await this.createOrder(
+							transaction.amount.total,
+							userId,
+							account.transaction.listCart,
+							PAYMENT_METHOD.paypal
+						);
 
-						await this.sendMailWithPromo(account, newOrderCreated._id);
+						mailService.sendMailAfterCheckout(
+							account.email,
+							commonHelp.formatDateTime(newOrderCreated.createdAt)
+						);
+
 						await this.notificationOrderAdmin(
 							account,
 							newOrderCreated._id,
@@ -797,12 +815,23 @@ class order {
 	 */
 	async customerConfirmedDelivered(req, res) {
 		try {
-			// get status of order
-			const order = await Order.findOne({ _id: req.params.orderId });
+			const userId = jwtHelp.decodeTokenGetUserId(
+				req.headers.authorization.split(" ")[1]
+			);
+			const [order, account] = await Promise.all([
+				Order.findOne({ _id: req.params.orderId, customerId: userId }),
+				Account.findOne({ _id: userId }),
+			]);
 
-			if (order.status !== 2) {
-				return res.status(403).send({ message: "Forbidden request" });
+			if (!order || order.status !== 2) {
+				return res.status(403).send({ message: "Order Not Found" });
 			}
+
+			this.sendMailWithPromo(
+				account,
+				order._id,
+				commonHelp.formatDateTime(order.createdAt)
+			);
 
 			Order.updateOne(
 				{ _id: req.params.orderId },
@@ -893,12 +922,7 @@ class order {
 		return discount;
 	}
 
-	async createOrderAndHandleAmount(
-		totalMoney,
-		userId,
-		listCart,
-		paymentMethod
-	) {
+	async createOrder(totalMoney, userId, listCart, paymentMethod) {
 		const listCartId = []; // list Cart Id to delete cart
 
 		//create new order
@@ -928,37 +952,20 @@ class order {
 					cateId: cart.colorId,
 					proId: cart.productId,
 				});
-
-				if (catePro) {
-					// get the size of shoe and eliminate amount of it
-					catePro.listSizeByColor.forEach((size) => {
-						if (size.sizeId === cart.sizeId) {
-							size.amount -= cart.quantity;
-						}
-					});
-					// update
-					await CatePro.updateOne(
-						{
-							cateId: cart.colorId,
-							proId: cart.productId,
-						},
-						{ listSizeByColor: catePro.listSizeByColor }
-					);
-				}
 			})
 		);
 
 		return { listCartId, newOrderCreated };
 	}
 
-	async sendMailWithPromo(userAccount, orderId) {
+	async sendMailWithPromo(userAccount, orderId, dateTime) {
 		//send mail and coupon code for next order to customer
 		const promoCode = await promoController.promoCheckoutSuccess(
 			userAccount._id,
 			orderId
 		);
 
-		mailService.sendMailAfterCheckout(userAccount.email, promoCode);
+		mailService.sendMailAfterComplete(userAccount.email, promoCode, dateTime);
 	}
 
 	async notificationOrderAdmin(userAccount, orderId, dateTime) {
