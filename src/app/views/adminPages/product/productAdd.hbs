@@ -42,7 +42,7 @@
                                 <div style="margin: 0 20px;">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">Name</label>
-                                        <input type="text" class="form-control" name="name" placeholder="Enter shoeName">
+                                        <input type="text" class="form-control" name="name" placeholder="Enter shoeName" required>
                                     </div>
                                     
                                     {{!-- Get all CateTyped added and category of this type --}}
@@ -50,11 +50,11 @@
                                     
                                     <div class="form-group" style="display: flex; flex-direction: column"> 
                                         <label for="exampleInputEmail1">Introduce of product</label>
-                                        <textarea name="introduce" placeholder="Enter introduce for Shoe"></textarea>
+                                        <textarea name="introduce" placeholder="Enter introduce for Shoe" required></textarea>
                                     </div>
                                     <div class="form-group" style="display: flex; flex-direction: column">
                                         <label for="exampleInputPassword1">Description</label>
-                                        <textarea name="description" placeholder="Enter description for Shoe"></textarea>
+                                        <textarea name="description" placeholder="Enter description for Shoe" required></textarea>
                                     </div>
                                     {{#if errImage}}
                                         <div class="alert alert-warning" role="alert">
@@ -63,7 +63,7 @@
                                     {{/if}}  
                                     <div class="form-group">
                                         <label for="exampleInputPassword1">Gender</label>
-                                        <select name="gender" class="form-control">
+                                        <select name="gender" class="form-control" required>
                                             <option value="male">Male</option>
                                             <option value="female">Female</option>
                                         </select>
@@ -155,13 +155,13 @@
                                 <div id="imageFields${color.cateName}">                                    
                                     <div class="form-group imageField${color.cateName}">
                                         <label for="exampleInputPassword1">Image Avatar</label>
-                                        <input type="file" class="form-control imageWithColor${color.cateName}" name="image" placeholder="Select image" accept='image/*' value="0" onclick="displayImg${color.cateName}(0)">
+                                        <input type="file" class="form-control imageWithColor${color.cateName}" name="image" placeholder="Select image" accept='image/*' value="0" onclick="displayImg${color.cateName}(0)" required>
                                         <img class="imgEdit" name="imageChange${color.cateName}" src="" alt="Images of product" style="width: 25%;max-height: 310px;margin: 0.5% 37.5%; min-height: 105px; min-width: 10%; display: none">
-                                        <input type="hidden" value="" name="avatar${color.cateName}">
+                                        <input type="hidden" name="avatar${color.cateName}">
                                     </div>
                                     <div class="form-group imageField${color.cateName}">
                                         <label for="exampleInputPassword1">Images Details</label>
-                                        <input type="file" class="form-control imageWithColor${color.cateName}" name="image" id="image" value="1" onclick="displayImg${color.cateName}(1)" multiple>
+                                        <input type="file" class="form-control imageWithColor${color.cateName}" name="image" id="image" value="1" onclick="displayImg${color.cateName}(1)" multiple required>
                                     </div>
                                 </div>
 
@@ -347,16 +347,58 @@
         const form = document.getElementById("product-add-form");
         const formData = new FormData(form);
 
-        let listInfoWithColor = [], listToUpload = [];
+        if(formData.get('name') === '' || formData.get('introduce') === '' || formData.get('description') === '') {
+            alert("Please fill out all common information of this shoe");
+            buttonSubmit.disabled = false;
+            return;
+        }
+
+        if(listColorSelected.length === 0) {
+            alert("Please choose color, and fill out all info of this color");
+            buttonSubmit.disabled = false;
+            return;
+        }
+
+        let listInfoWithColor = [], isValid = false, isErr = false, checkAmount, checkPrice;
 
         listColor.forEach((color) => {
             listColorSelected.forEach((colorId) => {
                 if(color.cateId === colorId) {
+                    isValid = false;
                     const avatar = document.getElementsByName(`avatar${color.cateName}`);
                     const images = document.getElementsByName(`imageName${color.cateName}`);
                     const size = document.getElementsByName(`size${color.cateId}`);
                     const amountOfSize = document.getElementsByName(`amountOfSize${color.cateId}`);
                     const price = document.getElementsByName(`price${color.cateId}`);
+
+                    if(avatar[0].value === '') {
+                        alert(`Please choose image avatar for color: ${color.cateName}`);
+                        buttonSubmit.disabled = false;
+                        return;
+                    }
+
+                    if(images.length === 0) {
+                        alert(`Please choose images details for color: ${color.cateName}`);
+                        buttonSubmit.disabled = false;
+                        return;
+                    }
+
+                    // validate size and price of this color
+                    for (let i = 0; i < amountOfSize.length; i++) {
+                        checkAmount = parseInt(amountOfSize[i].value);
+                        checkPrice = parseInt(price[i].value);
+
+                        // Check if amount and price are filled and greater than 0
+                        if (checkAmount > 0 && checkPrice > 0) {
+                            isValid = true;
+                            break;
+                        }
+                    }
+
+                    if (!isValid) {
+                        alert(`Please fill in at least one amount and price of color: ${color.cateName.toUpperCase()}, and make sure they are greater than 0.`);
+                        isErr = true;
+                    }
 
                     const length = size.length;
                     let listSize = [], listImage = [];
@@ -375,8 +417,6 @@
                         }
                     }
 
-                    // validate in here
-
                     listInfoWithColor.push({
                         colorId: color.cateId,
                         listImg: listImage,
@@ -386,6 +426,11 @@
                 }
             });
         });
+
+        if(isErr) {
+            buttonSubmit.disabled = false;
+            return;
+        }
 
         // image list info and delete Image
         formData.append("listDeleteImg", JSON.stringify(listDeleteImg));

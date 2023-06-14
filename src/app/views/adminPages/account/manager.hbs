@@ -26,12 +26,14 @@
                         <div class="card-header" style="display: flex; align-items: center">
                             <h4 class="card-title">List of Accounts</h4>
                             <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-                            <select id="authTypeFilter" class="form-control" style="width: 20%; margin-left: 20px; max-height: 30px;">
-                                <option value="" selected>Filter By AuthType</option>
-                                <option value="local">Local</option>    
-                                <option value="facebook">Facebook</option>                                  
-                                <option value="google">Google</option>
-                            </select>
+                            {{#when routerUrl 'eq' '/accountsByCustomer'}}
+                                <select id="authTypeFilter" class="form-control" style="width: 20%; margin-left: 20px; max-height: 30px;">
+                                    <option value="" selected>Filter By AuthType</option>
+                                    <option value="local">Local</option>    
+                                    <option value="facebook">Facebook</option>                                  
+                                    <option value="google">Google</option>
+                                </select>
+                            {{/when}}
                             <div class="heading-elements" style="top: 14px">
                                 <ul class="list-inline mb-0"> 
                                     <a href="/admin/accounts/add"><button class="btn btn-primary">Add Account</button></a>

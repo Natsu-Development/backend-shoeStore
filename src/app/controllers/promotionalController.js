@@ -65,7 +65,7 @@ class promotionalController {
 		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 			return res.redirect("back");
 		}
-		if (req.query != "warning") delete req.session.errImage;
+		if (req.query != "warning") delete req.session.errText;
 		res.render("adminPages/promotional/promoAdd", {
 			layout: "adminLayout",
 		});
@@ -77,6 +77,7 @@ class promotionalController {
 			if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 				return res.redirect("back");
 			}
+			if (req.query != "warning") delete req.session.errText;
 			const promo = await Promotional.findById({ _id: req.params.id }).lean();
 			promo.code = promo.code.toUpperCase();
 			promo.description = commonHelp.capitalizeFirstLetter(promo.description);

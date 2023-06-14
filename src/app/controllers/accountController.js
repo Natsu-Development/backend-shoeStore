@@ -413,6 +413,7 @@ class accountController {
 					permission: jwtHelp.decodeTokenGetPermission(
 						req.cookies.Authorization
 					),
+					routerUrl
 				});
 			}
 
@@ -432,19 +433,36 @@ class accountController {
 
 	// [GET] /accounts/renderCreate
 	renderCreate(req, res) {
-		if (req.query != "warning") delete req.session.errImage;
+		if (req.query != "warning") delete req.session.errText;
+		const routerUrl = req.headers.referer;
+		let addCustomer = false;
+		if(routerUrl?.includes("/accountsByCustomer")) {
+			addCustomer = true;
+		}
+		console.log(routerUrl);
+		console.log("test", addCustomer);
 		res.render("adminPages/account/addAccount", {
 			layout: "adminLayout",
+			addCustomer
 		});
 	}
 
 	// [GET] /accounts/update/:id
 	renderUpdate(req, res) {
+		if (req.query != "warning") delete req.session.errText;
+		const routerUrl = req.headers.referer;
+		let restrictPermission = false;
+		if(routerUrl?.includes("/accountsByCustomer")) {
+			restrictPermission = true;
+		}
+		console.log(routerUrl);
+		console.log(restrictPermission);
 		Account.findById({ _id: req.params.id })
 			.then((account) => {
 				res.render("adminPages/account/accountUpdate", {
 					account: mongooseToObject(account),
 					layout: "adminLayout",
+					restrictPermission
 				});
 			})
 			.catch((err) => console.log(err));
@@ -453,9 +471,14 @@ class accountController {
 	//[POST] /accounts/save
 	async create(req, res) {
 		req.body.authType = "local";
+		if(!req.body.accountName) {
+			req.body.accountName = req.body.email;
+		}
+		console.log(req.body);
 		const existedAccount = await Account.findOne({
 			accountName: req.body.accountName,
 		});
+		console.log(existedAccount);
 		if (existedAccount) {
 			// url for redirect back
 			const backUrl = req.header("Referer") || "/";
@@ -465,6 +488,7 @@ class accountController {
 			return res.redirect(backUrl + "?warning");
 		}
 		const newAccount = new Account(req.body);
+		console.log(newAccount);
 		await newAccount.save();
 		if (newAccount.permission === 2) {
 			return res.redirect("/admin/accountsByCustomer");

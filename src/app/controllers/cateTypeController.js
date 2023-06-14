@@ -62,6 +62,7 @@ class cateTypeController {
 
 	// [GET] /categoryType/renderCreate
 	renderCreate(req, res) {
+		if (req.query != "warning") delete req.session.errText;
 		res.render("adminPages/categoryType/addCategoryType", {
 			layout: "adminLayout",
 		});
@@ -69,6 +70,7 @@ class cateTypeController {
 
 	// [GET] /categoryType/renderUpdate
 	renderUpdate(req, res) {
+		if (req.query != "warning") delete req.session.errText;
 		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 			return res.redirect("back");
 		}
@@ -120,13 +122,20 @@ class cateTypeController {
 	 *         description: Error
 	 */
 	// [POST] /categoryType/add
-	create(req, res) {
+	async create(req, res) {
 		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 			return res.redirect("back");
 		}
 		// req.body.type = req.query.type;
 		const newCategory = req.body;
 		const cate = new CategoryType(newCategory);
+		if (await this.isExitedType(cate.type)) {
+			const backUrl = req.header("Referer") || "/";
+			//throw error for the view...
+			req.session.errText =
+				"This cate type already existed. Please try again.";
+			return res.redirect(backUrl + "?warning");
+		}
 		cate
 			.save()
 			.then(() => {
@@ -191,9 +200,15 @@ class cateTypeController {
 	 *         description: Error
 	 */
 	//[PUT] /categoryType/update/:id
-	update(req, res) {
+	async update(req, res) {
 		if (jwtHelp.decodeTokenGetPermission(req.cookies.Authorization) === 1) {
 			return res.redirect("back");
+		}
+		if (await this.isExitedType(req.body.type)) {
+			const backUrl = req.header("Referer") || "/";
+			//throw error for the view...
+			req.session.errText = "This cate type already existed. Please try again.";
+			return res.redirect(backUrl + "?warning");
 		}
 		CategoryType.updateOne({ _id: req.params.id }, req.body)
 			.then(() => {
@@ -265,6 +280,12 @@ class cateTypeController {
 			.catch((err) => {
 				next(err);
 			});
+	}
+
+	async isExitedType(cateType) {
+		const isExited = await CategoryType.findOne({ type: cateType });
+		if (!isExited) return false;
+		return true;
 	}
 }
 

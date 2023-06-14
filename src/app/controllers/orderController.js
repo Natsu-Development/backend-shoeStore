@@ -258,6 +258,7 @@ class order {
 
 	//[GET] /order/orderUpdate/:id
 	orderUpdate(req, res) {
+		if (req.query != "warning") delete req.session.errText;
 		OrderDetail.find({ orderDetailId: req.params.id }).then((orderDetails) => {
 			orderDetails = mutipleMongooseToObject(orderDetails);
 			res.render("adminPages/order/orderUpdate", {
@@ -356,6 +357,7 @@ class order {
 
 	//[GET] /order/add
 	async create(req, res) {
+		if (req.query != "warning") delete req.session.errText;
 		res.render("adminPages/order/orderAdd", {
 			layout: "adminLayout",
 		});
@@ -379,14 +381,27 @@ class order {
 				req.body.color
 			);
 			const nextOrderId = await orderHelp.getOrderId(); // orderId
+			let flag = 0, messageErr;
 			await Promise.all(
 				listOrderDetails.map(async (item) => {
-					await orderHelp.decreaseAmountProduct(item);
+					const handle = await orderHelp.decreaseAmountProduct(item);
+					if(handle?.isError) {
+						flag = 1;
+						messageErr = handle?.message;
+					}
 					item.orderDetailId = nextOrderId;
 					const newOrderDetail = new OrderDetail(item);
 					await newOrderDetail.save();
 				})
 			);
+			if(flag === 1) {
+				// url for redirect back
+				const backUrl = req.header("Referer") || "/";
+				//throw error for the view...
+				req.session.errText = messageErr;
+				return res.redirect(backUrl + "?warning");
+			}
+
 			const newOrder = new Order(order);
 			newOrder
 				.save()

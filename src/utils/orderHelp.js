@@ -15,7 +15,7 @@ class orderHelp {
 			return;
 		}
 
-		if (arrayQuantity.length === 1) {
+		if (!Array.isArray(arrayQuantity)) {
 			output.push({
 				shoeId: arrayShoeId,
 				sizeId: arraySize,
@@ -175,17 +175,24 @@ class orderHelp {
 			proId: newSubOrder.shoeId,
 		});
 
-		catePro?.listSizeByColor?.map((size) => {
-			if (size.sizeId === newSubOrder.sizeId) {
-				// not enough quantity
-				if (Number(newSubOrder.quantity) > Number(size.amount)) {
-					isNotEnough = true;
-					message = `Not Enough Quantity with product ${newSubOrder.shoeId} & size ${newSubOrder.sizeId} & color${newSubOrder.colorId}`;
-					return;
+		await Promise.all(
+			catePro?.listSizeByColor?.map(async(size) => {
+				if (size.sizeId === newSubOrder.sizeId) {
+					// not enough quantity
+					if (Number(newSubOrder.quantity) > Number(size.amount)) {
+						isNotEnough = true;
+						const [shoe, size, color] = await Promise.all([
+							Product.findOne({_id: newSubOrder.shoeId}),
+							Category.findOne({_id: newSubOrder.sizeId}),
+							Category.findOne({_id: newSubOrder.colorId})
+						]);
+						message = `Not Enough Quantity with product: ${shoe?.name.toUpperCase()} & size: ${size?.name.toUpperCase()} & color: ${color?.name.toUpperCase()}`;
+						return;
+					}
+					size.amount -= Number(newSubOrder.quantity);
 				}
-				size.amount -= Number(newSubOrder.quantity);
-			}
-		});
+			})
+		)
 
 		if (isNotEnough) {
 			return { isError: true, message };

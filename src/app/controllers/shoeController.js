@@ -608,15 +608,22 @@ class shoeController {
 				listAnotherCate = [],
 				listInfoByColor = [];
 
-			let colorName;
+			let colorName, listSize = [];
 			await Promise.all(
 				listCatePro.map(async (catePro) => {
 					if (catePro?.listImgByColor || catePro.listSizeByColor) {
 						colorName = await Category.findOne({ _id: catePro.cateId });
+						listSize = [];
+						catePro.listSizeByColor.forEach((size) => {
+							if(size.amount > 0) {
+								listSize.push(size);
+							}
+						});
+						console.log("List Size", listSize);
 						listInfoByColor.push({
 							id: catePro.cateId,
 							images: catePro.listImgByColor,
-							sizes: catePro.listSizeByColor,
+							sizes: listSize,
 							avatar: catePro.avatar,
 							colorName: commonHelp.capitalizeFirstLetter(colorName.name),
 						});

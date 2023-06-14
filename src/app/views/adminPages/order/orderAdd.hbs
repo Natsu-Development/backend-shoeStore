@@ -43,7 +43,7 @@
                                 <div style="margin: 0 20px;">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">Customer's name</label>
-                                        <select name="customerId" class="form-control">
+                                        <select name="customerId" class="form-control" required>
                                             <option value="">Select Customer</option>
                                             {{#each listCustomer}}
                                                 <option value="{{this._id}}">{{this.fullname}}</option>
@@ -62,6 +62,11 @@
                             </div>
                         </div>
 
+                        {{#if errText}}
+                            <div class="alert alert-warning" role="alert">
+                                {{errText}}
+                            </div>
+                        {{/if}}
                         {{!-- Info of subOrder --}}
                         <div id="listSubOrder">
                             <div class="card">
@@ -82,7 +87,7 @@
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Name Of Shoe</label>
                                             <div id="select-wrapper1" style="position: relative;">
-                                                <select name="shoeId" class="form-control" onchange="getColorOfShoe(this, 1)">
+                                                <select name="shoeId" class="form-control" onchange="getColorOfShoe(this, 1)" required>
                                                     <option value="">Select Shoe</option>
                                                     {{#each listShoe}}
                                                         <option value="{{this._id}}">{{this.name}}</option>
@@ -92,13 +97,13 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Color</label>
-                                            <select name="color" class="form-control" id="setColor1" onchange="getSizeOfShoe(this, 1)">
+                                            <select name="color" class="form-control" id="setColor1" onchange="getSizeOfShoe(this, 1)" required>
                                             
                                             </select>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Size</label>
-                                            <select name="size" class="form-control" id="setSize1" onchange="getPrice(this , 1)">
+                                            <select name="size" class="form-control" id="setSize1" onchange="getPrice(this , 1)" required>
                                             
                                             </select>
                                         </div>
@@ -108,7 +113,7 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputPassword1">Quantity</label>
-                                            <input type="text" class="form-control" name="quantity" placeholder="Enter Quantity">
+                                            <input type="number" class="form-control" name="quantity" placeholder="Enter Quantity" required>
                                         </div>
                                     </div>
                                 </div>

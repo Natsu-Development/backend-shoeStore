@@ -25,8 +25,8 @@ router.get("/category/add/:typeId", cateController.renderCreate);
 router.get("/category/update/:typeId/:cateId", cateController.renderUpdate);
 // Handle
 router.get("/category/:typeId", cateController.manager);
-router.post("/category/:typeId/add", cateController.create);
-router.put("/category/update/:typeId/:cateId", cateController.update);
+router.post("/category/:typeId/add", cateController.create.bind(cateController));
+router.put("/category/update/:typeId/:cateId", cateController.update.bind(cateController));
 router.delete("/category/delete/:id", cateController.delete);
 router.get("/category/:slug", cateController.findCategoryByName);
 
@@ -37,8 +37,8 @@ router.get("/categoryType/update/:id", cateTypeController.renderUpdate);
 // API
 router.get("/categoryType", cateTypeController.manager);
 router.get("/categoryType/getAll", cateTypeController.getAll);
-router.post("/categoryType/add", cateTypeController.create);
-router.put("/categoryType/update/:id", cateTypeController.update);
+router.post("/categoryType/add", cateTypeController.create.bind(cateTypeController));
+router.put("/categoryType/update/:id", cateTypeController.update.bind(cateTypeController));
 router.delete("/categoryType/delete/:id", cateTypeController.delete);
 router.get("/categoryType/:slug", cateTypeController.findCategoryByName);
 
