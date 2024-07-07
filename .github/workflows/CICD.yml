@@ -34,3 +34,5 @@ jobs:
             docker pull iamzion/shoe-store
             cd docker_service_setup
             docker-compose -f docker-compose.shoe_store.yaml up -d
+            # Remove old image
+            docker rmi $(docker images | grep '<none>' | awk '{ print $3 }')
