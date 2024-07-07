@@ -12,10 +12,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      # - name: Create .env file
-      #   run: echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
       - name: Login to docker hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin ${{ secrets.DOCKER_PASSWORD }} 
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: Build docker image
         run: docker build -t iamzion/shoe-store . 
       - name: Publish image to docker hub
@@ -32,8 +30,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Docker pull & build
-        run:
-          docker login -u ${{ secrets.DOCKER_USERNAME }} ---password-stdin ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker pull iamzion/shoe-store
           docker image rm -f iamzion/shoe-store
           docker-compose -f docker_service_setup/docker-compose.shoe_store.yaml up -d
