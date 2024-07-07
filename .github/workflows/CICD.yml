@@ -29,9 +29,13 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Remove old image
+        run: |
+          docker rm -f iamzion/shoe-store
+          docker image rm -f iamzion/shoe-store 
       - name: Docker pull & build
         run: |
           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker pull iamzion/shoe-store
-          docker image rm -f iamzion/shoe-store
-          docker-compose -f docker_service_setup/docker-compose.shoe_store.yaml up -d
+          cd docker_service_setup
+          docker-compose -f docker-compose.shoe_store.yaml up -d
