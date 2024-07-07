@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  shoe_store:
+    image: shoe-store:1.0
+    restart: always
+    deploy: 
+      resources:
+        limits:
+          cpus: '0.20' 
+          memory: 200M
+    container_name: shoe-store
+    ports:
+      - '3010:3010' 
+    networks: 
+      - service-network
+
+networks:
+  service-network:
+    external: true

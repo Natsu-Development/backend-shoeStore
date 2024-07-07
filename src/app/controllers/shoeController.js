@@ -529,18 +529,43 @@ class shoeController {
 	async displayAllProduct(req, res) {
 		try {
 			// if have request search Product
-			if (req.query.search) {
-				let object = productHelp.setCondition(req.query, "search");
-				let products = await Product.find(object).lean();
-				products = await this.formatData(products);
-				return res.status(200).send(products);
+			// if (req.query.search) {
+			// 	let object = productHelp.setCondition(req.query, "search");
+			// 	let products = await Product.find(object).lean();
+			// 	products = await this.formatData(products);
+			// 	return res.status(200).send(products);
+			// }
+			// // display all product
+			// let listProduct = await Product.find({}).lean();
+
+			// listProduct = await this.formatData(listProduct);
+
+			// res.json(listProduct);
+			let test;
+			for(let i = 0; i<10000; i++) {
+				test = new Product({
+					name: `product-${i}`,
+					description: `description-${i}`,
+					introduce: i%2 === 0 ? `introduce-male` : "introduce_female",
+					gender: i%2===0 ? "female": "male",
+					price: i%2===0 && 200 || i%3 === 0 && 300 || i%5 ===0 ? 500 : 1000
+				})
+				await test.save();
 			}
-			// display all product
-			let listProduct = await Product.find({}).lean();
 
-			listProduct = await this.formatData(listProduct);
+			// Product.collection.dropIndexes(function (err, results) {
+			// 	// Handle errors
+			// 	console.log(results);
+			// });
 
-			res.json(listProduct);
+			// Product.collection.find({ name: "product-100"}).explain("executionStats", (err, explain) => {
+			// 	console.log('MongoDebug: ', explain);
+			//   });
+			// Product.collection.getIndexes({full: true}).then(indexes => {
+			// 	console.log("indexes:", indexes);
+			// }).catch(console.error);
+
+			res.status(200).send("success");
 		} catch (err) {
 			console.error(err);
 			res.status(200).send(err.message);

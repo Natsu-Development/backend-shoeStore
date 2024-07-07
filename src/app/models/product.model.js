@@ -7,13 +7,14 @@ const Product = new Schema({
 	name: { type: String, maxLength: 255 },
 	introduce: { type: String },
 	description: { type: String },
-	slug: { type: String, slug: "name", unique: true },
+	// slug: { type: String, slug: "name", unique: true },
 	gender: {
 		type: String,
 		enum: ["male", "female"],
 		default: "male",
 	},
 	commentAndRate: { type: Array, default: [] },
+	price: {type: Number}
 });
 
 module.exports = mongoose.model("Product", Product);
