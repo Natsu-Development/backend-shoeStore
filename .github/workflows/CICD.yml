@@ -32,7 +32,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Docker pull & build
-        script: |
+        run:
           docker login -u ${{ secrets.DOCKER_USERNAME }} ---password-stdin ${{ secrets.DOCKER_PASSWORD }}
           docker pull iamzion/shoe-store
           docker image rm -f iamzion/shoe-store
