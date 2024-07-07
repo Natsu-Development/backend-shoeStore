@@ -21,18 +21,18 @@ jobs:
       - name: Publish image to docker hub
         run: docker push iamzion/shoe-store
 
-deploy:
-  needs: build
-  runs-on: ubuntu-latest
-  steps:
-    - name: Deploy to AWS EC2
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker pull iamzion/shoe-store
-          docker image rm -f iamzion/shoe-store
-          docker-compose -f docker_service_setup/docker-compose.shoe_store.yaml up -d
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull iamzion/shoe-store
+            docker image rm -f iamzion/shoe-store
+            docker-compose -f docker_service_setup/docker-compose.shoe_store.yaml up -d
